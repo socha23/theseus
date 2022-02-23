@@ -1,0 +1,164 @@
+html, body, .viewport {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+  }
+
+  #root, .app {
+    height: 100%;
+}
+
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+.button {
+    cursor: pointer;
+    border: 1px solid black;
+    border-radius: 2px;
+    padding: 3px;
+    position: relative;
+}
+
+.button.disabled {
+    color: grey;
+    border-color: grey;
+}
+
+.button .progressPadding {
+    background-color: green;
+    position: relative;
+}
+
+.button .progress {
+    background-color: red;
+    height: 20px;
+    position: absolute;
+}
+
+.button .container {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+
+
+
+
+.slider {
+    width: 100%;
+    height: 20px;
+    cursor: pointer;
+}
+
+.slider .sliderTrack {
+    top: 10px;
+    background-color: black;
+    height: 1px;
+}
+
+.slider .sliderThumb {
+    width: 10px;
+    height: 20px;
+    border-radius: 3px;
+    background-color: black;
+}
+
+
+.standardActions {
+    display: flex;
+    gap: 5px;
+}
+
+.standardActions .button.recentlyCompleted {
+    border-color: red;
+}
+
+
+.throttleActions {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 5px;
+}
+
+.throttleActions .button.selected {
+    background-color: #aaaaaa;
+}
+
+
+
+.directionActions {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+}
+
+.directionActions .button {
+    flex-grow: 1;
+}
+
+.directionActions .button .name{
+    display: none;
+}
+
+.directionActions .button.active {
+    background-color: #aaaaaa;
+}
+
+.directionActions .button .container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    font-size: 20pt;
+}
+
+
+
+.sub {
+    padding: 15px;
+    display: flex;
+    gap: 5px;
+}
+
+.subsystemsRow {
+    display: flex;
+    gap: 15px;
+}
+
+.subsystemsColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.subsystem {
+    border: 1px solid black;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 200px;
+}
+
+.subsystem .titleBar {
+    font-weight: bold;
+}
+
+.subsystem .ammo {
+    display: flex;
+    gap: 3px;
+    vertical-align: midz=dle;;
+}
+
+
+

@@ -17,7 +17,7 @@ class Game {
         }
         this.gameModel.updateState(delta, this.actionController)
         this.lastStateUpate = time
-        this.actionController.resetKeysPressed()
+        this.actionController.reset()
         return this.gameModel.toViewState()
     }
 }
@@ -28,11 +28,13 @@ class ActionController {
         this._currentAction = null
         this.keysDown = {}
         this.keysPressed = {}
+        this.targetEntityId = null
     }
 
     isCurrent(action) {
         return this._currentAction != null && action.id == this._currentAction.id
     }
+
 
     onClick(action) {
         if (!action.usesPressToActivate) {
@@ -73,8 +75,9 @@ class ActionController {
         this.keysPressed[key] = true
     }
 
-    resetKeysPressed() {
+    reset() {
         this.keysPressed = {}
+        this.targetEntityId = null
     }
 }
 

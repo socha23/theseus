@@ -6,6 +6,7 @@ export const SUBSYSTEM_CATEGORIES = {
     WEAPON: "WEAPON",
     STATUS: "STATUS",
     NAVIGATION: "NAVIGATION",
+    SONAR: "SONAR",
 }
 
 
@@ -32,6 +33,10 @@ class Subsystem {
     }
 
     isEngine() {
+        return false
+    }
+
+    isTracking() {
         return false
     }
 
@@ -217,9 +222,45 @@ export class SubStatusScreen extends Subsystem {
 
 ////////////////////////////////////////
 
+export class Tracking extends Subsystem {
+    constructor(id, name) {
+        super(id, name, SUBSYSTEM_CATEGORIES.STATUS)
+        this.trackingDetails = null
+    }
+
+    getTrackingDetails(entity) {
+        return {
+            entityId: entity.id,
+            position: entity.getPosition(),
+            orientation: entity.getOrientation(),
+            speed: entity.speedVector.length(),
+        }
+    }
+
+
+    updateState(deltaMs, model, actionController) {
+        if (model.sub.targetEntity) {
+            this.trackingDetails = this.getTrackingDetails(model.sub.targetEntity)
+        } else {
+            this.trackingDetails = null
+        }
+    }
+
+    toViewState() {
+        return {
+            ...super.toViewState(),
+            tracking: this.trackingDetails,
+            showsTracking: true,
+        }
+    }
+
+}
+
+////////////////////////////////////////
+
 export class Sonar extends Subsystem {
     constructor(id, name, template) {
-        super(id, name, SUBSYSTEM_CATEGORIES.STATUS)
+        super(id, name, SUBSYSTEM_CATEGORIES.SONAR)
         this.position = Point.ZERO
         this.range = template.range
         this.orientation = 0
@@ -246,6 +287,11 @@ export class Sonar extends Subsystem {
                 color: "red",
                 position: e.getPosition(),
                 radius: e.getRadius(),
+                entityId: e.id,
+                entityWidth: e.body.volume.width,
+                entityLength: e.body.volume.length,
+                entityOrientation: e.body.orientation,
+                targetted: e == model.sub.targetEntity,
             }})
     }
 
@@ -283,11 +329,16 @@ export class Sub extends Entity {
         super("sub", new Body(new Point(0, 0), volume, Math.PI / 2))
         this.subsystems = subsystems
 
+        this.targetEntity = null
+
         this._engine = this._findSubsystem(Engine)
         this._steering = this._findSubsystem(Steering)
     }
 
     updateState(deltaMs, model, actionController) {
+        if (actionController.targetEntityId != null) {
+            this.targetEntity = model.world.getEntity(actionController.targetEntityId)
+        }
         this.subsystems.forEach(s => s.updateState(deltaMs, model, actionController))
         this._updatePosition(deltaMs)
     }

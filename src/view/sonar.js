@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import {Stage, Layer, Line, Circle, Rect, Container, Group} from 'react-konva'
+import {Stage, Layer, Line, Circle, Rect, Container, Group, Arc} from 'react-konva'
 import { toDegrees } from "../units";
 
-const SIZE_PX = 200
+const SIZE_PX = 400
 
 
 function SonarBackground({position, scale}) {
@@ -38,42 +38,50 @@ function SonarBackground({position, scale}) {
 
 }
 
-function Entity({entity}) {
-    const p = entity.getPosition()
-    const h = entity.getWidth() + 4
-    const w = entity.getLength() + 2
-    return <Group x={-w/2} y={-h/2} offsetX={-p.x -w /2} offsetY={-p.y - h/2}>
-        <Group offsetX={w/2} offsetY={h/2} rotation={toDegrees(entity.getOrientation())}>
-            <Line points={[-2, h/2, w, 0, w, h, -2, h/2]} stroke="yellow" strokeWidth={1}/>
+function ReferenceFrame({position, children}) {
+    return <Group offsetX={-position.x} offsetY={-position.y}>
+            {children}
+    </Group>
+}
+
+function Facing({blip, scale}) {
+    const h = blip.entityWidth + 4 / scale
+    const w = blip.entityLength
+    return <Group x={-w / 2} y={-h / 2} offsetX={-w / 2} offsetY={-h / 2}>
+        <Group offsetX={w/2} offsetY={h/2} rotation={toDegrees(blip.entityOrientation)}>
+            <Line points={[0, h/2, w, 0, w, h, 0, h/2]} stroke="yellow" strokeWidth={1/scale}/>
         </Group>
     </Group>
-
-
 }
 
-function Entities({entities}) {
-    return <Group>
-        {
-            entities.map(b => <Entity key={b.id} entity={b}/>)
-        }
-    </Group>
-}
+function SonarBlip({blip, actionController, debug=false, scale}) {
 
-
-function SonarBlip({blip}) {
-    return <Circle
-        x={blip.position.x}
-        y={blip.position.y}
-        width={blip.radius * 2}
-        height={blip.radius * 2}
-        fill="red"
+    return <ReferenceFrame position={blip.position}>
+        <Circle
+            width={blip.radius * 2}
+            height={blip.radius * 2}
+            fill="red"
         />
+        {blip.targetted && <Circle /* target overlay */
+            width={blip.radius * 2 + 15 / scale}
+            height={blip.radius * 2 + 15 / scale}
+            stroke="#ddd"
+            strokeWidth={1 / scale}
+            dash={[2, 1]}
+        />}
+        {debug && <Facing blip={blip} scale={scale}/>}
+        <Circle /* click overlay */
+            width={blip.radius * 2 + 20 / scale}
+            height={blip.radius * 2 + 20 / scale}
+            onClick={e => actionController.targetEntityId = blip.entityId}
+        />
+    </ReferenceFrame>
 }
 
-function SonarBlips({blips}) {
+function SonarBlips({blips, actionController, debug, scale}) {
     return <Group>
         {
-            blips.map(b => <SonarBlip key={b.id} blip={b}/>)
+            blips.map(b => <SonarBlip key={b.id} blip={b} scale={scale} debug={debug} actionController={actionController}/>)
         }
     </Group>
 }
@@ -98,14 +106,6 @@ function SubMarker({volume, scale}){
 
 }
 
-function Rotator({width, height, rotation, children}) {
-    return <Group offsetX={-width / 2} offsetY={-height / 2}>
-        <Group rotation={toDegrees(rotation)}>
-            {children}
-        </Group>
-    </Group>
-}
-
 function SubReferenceFrame({position, scale=1, children}) {
     return <Group >
                 <Group offsetX={position.x} offsetY={position.y} scaleX={scale} scaleY={scale}>
@@ -114,9 +114,7 @@ function SubReferenceFrame({position, scale=1, children}) {
     </Group>
 }
 
-
-
-function Sonar({subsystem}) {
+function Sonar({subsystem, actionController}) {
     const scale = SIZE_PX / (subsystem.range * 2)   // px per unit
 
 
@@ -126,9 +124,7 @@ function Sonar({subsystem}) {
                 <Group rotation={toDegrees(-subsystem.orientation) + 90}>
                     <SonarBackground position={subsystem.position} scale={scale}/>
                     <SubReferenceFrame position={subsystem.position} scale={scale}>
-                        {subsystem.debug && <Entities entities={subsystem.entities}/>}
-                        <SonarBlips blips={subsystem.blips}/>
-                        {subsystem.debug && <Entity entity={subsystem.sub}/>}
+                        <SonarBlips blips={subsystem.blips} actionController={actionController} scale={scale} debug={subsystem.debug}/>
                     </SubReferenceFrame>
                 </Group>
                 {<SubMarker volume={subsystem.subVolume} scale={scale}/>}

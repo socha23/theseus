@@ -29,6 +29,10 @@ export class Entity {
     getOrientation() {
         return this.body.orientation
     }
+
+    get speedVector() {
+        return this.body.speed
+    }
 }
 
 export class AgentEntity extends Entity {
@@ -83,26 +87,4 @@ export class Fish extends AgentEntity {
     }
 }
 
-
-export class World {
-    constructor(entities = []) {
-        this.entities = entities
-    }
-
-    updateState(deltaMs, model) {
-        this.entities.forEach(e => e.updateState(deltaMs, model))
-    }
-
-    getEntitiesAround(pos, radius) {
-        return this.entities.filter(e => {
-            const deltaX = pos.x - e.getPosition().x
-            const deltaY = pos.y - e.getPosition().y
-            const r = radius + e.getRadius()
-
-            return deltaX * deltaX + deltaY * deltaY <= r * r
-        })
-
-
-    }
-}
 

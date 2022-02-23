@@ -1,6 +1,6 @@
-import { World, Entity, Fish } from "./entities"
+import { Entity, Fish } from "./entities"
 import { Body, Point, Volume } from "./physics"
-import {Sub, Weapon, Engine, SubStatusScreen, Steering, Sonar} from "./sub.js"
+import {Sub, Weapon, Engine, SubStatusScreen, Steering, Sonar, Tracking} from "./sub.js"
 import { Agent, Flock, FlockAgent } from "./agent"
 
 const WEAPON_TEMPLATES = {
@@ -51,7 +51,7 @@ const FISH_TEMPLATES = {
     BIG_FISH: {
         id: "big_fish",
         volume: new Volume(2, 2, 5, 0.1),
-        tailForce: 300 * 1000,
+        tailForce: 50 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: Math.PI * 2,
     },
@@ -69,22 +69,53 @@ export function getStartingSub() {
             new Engine("engine_2", "Engine #2", ENGINE_TEMPLATES.BASIC_ENGINE),
             new SubStatusScreen("status_1", "Status"),
             new Steering("steering_1", "Steering"),
+            new Tracking("tracking_1", "Tracking"),
             new Sonar("sonar", "Sonar", SONAR_TEMPLATES.BASIC_SONAR)
     ])
 }
 
 export function getStartingWorld() {
-    const entities = []
-    entities.push(...createFlock(FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities)
-    entities.push(...createFlock(FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities)
-    entities.push(...createFish(FISH_TEMPLATES.FAT_FISH, 10, Point.ZERO, 100))
-    entities.push(...createFish(FISH_TEMPLATES.BIG_FISH, 4, Point.ZERO, 100))
-
-
     return new World(
-        entities
+        [
+            ...createFlock(FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
+            ...createFlock(FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
+            ...createFish(FISH_TEMPLATES.FAT_FISH, 10, Point.ZERO, 100),
+            ...createFish(FISH_TEMPLATES.BIG_FISH, 4, Point.ZERO, 100),
+        ]
     )
 }
+
+
+export class World {
+    constructor(entities = []) {
+        this.entitiesById = {}
+        entities.forEach(e => this.entitiesById[e.id] = e)
+    }
+
+    getEntity(id) {
+        return this.entitiesById[id]
+    }
+
+    updateState(deltaMs, model) {
+        Object.values(this.entitiesById).forEach(e => {
+            e.updateState(deltaMs, model)
+        })
+    }
+
+    getEntitiesAround(pos, radius) {
+        return Object.values(this.entitiesById).filter(e => {
+            const deltaX = pos.x - e.getPosition().x
+            const deltaY = pos.y - e.getPosition().y
+            const r = radius + e.getRadius()
+
+            return deltaX * deltaX + deltaY * deltaY <= r * r
+        })
+
+
+    }
+}
+
+
 
 var autoinc = 0
 

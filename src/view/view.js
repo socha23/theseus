@@ -55,6 +55,32 @@ function SubStatus({subsystem}) {
         </div>
     </div>
 }
+
+///////////////////////////////////
+
+function Tracking({subsystem}) {
+    const tracking = subsystem.tracking
+    return <div className='tracking'>
+        <hr/>
+        <div className="trackedEntity">
+            { tracking && <div>
+                <div>
+                    <span>Entity:</span>
+                    <span>{tracking.entityId}</span>
+                </div>
+                <div>
+                    <span>Position:</span>
+                    <span>{tracking.position.x.toFixed(2)}, {tracking.position.y.toFixed(2)}</span>
+                </div>
+                <div>
+                    <span>Speed:</span>
+                    <span>{tracking.speed.toFixed(2)} m/s</span>
+                </div>
+            </div>}
+        </div>
+    </div>
+}
+
 ///////////////////////////////////
 
 function Throttle({subsystem, actionController}) {
@@ -111,7 +137,10 @@ function Subsystem({subsystem, actionController}) {
             subsystem.showsSubStatus && <SubStatus subsystem={subsystem}/>
         }
         {
-            subsystem.showsSonar && <Sonar subsystem={subsystem}/>
+            subsystem.showsTracking && <Tracking subsystem={subsystem}/>
+        }
+        {
+            subsystem.showsSonar && <Sonar subsystem={subsystem} actionController={actionController}/>
         }
         <div className='standardActions'>
             {
@@ -135,6 +164,14 @@ function Sub({sub, actionController}) {
                 {
                 sub.subsystems
                     .filter(s => s.category == SUBSYSTEM_CATEGORIES.WEAPON)
+                    .map(s => <Subsystem key={s.id} subsystem={s} actionController={actionController}/>)
+
+                }
+            </div>
+            <div className="subsystemsColumn">
+                {
+                sub.subsystems
+                    .filter(s => s.category == SUBSYSTEM_CATEGORIES.SONAR)
                     .map(s => <Subsystem key={s.id} subsystem={s} actionController={actionController}/>)
 
                 }

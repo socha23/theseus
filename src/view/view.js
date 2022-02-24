@@ -76,6 +76,12 @@ function Tracking({subsystem}) {
                     <span>Speed:</span>
                     <span>{tracking.speed.toFixed(2)} m/s</span>
                 </div>
+                <hr/>
+                {tracking.planDescription && <div>
+                    <span>Plan:</span>
+                    <span>{tracking.planDescription}</span>
+                </div>
+                }
             </div>}
         </div>
     </div>

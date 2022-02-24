@@ -33,6 +33,22 @@ export class Entity {
     get speedVector() {
         return this.body.speed
     }
+
+    get mass() {
+        return this.body.volume.getMass()
+    }
+
+    get lastActingForce() {
+        return this.body.lastActingForce
+    }
+
+    get targetPosition() {
+        return null
+    }
+
+    get planDescription() {
+        return null
+    }
 }
 
 export class AgentEntity extends Entity {
@@ -55,6 +71,22 @@ export class Fish extends AgentEntity {
         this.rotationSpeed = template.rotationSpeed
     }
 
+    get targetPosition() {
+        if (this.agent.currentPlan instanceof MovePlan) {
+            return this.agent.currentPlan.target
+        } else {
+            return null
+        }
+    }
+
+    get planDescription() {
+        if (this.agent.currentPlan) {
+            return this.agent.currentPlan.description
+        } else {
+            return null
+        }
+    }
+
 
 
     updateState(deltaMs, model) {
@@ -73,14 +105,9 @@ export class Fish extends AgentEntity {
 
             //const rotationForce = Math.sign(rotationAngle) * this.rotationForce * (Math.abs(rotationAngle) / Math.PI)
 
-            let tailForce = Vector.ZERO
+            const tailForce = this.body.dorsalThrustVector(this.tailForce)
 
-
-            //            if (Math.abs(rotationAngle) < 1) {
-                tailForce = this.body.dorsalThrustVector(this.tailForce)
-//            }
-
-            // can't get rotation to work by vectors
+                // can't get rotation to work by vectors
             this.body.updateState(deltaMs, tailForce)
             this.body.orientation = this.body.orientation + rotation
         }

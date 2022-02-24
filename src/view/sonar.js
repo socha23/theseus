@@ -55,6 +55,7 @@ function Facing({blip, scale}) {
 }
 
 function SonarBlip({blip, actionController, debug=false, scale}) {
+    const force = blip.lastActingForce.div(blip.mass).multiply(5)
 
     return <ReferenceFrame position={blip.position}>
         <Circle
@@ -62,7 +63,7 @@ function SonarBlip({blip, actionController, debug=false, scale}) {
             height={blip.radius * 2}
             fill="red"
         />
-        {blip.targetted && <Circle /* target overlay */
+        {blip.targetted && <Circle /* targetted overlay */
             width={blip.radius * 2 + 15 / scale}
             height={blip.radius * 2 + 15 / scale}
             stroke="#ddd"
@@ -70,6 +71,18 @@ function SonarBlip({blip, actionController, debug=false, scale}) {
             dash={[2, 1]}
         />}
         {debug && <Facing blip={blip} scale={scale}/>}
+        {debug && blip.targetted && blip.targetPosition && <Circle /* entity target */
+            x = {blip.targetPosition.x - blip.position.x}
+            y = {blip.targetPosition.y - blip.position.y}
+            stroke="green"
+            radius={5 / scale}
+            strokeWidth={3 / scale}
+        />}
+        {debug && blip.targetted && blip.lastActingForce && <Group /* acting force */>
+                <Line strokeWidth = {2 / scale} stroke="yellow"
+                    points={[0, 0, force.x, force.y]} />
+            </Group>
+        }
         <Circle /* click overlay */
             width={blip.radius * 2 + 20 / scale}
             height={blip.radius * 2 + 20 / scale}

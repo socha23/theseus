@@ -234,6 +234,8 @@ export class Tracking extends Subsystem {
             position: entity.getPosition(),
             orientation: entity.getOrientation(),
             speed: entity.speedVector.length(),
+            planDescription: entity.planDescription,
+
         }
     }
 
@@ -267,7 +269,6 @@ export class Sonar extends Subsystem {
         this.template = template
         this.subVolume = new Volume(1, 1, 1)
         this.blips = []
-        this.entities = []
         this.sub = null
 
         this.debugAction = new ToggleAction(id + "_debug", "Debug mode", ACTION_CATEGORY.THROTTLE)
@@ -292,6 +293,9 @@ export class Sonar extends Subsystem {
                 entityLength: e.body.volume.length,
                 entityOrientation: e.body.orientation,
                 targetted: e == model.sub.targetEntity,
+                mass: e.mass,
+                lastActingForce: e.lastActingForce,
+                targetPosition: e.targetPosition,
             }})
     }
 
@@ -301,7 +305,6 @@ export class Sonar extends Subsystem {
         this.orientation = model.sub.body.orientation
         this.subVolume = model.sub.body.volume
         this.blips = this._observeBlips(model)
-        this.entities = this._observeEntities(model)
         this.sub = model.sub
     }
 

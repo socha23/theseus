@@ -3,6 +3,7 @@ import {Point, Vector} from "./physics"
 class Plan {
     constructor(id) {
         this.id = id
+        this.description = "Abstract plan"
     }
 
     isValid() {
@@ -16,6 +17,7 @@ class Plan {
 class Wait extends Plan {
     constructor(id, waitTimeS) {
         super(id)
+        this.description = "Wait " + waitTimeS  + "s"
         this.waitTime = waitTimeS * 1000
     }
 
@@ -32,6 +34,7 @@ class Wait extends Plan {
 export class MovePlan extends Plan {
     constructor(id, distanceTolerance = 1) {
         super(id)
+        this.description = "Abstract move plan"
         this.target = null
         this.position = null
         this.distanceTolerance = distanceTolerance
@@ -59,6 +62,7 @@ function randomPointAround(point, distance) {
 export class MoveTo extends MovePlan {
     constructor(id, target, distance) {
         super(id, distance)
+        this.description = `Move to [${target.x.toFixed(2)}, ${target.y.toFixed(2)}]`
         this.target = target
     }
 
@@ -66,7 +70,8 @@ export class MoveTo extends MovePlan {
 
 export class Follow extends MovePlan {
     constructor(entity, targetEntity, distance) {
-        super(entity.id + "_follo", distance)
+        super(entity.id + "_follow", distance)
+        this.description = `Follow ${targetEntity.id}`
         this.targetEntity = targetEntity
     }
 
@@ -125,6 +130,8 @@ export class MoveToFlockCenter extends MoveTo {
         super(entity.id + "_move_to_flock_center",
             randomPointAround(flock.getCenter(), 7),
             5)
+        this.description = `Move to flock center`
+
     }
 }
 

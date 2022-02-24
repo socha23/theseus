@@ -37,7 +37,7 @@ const FISH_TEMPLATES = {
     SMALL_FISH: {
         id: "small_fish",
         volume: new Volume(0.5, 0.5, 2, 0.2),
-        tailForce: 10 * 1000,
+        tailForce: 2 * 1000,
         rotationalForce: 1 * 1000,
         rotationSpeed: Math.PI,
     },
@@ -53,7 +53,7 @@ const FISH_TEMPLATES = {
         volume: new Volume(2, 2, 5, 0.1),
         tailForce: 50 * 1000,
         rotationalForce: 2 * 1000,
-        rotationSpeed: Math.PI * 2,
+        rotationSpeed: Math.PI * 4,
     },
 
 }

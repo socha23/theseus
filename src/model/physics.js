@@ -41,6 +41,10 @@ export class Vector {
         return new Vector(this.x / c, this.y / c)
     }
 
+    multiply(c) {
+        return this.times(c)
+    }
+
     times(c) {
         return new Vector(this.x * c, this.y * c)
     }
@@ -111,6 +115,7 @@ export class Body {
         this.orientation = orientation
         this.speed = new Vector(0, 0)
         this.rotationSpeed = 0
+        this.lastActingForce = Vector.ZERO
     }
 
     // acting force should be a vector
@@ -123,7 +128,7 @@ export class Body {
     }
 
     updatePosition(deltaS, actingForce) {
-
+        this.lastActingForce = actingForce
         const force = actingForce.plus(this.getFrictionVector())
         const acc = force.div(this.volume.getMass())
         const deltaV = acc.times(deltaS)

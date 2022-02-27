@@ -11,36 +11,60 @@ html, body, .viewport {
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+    background: rgb(0,22,19);
+    background: linear-gradient(0deg, rgba(0,22,19,1) 0%, rgba(0,59,53,1) 33%, rgba(0,122,110,1) 100%);
+    color: #ebf100;
+
+    font-family: monospace;
+    font-size: 12pt;
+
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+/Edge */
+    user-select: none; /* Standard */
+
 }
 
+
+hr {
+    background-color: #a5d000;
+    height: 1px;
+    border: none;
+}
 
 .button {
     cursor: pointer;
-    border: 1px solid black;
-    border-radius: 2px;
-    padding: 3px;
+    border: 2px solid #a5d000;
+    border-radius: 8px;
+    padding: 4px 7px 4px 7px;
     position: relative;
+    color: #a5d000;
+    background-color: rgba(0,59,53,0);
+    font-weight: bold;
+}
+
+.button:hover {
+    color: #ebf100;
+    border: 2px solid #ebf100;
 }
 
 .button.disabled {
-    color: grey;
-    border-color: grey;
+    opacity: 0.5;
 }
 
-.button .progressPadding {
-    background-color: green;
-    position: relative;
+.button .progressContainer {
+    margin-top: 3px;
+    border-radius: 3px;
+    background-color: #469528;
+    height: 5px;
 }
 
 .button .progress {
-    background-color: red;
-    height: 20px;
-    position: absolute;
+    background-color: #ebf100;
+    height: 100%;
 }
 
 .button .container {
@@ -49,6 +73,15 @@ body {
     align-items: center;
 }
 
+.button .name {
+    flex-grow: 1;
+}
+
+.standardActions .button.recentlyCompleted {
+    background-color: #ebf100;
+    border-color: #ebf100;
+    color: rgba(0,59,53,1);
+}
 
 
 
@@ -78,30 +111,36 @@ body {
     align-items: center;
     flex-direction: column;
     height: 100%;
-    gap: 4px;
+    gap: 8px;
 }
 
 .vertSlider {
     flex-grow: 1;
-    width: 20px;
+    width: 30px;
     cursor: pointer;
 }
 
+.vertSliderContainer i {
+    font-size: 16pt;
+}
+
 .vertSlider .sliderTrack {
-    left: 9px;
-    background-color: black;
-    width: 2px;
+    left: 10px;
+    background-color: #a5d000;
+    width: 10px;
+    border-radius: 4px;
 }
 
 .vertSlider .sliderTrack-0 {
-    background-color: #AAA;
+    background-color: #469528;
+    opacity: 0.7
 }
 
 .vertSlider .sliderThumb {
-    width: 20px;
-    height: 10px;
-    border-radius: 3px;
-    background-color: black;
+    width: 30px;
+    height: 15px;
+    border-radius: 5px;
+    background-color: #ebf100;
 }
 
 
@@ -110,9 +149,6 @@ body {
     gap: 5px;
 }
 
-.standardActions .button.recentlyCompleted {
-    border-color: red;
-}
 
 
 .throttleActions {
@@ -122,9 +158,25 @@ body {
     gap: 5px;
 }
 
-.throttleActions .button.selected {
-    background-color: #aaaaaa;
+.throttleActions .button .rightSide {
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    background-color: #469528;
+    opacity: 0.5
 }
+
+.throttleActions .button.selected .rightSide {
+    border-color: #ebf100;
+    background-color: #ebf100;
+    opacity: 1;
+}
+
+.throttleActions .button.selected {
+    border-color: #ebf100;
+    color: #ebf100;
+}
+
 
 
 
@@ -143,7 +195,10 @@ body {
 }
 
 .directionActions .button.active {
-    background-color: #aaaaaa;
+    background-color: #ebf100;
+    border-color: #ebf100;
+    color: #003b35;
+
 }
 
 .directionActions .button .container {
@@ -174,8 +229,8 @@ body {
 }
 
 .subsystem {
-    border: 1px solid black;
-    padding: 5px;
+    border: 5px solid #a5d000;
+    border-radius: 10px;;
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -183,14 +238,28 @@ body {
 }
 
 .subsystem .titleBar {
+    background-color: #a5d000;
+    color: #003b35;
     font-weight: bold;
+    padding-bottom: 3px;
+    padding-left: 5px;
+    font-family: monospace;
+    font-size: 14pt;
+}
+
+.subsystem .body {
+    padding: 3px 8px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .subsystem .ammo {
     display: flex;
-    gap: 3px;
-    vertical-align: midz=dle;;
+    gap: 5px;
+    vertical-align: middle;;
 }
+
 
 
 
@@ -203,10 +272,24 @@ body {
 .subsystem .reactor {
     display: flex;
     min-height: 100px;
-    gap: 5px;
+    gap: 8px;
 }
 
 .subsystem .reactor .history {
-    border: 1px solid black;
+    border: 1px solid #a5d000;
+    opacity: 0.7;
+    background-color: rgba(0,22,19,1)
 }
 
+
+
+.subsystem .sonar {
+    opacity: 0.8;
+    border: 1px solid #a5d000;
+}
+
+
+.subsystem .infoRow {
+    display: flex;
+    gap: 10px;
+}

@@ -131,19 +131,21 @@ function Sonar({subsystem, actionController}) {
     const scale = SIZE_PX / (subsystem.range * 2)   // px per unit
 
 
-    return <Stage width={SIZE_PX} height={SIZE_PX} >
-        <Layer>
-            <Group offsetX={-SIZE_PX / 2} offsetY={-SIZE_PX / 2}>
-                <Group rotation={toDegrees(-subsystem.orientation) + 90}>
-                    <SonarBackground position={subsystem.position} scale={scale}/>
-                    <SubReferenceFrame position={subsystem.position} scale={scale}>
-                        <SonarBlips blips={subsystem.blips} actionController={actionController} scale={scale} debug={subsystem.debug}/>
-                    </SubReferenceFrame>
+    return <div className="sonar">
+        <Stage width={SIZE_PX} height={SIZE_PX} >
+            <Layer>
+                <Group offsetX={-SIZE_PX / 2} offsetY={-SIZE_PX / 2}>
+                    <Group rotation={toDegrees(-subsystem.orientation) + 90}>
+                        <SonarBackground position={subsystem.position} scale={scale}/>
+                        <SubReferenceFrame position={subsystem.position} scale={scale}>
+                            <SonarBlips blips={subsystem.blips} actionController={actionController} scale={scale} debug={subsystem.debug}/>
+                        </SubReferenceFrame>
+                    </Group>
+                    {<SubMarker volume={subsystem.subVolume} scale={scale}/>}
                 </Group>
-                {<SubMarker volume={subsystem.subVolume} scale={scale}/>}
-            </Group>
-        </Layer>
-    </Stage>
+            </Layer>
+        </Stage>
+    </div>
 }
 
 

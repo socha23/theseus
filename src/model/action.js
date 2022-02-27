@@ -124,7 +124,7 @@ export class Action {
             }
 
             if (!this.usesPressToActivate() && this.state == ACTION_STATES.ACTIVE) {
-                actionController.currentAction = null
+                actionController.resetCurrentAction()
                 this._enterCompleted()
             }
         } else {

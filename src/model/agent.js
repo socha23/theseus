@@ -62,7 +62,7 @@ function randomPointAround(point, distance) {
 export class MoveTo extends MovePlan {
     constructor(id, target, distance) {
         super(id, distance)
-        this.description = `Move to [${target.x.toFixed(2)}, ${target.y.toFixed(2)}]`
+        this.description = `Move to ${target.x.toFixed(1)}, ${target.y.toFixed(1)}`
         this.target = target
     }
 

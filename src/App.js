@@ -81,6 +81,10 @@ class ActionController {
         this.targetEntityId = null
     }
 
+    resetCurrentAction() {
+        this._currentAction = null
+    }
+
     setValue(key, val) {
         this.values[key] = val
     }

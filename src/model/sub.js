@@ -55,6 +55,8 @@ class Subsystem {
 const REACTOR_UPDATE_HISTORY_MS = 200
 const REACTOR_HISTORY_FRAMES = 100
 
+const HIST_TIME_MS = REACTOR_HISTORY_FRAMES * REACTOR_UPDATE_HISTORY_MS;
+
 export class Reactor extends Subsystem {
     constructor(id, name, template) {
         super(id, name, SUBSYSTEM_CATEGORIES.NAVIGATION)
@@ -83,9 +85,9 @@ export class Reactor extends Subsystem {
 
     _addHistoryFrame(consumption = 0) {
         this.outputHistory.push({
-            time: this._historyX++,
             output: this.output,
-            consumption: consumption
+            consumption: consumption,
+            timeMs: Date.now(),
         })
         while (this.outputHistory.length > REACTOR_HISTORY_FRAMES) {
             this.outputHistory.shift()
@@ -112,6 +114,8 @@ export class Reactor extends Subsystem {
             control: this.control,
             isReactor: true,
             history: this.outputHistory,
+            historyTo: Date.now(),
+            historyFrom: Date.now() - HIST_TIME_MS,
             maxOutput: this.maxOutput,
         }
     }

@@ -4,7 +4,7 @@ import { ACTION_CATEGORY } from "../model/action.js";
 import Sonar from "./sonar.js";
 import { toDegrees, toKph } from '../units.js'
 import ReactSlider from "react-slider";
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Area, AreaChart, Line, LineChart, XAxis, YAxis } from "recharts";
 
 
 ///////////////////////////////////
@@ -31,27 +31,21 @@ function AmmoBar({subsystem}) {
 
 function SubStatus({subsystem}) {
     return <div className='subStatus'>
-        <hr/>
-        <div>
-            <span>Position:</span>
-            <span>{subsystem.position.x.toFixed(2)}, {subsystem.position.y.toFixed(2)}</span>
+        <div className="infoRow">
+            <span>Pos:</span>
+            <span>{subsystem.position.x.toFixed(1)}, {subsystem.position.y.toFixed(1)}</span>
         </div>
-        <hr/>
-        <div>
-            <span>Speed:</span>
-            <span>{toKph(subsystem.speed).toFixed(2)} km/h</span>
-        </div>
-        <div>
+        <div className="infoRow">
             <span>Speed:</span>
             <span>{subsystem.speed.toFixed(2)} m/s</span>
         </div>
         <hr/>
-        <div>
-            <span>Orientation:</span>
+        <div className="infoRow">
+            <span>Heading:</span>
             <span>{toDegrees(subsystem.orientation).toFixed(2)}'</span>
         </div>
-        <div>
-            <span>Rotation speed:</span>
+        <div className="infoRow">
+            <span>Rot. speed:</span>
             <span>{subsystem.rotationSpeed.toFixed(2)} m/s</span>
         </div>
     </div>
@@ -62,24 +56,24 @@ function SubStatus({subsystem}) {
 function Tracking({subsystem}) {
     const tracking = subsystem.tracking
     return <div className='tracking'>
-        <hr/>
+
         <div className="trackedEntity">
             { tracking && <div>
-                <div>
-                    <span>Entity:</span>
+                <div className="infoRow">
+                    <span className="label">Id:</span>
                     <span>{tracking.entityId}</span>
                 </div>
-                <div>
-                    <span>Position:</span>
+                <hr/>
+                <div className="infoRow">
+                    <span className="label">Pos:</span>
                     <span>{tracking.position.x.toFixed(2)}, {tracking.position.y.toFixed(2)}</span>
                 </div>
-                <div>
-                    <span>Speed:</span>
+                <div className="infoRow">
+                    <span className="label">Speed:</span>
                     <span>{tracking.speed.toFixed(2)} m/s</span>
                 </div>
                 <hr/>
                 {tracking.planDescription && <div>
-                    <span>Plan:</span>
                     <span>{tracking.planDescription}</span>
                 </div>
                 }
@@ -116,26 +110,25 @@ function ReactorHistory({subsystem}) {
     const history = subsystem.history
     const histGridTimePoints = []
 
+    const time = subsystem.historyTo - subsystem.historyFrom
 
-    const firstDatum = history[0]
-    const lastDatum = history[history.length - 1]
 
-    const pxInFrame = WIDTH / history.length
 
-    const GRID_STEP = 50
+    const MS_PER_STEP = 5000
+    const PX_PER_STEP = WIDTH * MS_PER_STEP / time
 
-    for (var x = GRID_STEP - ((firstDatum.time % GRID_STEP) * pxInFrame); x <= WIDTH; x += GRID_STEP) {
+    const phase = 1 - (subsystem.historyFrom % MS_PER_STEP) / MS_PER_STEP
+    for (var x = phase * PX_PER_STEP; x <= WIDTH; x += PX_PER_STEP) {
         histGridTimePoints.push(x)
     }
-    console.log(histGridTimePoints)
     return <div className='history'>
-        <LineChart margin={{top: 0, left: 0, right: 0, bottom: 0}} width={WIDTH} height={200} data={history}>
-            <CartesianGrid verticalPoints={histGridTimePoints}/>
+        <AreaChart margin={{top: 0, left: 0, right: 0, bottom: 0}} width={WIDTH} height={200} data={history}>
+            <CartesianGrid verticalPoints={histGridTimePoints} stroke="#469528"/>
             <YAxis hide={true} type="number" domain={[0, subsystem.maxOutput]}/>
-            <XAxis hide={true} type="number" domain={[firstDatum.time, lastDatum.time]} dataKey="time"/>
-            <Line dot={false} type='monotone' dataKey="output" stroke="green"/>
-            <Line dot={false} type='monotone' dataKey="consumption" stroke="red"/>
-        </LineChart>
+            <XAxis hide={true} type="number" domain={[subsystem.historyFrom + 200, subsystem.historyTo - 200]} dataKey="timeMs"/>
+            <Area dataKey="output" stroke="#a5d000" strokeWidth={3} fill="green"/>
+            <Area dataKey="consumption" stroke="red" strokeWidth={3} fill="#6f0000"/>
+        </AreaChart>
     </div>
 
 }
@@ -151,7 +144,6 @@ function Reactor({subsystem, actionController}) {
         <div>
             <ReactorHistory subsystem={subsystem}/>
             <div className='fuel'>
-                FUEL
             </div>
         </div>
 </div>
@@ -203,6 +195,7 @@ function Subsystem({subsystem, actionController}) {
         <div className="titleBar">
             <span className='name'>{subsystem.name}</span>
         </div>
+        <div className='body'>
         {
             subsystem.usesAmmo && <AmmoBar subsystem={subsystem}/>
         }
@@ -227,11 +220,12 @@ function Subsystem({subsystem, actionController}) {
             }
         </div>
         {
-            throttleActions && <ThrottleActions actions={throttleActions} actionController={actionController}/>
+            (throttleActions.length > 0) && <ThrottleActions actions={throttleActions} actionController={actionController}/>
         }
         {
-            directionActions && <DirectionActions actions={directionActions} actionController={actionController}/>
+            (directionActions.length > 0) && <DirectionActions actions={directionActions} actionController={actionController}/>
         }
+        </div>
     </div>
 }
 
@@ -300,15 +294,21 @@ function ActionButton({action, actionController}) {
         onClick={e => actionController.onClick(action)}
         onMouseDown={e => actionController.onMouseDown(action)}
     >
-        <div className='progressPadding'>
-            <div className='progress' style={{width: getProgressWidth(action) + "%"}}/>
-        </div>
         <div className='container'>
             <i className={'icon ' + action.iconClass}/>
             <span className={'name'}>
                 {action.name}
             </span>
+            <div className='rightSide'/>
         </div>
+        {
+            (action.progressMax > 0) && <div className='progressContainer'>
+            <div className='progress' style={{width: getProgressWidth(action) + "%"}}/>
+        </div>
+
+
+
+        }
     </div>
 }
 

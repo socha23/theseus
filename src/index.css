@@ -73,6 +73,38 @@ body {
 }
 
 
+.vertSliderContainer {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+    gap: 4px;
+}
+
+.vertSlider {
+    flex-grow: 1;
+    width: 20px;
+    cursor: pointer;
+}
+
+.vertSlider .sliderTrack {
+    left: 9px;
+    background-color: black;
+    width: 2px;
+}
+
+.vertSlider .sliderTrack-0 {
+    background-color: #AAA;
+}
+
+.vertSlider .sliderThumb {
+    width: 20px;
+    height: 10px;
+    border-radius: 3px;
+    background-color: black;
+}
+
+
 .standardActions {
     display: flex;
     gap: 5px;
@@ -147,7 +179,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 3px;
-    min-width: 200px;
+    min-width: 240px;
 }
 
 .subsystem .titleBar {
@@ -165,3 +197,16 @@ body {
 .subsystem .tracking .trackedEntity {
     height: 100px;
 }
+
+
+
+.subsystem .reactor {
+    display: flex;
+    min-height: 100px;
+    gap: 5px;
+}
+
+.subsystem .reactor .history {
+    border: 1px solid black;
+}
+

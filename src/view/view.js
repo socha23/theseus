@@ -4,6 +4,7 @@ import { ACTION_CATEGORY } from "../model/action.js";
 import Sonar from "./sonar.js";
 import { toDegrees, toKph } from '../units.js'
 import ReactSlider from "react-slider";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 
 ///////////////////////////////////
@@ -86,6 +87,75 @@ function Tracking({subsystem}) {
         </div>
     </div>
 }
+///////////////////////////////////
+
+
+function VertSlider({id, actionController, children}) {
+    return <div className="vertSliderContainer">
+    <ReactSlider
+    className="vertSlider"
+    thumbClassName="sliderThumb"
+    trackClassName="sliderTrack"
+    min={0}
+    max={100}
+    orientation="vertical"
+    onChange={(v, i) => actionController.setValue(id, 1-(v / 100))}
+    value={100 - (100 * actionController.getValue(id, 0))}
+    />
+    <div>{children}</div>
+    </div>
+
+
+
+}
+
+
+function ReactorHistory({subsystem}) {
+    const WIDTH = 210
+
+    const history = subsystem.history
+    const histGridTimePoints = []
+
+
+    const firstDatum = history[0]
+    const lastDatum = history[history.length - 1]
+
+    const pxInFrame = WIDTH / history.length
+
+    const GRID_STEP = 50
+
+    for (var x = GRID_STEP - ((firstDatum.time % GRID_STEP) * pxInFrame); x <= WIDTH; x += GRID_STEP) {
+        histGridTimePoints.push(x)
+    }
+    console.log(histGridTimePoints)
+    return <div className='history'>
+        <LineChart margin={{top: 0, left: 0, right: 0, bottom: 0}} width={WIDTH} height={200} data={history}>
+            <CartesianGrid verticalPoints={histGridTimePoints}/>
+            <YAxis hide={true} type="number" domain={[0, subsystem.maxOutput]}/>
+            <XAxis hide={true} type="number" domain={[firstDatum.time, lastDatum.time]} dataKey="time"/>
+            <Line dot={false} type='monotone' dataKey="output" stroke="green"/>
+            <Line dot={false} type='monotone' dataKey="consumption" stroke="red"/>
+        </LineChart>
+    </div>
+
+}
+
+
+function Reactor({subsystem, actionController}) {
+    return <div className='reactor'>
+        <div className='controls'>
+            <VertSlider id={subsystem.id + "_control"} actionController={actionController}>
+                <i className="fa-solid fa-atom"></i>
+            </VertSlider>
+        </div>
+        <div>
+            <ReactorHistory subsystem={subsystem}/>
+            <div className='fuel'>
+                FUEL
+            </div>
+        </div>
+</div>
+}
 
 ///////////////////////////////////
 
@@ -147,6 +217,9 @@ function Subsystem({subsystem, actionController}) {
         }
         {
             subsystem.showsSonar && <Sonar subsystem={subsystem} actionController={actionController}/>
+        }
+        {
+            subsystem.isReactor && <Reactor subsystem={subsystem} actionController={actionController}/>
         }
         <div className='standardActions'>
             {

@@ -40,10 +40,86 @@ class Subsystem {
         return false
     }
 
+    get powerConsumption() {
+        return 0
+    }
+
+    get powerGeneration() {
+        return 0
+    }
+
 }
 
 ////////////////////////////////////////
 
+const REACTOR_UPDATE_HISTORY_MS = 200
+const REACTOR_HISTORY_FRAMES = 100
+
+export class Reactor extends Subsystem {
+    constructor(id, name, template) {
+        super(id, name, SUBSYSTEM_CATEGORIES.NAVIGATION)
+
+        this.template = template
+        this.maxOutput = template.maxOutput
+
+        this.fuel = 1
+        this.control = 0
+        this.outputHistory = []
+
+        this._historyX = 0
+        for (var i = 0; i < REACTOR_HISTORY_FRAMES; i++) {
+            this._addHistoryFrame()
+        }
+        this._sinceUpdateHistory = 0
+    }
+
+    get output() {
+        return this.maxOutput * this.control
+    }
+
+    get powerGeneration() {
+        return this.output
+    }
+
+    _addHistoryFrame(consumption = 0) {
+        this.outputHistory.push({
+            time: this._historyX++,
+            output: this.output,
+            consumption: consumption
+        })
+        while (this.outputHistory.length > REACTOR_HISTORY_FRAMES) {
+            this.outputHistory.shift()
+        }
+
+    }
+
+    updateState(deltaMs, model, actionController) {
+        super.updateState(deltaMs, model, actionController)
+        this.control = actionController.getValue(this.id + "_control", 0)
+
+        this._sinceUpdateHistory += deltaMs
+        while (this._sinceUpdateHistory >= REACTOR_UPDATE_HISTORY_MS) {
+            this._sinceUpdateHistory -= REACTOR_UPDATE_HISTORY_MS
+            this._addHistoryFrame(model.sub.powerConsumption)
+        }
+    }
+
+
+   toViewState() {
+        return {
+            ...super.toViewState(),
+            fuel: this.fuel,
+            control: this.control,
+            isReactor: true,
+            history: this.outputHistory,
+            maxOutput: this.maxOutput,
+        }
+    }
+
+
+}
+
+////////////////////////////////////////
 
 class ReloadAction extends Action {
     constructor(weapon) {
@@ -113,6 +189,8 @@ export class Engine extends Subsystem {
         this.template = template
         this.force = template.force
         this.rotationalForce = template.rotationalForce
+        this._subThrottle = 0
+        this._powerConsumption = template.powerConsumption
     }
 
     isEngine() {
@@ -123,6 +201,15 @@ export class Engine extends Subsystem {
         return {
             ...super.toViewState(),
         }
+    }
+
+    updateState(deltaMs, model, actionController) {
+        super.updateState(deltaMs, model, actionController)
+        this._subThrottle = model.sub.throttle
+    }
+
+    get powerConsumption() {
+        return Math.abs(this._subThrottle * this._powerConsumption)
     }
 }
 
@@ -346,6 +433,17 @@ export class Sub extends Entity {
         this._updatePosition(deltaMs)
     }
 
+    get throttle() {
+        return  this._steering.getThrottle()
+    }
+
+    get powerConsumption() {
+        var result = 0
+        this.subsystems.forEach(s => {result += s.powerConsumption})
+        return result
+    }
+
+
     _updatePosition(deltaMs) {
         var force = 0
         var rotationalForce = 0
@@ -356,7 +454,7 @@ export class Sub extends Entity {
                 rotationalForce += e.rotationalForce
             })
         this.body.updateState(deltaMs,
-            this.body.dorsalThrustVector(force * this._steering.getThrottle()),
+            this.body.dorsalThrustVector(force * this.throttle),
             rotationalForce * this._steering.getDirection()
             )
     }

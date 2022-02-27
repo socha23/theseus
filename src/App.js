@@ -29,6 +29,7 @@ class ActionController {
         this.keysDown = {}
         this.keysPressed = {}
         this.targetEntityId = null
+        this.values = {}
     }
 
     isCurrent(action) {
@@ -78,6 +79,14 @@ class ActionController {
     reset() {
         this.keysPressed = {}
         this.targetEntityId = null
+    }
+
+    setValue(key, val) {
+        this.values[key] = val
+    }
+
+    getValue(key, defVal) {
+        return this.values[key] ?? defVal
     }
 }
 

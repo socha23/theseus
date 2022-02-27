@@ -1,6 +1,6 @@
 import { Entity, Fish } from "./entities"
 import { Body, Point, Volume } from "./physics"
-import {Sub, Weapon, Engine, SubStatusScreen, Steering, Sonar, Tracking} from "./sub.js"
+import {Sub, Weapon, Engine, Reactor, SubStatusScreen, Steering, Sonar, Tracking} from "./sub.js"
 import { Agent, Flock, FlockAgent } from "./agent"
 
 const WEAPON_TEMPLATES = {
@@ -24,12 +24,19 @@ const ENGINE_TEMPLATES = {
     BASIC_ENGINE: {
         force: 100 * 1000,
         rotationalForce: 50 * 1000,
+        powerConsumption: 40,
     }
 }
 
 const SONAR_TEMPLATES = {
     BASIC_SONAR: {
         range: 50,
+    }
+}
+
+const REACTOR_TEMPLATES = {
+    BASIC_REACTOR: {
+        maxOutput: 100,
     }
 }
 
@@ -65,12 +72,16 @@ export function getStartingSub() {
             new Weapon("coil_1", "Coilgun #1", WEAPON_TEMPLATES.COILGUN),
             new Weapon("coil_2", "Coilgun #2", WEAPON_TEMPLATES.COILGUN),
             new Weapon("railgun", "Railgun", WEAPON_TEMPLATES.RAILGUN),
+
+            new Sonar("sonar", "Sonar", SONAR_TEMPLATES.BASIC_SONAR),
+
+            new SubStatusScreen("status_1", "Status"),
+            new Tracking("tracking_1", "Tracking"),
+
+            new Reactor("reactor", "Reactor", REACTOR_TEMPLATES.BASIC_REACTOR),
             new Engine("engine_1", "Engine #1", ENGINE_TEMPLATES.BASIC_ENGINE),
             new Engine("engine_2", "Engine #2", ENGINE_TEMPLATES.BASIC_ENGINE),
-            new SubStatusScreen("status_1", "Status"),
             new Steering("steering_1", "Steering"),
-            new Tracking("tracking_1", "Tracking"),
-            new Sonar("sonar", "Sonar", SONAR_TEMPLATES.BASIC_SONAR)
     ])
 }
 

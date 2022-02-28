@@ -191,9 +191,13 @@ function Subsystem({subsystem, actionController}) {
     const throttleActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.THROTTLE)
 
 
-    return <div className='subsystem'>
+    return <div className={'subsystem ' + (subsystem.on ? 'powered ' : 'unpowered ')}>
         <div className="titleBar">
             <span className='name'>{subsystem.name}</span>
+
+            <div className='powerButton'>
+                <ActionButton action={subsystem.actionOn} actionController={actionController}/>
+            </div>
         </div>
         <div className='body'>
         {

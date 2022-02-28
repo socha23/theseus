@@ -42,7 +42,7 @@ hr {
     padding: 4px 7px 4px 7px;
     position: relative;
     color: #a5d000;
-    background-color: rgba(0,59,53,0);
+    background-color: transparent;
     font-weight: bold;
 }
 
@@ -230,6 +230,7 @@ hr {
 
 .subsystem {
     border: 5px solid #a5d000;
+    color: #ebf100;
     border-radius: 10px;;
     display: flex;
     flex-direction: column;
@@ -237,14 +238,125 @@ hr {
     min-width: 240px;
 }
 
+@keyframes subsystemPowerCycleOn {
+    from {
+        border-color: #469528;
+        color: #469528
+    }
+    to {
+        border-color: #a5d000;
+        color: #ebf100;
+    }
+}
+
+@keyframes subsystemPowerCycleOff {
+    from {
+        border-color: #a5d000;
+        color: #ebf100;
+    }
+    to {
+        border-color: #469528;
+        color: #469528
+    }
+}
+
+.subsystem.powered {
+    border-color: #a5d000;
+    color: #ebf100;
+    animation-name: subsystemPowerCycleOn;
+    animation-duration: 0.2s;
+}
+
+.subsystem.unpowered {
+    border-color: #469528;
+    color: #469528;
+    animation-name: subsystemPowerCycleOff;
+    animation-duration: 0.2s;
+}
+
+
 .subsystem .titleBar {
-    background-color: #a5d000;
-    color: #003b35;
     font-weight: bold;
-    padding-bottom: 3px;
-    padding-left: 5px;
+    padding: 0px 5px 3px 5px;
     font-family: monospace;
     font-size: 14pt;
+    display: flex;
+    align-items: center;
+}
+
+@keyframes titleBarPowerCycleOn {
+    from {
+        background-color: #469528;
+        color: rgba(0,59,53,0.7);
+        text-shadow: none;
+    }
+    to {
+        background-color: #a5d000;
+        color: white;
+        text-shadow: 0 0 8px black;
+    }
+}
+
+@keyframes titleBarPowerCycleOff {
+    from {
+        background-color: #a5d000;
+        color: white;
+        text-shadow: 0 0 8px black;
+    }
+    to {
+        background-color: #469528;
+        color: rgba(0,59,53,0.7);
+        text-shadow: none;
+    }
+}
+
+.subsystem.unpowered .titleBar {
+    background-color: #469528;
+    color: rgba(0,59,53,0.7);
+    text-shadow: none;
+    animation-name: titleBarPowerCycleOff;
+    animation-duration: 0.2s;
+}
+
+.subsystem.powered .titleBar {
+    background-color: #a5d000;
+    color: white;
+    text-shadow: 0 0 8px black;
+    animation-name: titleBarPowerCycleOn;
+    animation-duration: 0.2s;
+
+}
+
+
+
+
+
+
+
+.subsystem .titleBar .name {
+    flex-grow: 1;
+}
+
+.subsystem .powerButton .button {
+    color: rgba(0,59,53,0.7);
+    border: none;
+    padding: 0;
+    background-color: transparent;
+    font-size: 12pt;
+}
+
+.subsystem.powered .powerButton .button {
+    color: white;
+    text-shadow: 0 0 8px black
+}
+
+
+.subsystem .powerButton .button .container {
+    gap: 0;
+}
+
+.subsystem .powerButton .button .name{
+    display: none;
 }
 
 .subsystem .body {

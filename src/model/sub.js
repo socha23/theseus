@@ -7,6 +7,7 @@ export const SUBSYSTEM_CATEGORIES = {
     STATUS: "STATUS",
     NAVIGATION: "NAVIGATION",
     SONAR: "SONAR",
+
 }
 
 
@@ -17,6 +18,15 @@ class Subsystem {
         this.name = name
         this.category = category
         this.actions = []
+
+        this._actionOn = new ToggleAction(
+            id + "_on",
+            "Turn on / off",
+            ACTION_CATEGORY.SPECIAL,
+            {icon: "fa-solid fa-power-off"},
+            true,
+            )
+        this.actions.push(this._actionOn)
     }
 
     updateState(deltaMs, model, actionController) {
@@ -28,7 +38,9 @@ class Subsystem {
             id: this.id,
             name: this.name,
             category: this.category,
-            actions: this.actions.map(a => a.toViewState())
+            actions: this.actions.map(a => a.toViewState()),
+            actionOn: this._actionOn.toViewState(),
+            on: this.on,
         }
     }
 
@@ -47,6 +59,12 @@ class Subsystem {
     get powerGeneration() {
         return 0
     }
+
+    get on() {
+        return this._actionOn.value
+    }
+
+
 
 }
 
@@ -293,6 +311,7 @@ export class SubStatusScreen extends Subsystem {
     }
 
     updateState(deltaMs, model, actionController) {
+        super.updateState(deltaMs, model, actionController)
         this.position = model.sub.body.position
         this.speed = model.sub.body.speed.length()
         this.orientation = model.sub.body.orientation
@@ -332,6 +351,7 @@ export class Tracking extends Subsystem {
 
 
     updateState(deltaMs, model, actionController) {
+        super.updateState(deltaMs, model, actionController)
         if (model.sub.targetEntity) {
             this.trackingDetails = this.getTrackingDetails(model.sub.targetEntity)
         } else {

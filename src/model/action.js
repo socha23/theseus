@@ -19,6 +19,7 @@ export const ACTION_CATEGORY = {
     STANDARD: "standard",
     DIRECTION: "direction",
     THROTTLE: "throttle",
+    SPECIAL: "special",
 }
 
 
@@ -191,9 +192,9 @@ class RadioController {
 const RADIO_CONTROLLER = new RadioController()
 
 export class ToggleAction extends Action {
-    constructor(id, name, category, params={}){
+    constructor(id, name, category, params={}, value=false){
         super(id, name, category, params)
-        this.value = false
+        this.value = value
     }
 
     isSelected() {

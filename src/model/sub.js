@@ -10,27 +10,55 @@ export const SUBSYSTEM_CATEGORIES = {
 
 }
 
+const DEFAULT_TEMPLATE = {
+    powerConsumption: 0,
+}
 
+
+class TogglePowerAction extends ToggleAction {
+    constructor(subsystem) {
+        super(subsystem.id + "_on",
+            "Toggle power",
+            ACTION_CATEGORY.SPECIAL,
+            {icon: "fa-solid fa-power-off"},
+            false,
+        )
+        this._enabled = false
+        this._subsystem = subsystem
+    }
+
+    isEnabled() {
+        return this._enabled
+    }
+
+    updateState(deltaMs, model, actionController) {
+        super.updateState(deltaMs, model, actionController)
+        if (this._subsystem.on) {
+            this._enabled = true
+        } else {
+            this._enabled = (model.sub.powerBalance >= this._subsystem.nominalPowerConsumption)
+        }
+    }
+}
 
 class Subsystem {
-    constructor(id, name, category) {
+    constructor(id, name, category, template={}) {
+        template={...DEFAULT_TEMPLATE, ...template}
         this.id = id
         this.name = name
         this.category = category
         this.actions = []
+        this._powerConsumption = template.powerConsumption
 
-        this._actionOn = new ToggleAction(
-            id + "_on",
-            "Turn on / off",
-            ACTION_CATEGORY.SPECIAL,
-            {icon: "fa-solid fa-power-off"},
-            true,
-            )
+        this._actionOn = new TogglePowerAction(this)
         this.actions.push(this._actionOn)
+
+        this._shutdown = false
     }
 
     updateState(deltaMs, model, actionController) {
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
+        this._shutdown = false
     }
 
     toViewState() {
@@ -41,6 +69,7 @@ class Subsystem {
             actions: this.actions.map(a => a.toViewState()),
             actionOn: this._actionOn.toViewState(),
             on: this.on,
+            shutdown: this._shutdown,
         }
     }
 
@@ -52,8 +81,17 @@ class Subsystem {
         return false
     }
 
+    shutdown() {
+        this.on = false
+        this._shutdown = true
+    }
+
+    get nominalPowerConsumption() {
+        return this._powerConsumption
+    }
+
     get powerConsumption() {
-        return 0
+        return this.on ? this._powerConsumption : 0
     }
 
     get powerGeneration() {
@@ -64,6 +102,9 @@ class Subsystem {
         return this._actionOn.value
     }
 
+    set on(value) {
+        this._actionOn.value  = value
+    }
 
 
 }
@@ -115,6 +156,10 @@ export class Reactor extends Subsystem {
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
+        if (!this.on) {
+            actionController.setValue(this.id + "_control", 0)
+        }
+
         this.control = actionController.getValue(this.id + "_control", 0)
 
         this._sinceUpdateHistory += deltaMs
@@ -142,6 +187,8 @@ export class Reactor extends Subsystem {
 }
 
 ////////////////////////////////////////
+// WEAPONS
+////////////////////////////////////////
 
 class ReloadAction extends Action {
     constructor(weapon) {
@@ -153,6 +200,10 @@ class ReloadAction extends Action {
 
             })
         this.weapon = weapon
+    }
+
+    isEnabled() {
+        return this.weapon.on
     }
 
     onCompleted() {
@@ -177,13 +228,13 @@ class ShootAction extends Action {
     }
 
     isEnabled() {
-        return this.weapon.ammo > 0
+        return this.weapon.on && this.weapon.ammo > 0
     }
 }
 
 export class Weapon extends Subsystem {
     constructor(id, name, template) {
-        super(id, name, SUBSYSTEM_CATEGORIES.WEAPON)
+        super(id, name, SUBSYSTEM_CATEGORIES.WEAPON, template)
         this.template = template
         this.ammo = template.ammoMax
         this.ammoMax = template.ammoMax
@@ -207,12 +258,11 @@ export class Weapon extends Subsystem {
 
 export class Engine extends Subsystem {
     constructor(id, name, template) {
-        super(id, name, SUBSYSTEM_CATEGORIES.NAVIGATION)
+        super(id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, template)
         this.template = template
         this.force = template.force
         this.rotationalForce = template.rotationalForce
         this._subThrottle = 0
-        this._powerConsumption = template.powerConsumption
     }
 
     isEngine() {
@@ -230,41 +280,64 @@ export class Engine extends Subsystem {
         this._subThrottle = model.sub.throttle
     }
 
-    get powerConsumption() {
-        return Math.abs(this._subThrottle * this._powerConsumption)
+    get nominalPowerConsumption() {
+        return 0.1 * this._powerConsumption
     }
+
+    get powerConsumption() {
+        return this.on ? Math.abs(this._subThrottle * this._powerConsumption) : 0
+    }
+
+    get thrust() {
+        return this.on ? this._subThrottle * this.force : 0
+    }
+
+    get rotationalThrust() {
+        return this.on ? this.rotationalForce : 0
+    }
+
 }
 
 class DirectionAction extends Action {
-    constructor(id, name, value, icon, key) {
+    constructor(id, name, component, value, icon, key) {
         super(id, name, ACTION_CATEGORY.DIRECTION, {icon: icon, pressToActivate: true, key: key})
         this.value = value
+        this.component = component
+    }
+
+    isEnabled() {
+        return this.component.on
     }
 }
 
 
 class ThrottleAction extends RadioAction {
-    constructor(id, parentId, name, value, icon) {
+    constructor(id, parentId, name, component, value, icon) {
         super(id, name, ACTION_CATEGORY.THROTTLE, value, {icon: icon}, parentId + "_throttle")
         this.value = value
+        this.component = component
+    }
+
+    isEnabled() {
+        return this.component.on
     }
 }
 
 export class Steering extends Subsystem {
     constructor(id, name) {
-        super(id, name, SUBSYSTEM_CATEGORIES.NAVIGATION)
+        super(id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, {powerConsumption: 5})
 
         this._dirActions = [
-            new DirectionAction(id + "_left", "Left", -1, "fa-solid fa-angle-left", "a"),
-            new DirectionAction(id + "_right", "Right", 1, "fa-solid fa-angle-right", "d"),
+            new DirectionAction(id + "_left", "Left", this, -1, "fa-solid fa-angle-left", "a"),
+            new DirectionAction(id + "_right", "Right", this, 1, "fa-solid fa-angle-right", "d"),
         ]
         this.actions.push(...this._dirActions)
 
         this._throttleActions = [
-            new ThrottleAction(id + "_1", id, "Full speed ahead", 1, "fa-solid fa-angles-up"),
-            new ThrottleAction(id + "_05", id, "Half power", 0.5, "fa-solid fa-angle-up"),
-            new ThrottleAction(id + "_0", id, "Stop", 0, "fa-solid fa-ban"),
-            new ThrottleAction(id + "_rev", id, "Reverse", -0.3, "fa-solid fa-angle-down"),
+            new ThrottleAction(id + "_1", id, "Full speed ahead", this, 1, "fa-solid fa-angles-up"),
+            new ThrottleAction(id + "_05", id, "Half power", this, 0.5, "fa-solid fa-angle-up"),
+            new ThrottleAction(id + "_0", id, "Stop", this, 0, "fa-solid fa-ban"),
+            new ThrottleAction(id + "_rev", id, "Reverse", this, -0.3, "fa-solid fa-angle-down"),
         ]
         this.actions.push(...this._throttleActions)
 
@@ -282,6 +355,9 @@ export class Steering extends Subsystem {
 
 
     getDirection() {
+        if (!this.on) {
+            return 0
+        }
         var dir = 0
         this._dirActions.forEach(a => {
             if (a.isActive()) {
@@ -303,7 +379,7 @@ export class Steering extends Subsystem {
 
 export class SubStatusScreen extends Subsystem {
     constructor(id, name) {
-        super(id, name, SUBSYSTEM_CATEGORIES.STATUS)
+        super(id, name, SUBSYSTEM_CATEGORIES.STATUS, {powerConsumption: 5})
         this.position = {x: 0, y: 0}
         this.speed = 0
         this.orientation = 0
@@ -334,7 +410,7 @@ export class SubStatusScreen extends Subsystem {
 
 export class Tracking extends Subsystem {
     constructor(id, name) {
-        super(id, name, SUBSYSTEM_CATEGORIES.STATUS)
+        super(id, name, SUBSYSTEM_CATEGORIES.STATUS, {powerConsumption: 5})
         this.trackingDetails = null
     }
 
@@ -373,7 +449,7 @@ export class Tracking extends Subsystem {
 
 export class Sonar extends Subsystem {
     constructor(id, name, template) {
-        super(id, name, SUBSYSTEM_CATEGORIES.SONAR)
+        super(id, name, SUBSYSTEM_CATEGORIES.SONAR, template)
         this.position = Point.ZERO
         this.range = template.range
         this.orientation = 0
@@ -383,6 +459,9 @@ export class Sonar extends Subsystem {
         this.sub = null
 
         this.debugAction = new ToggleAction(id + "_debug", "Debug mode", ACTION_CATEGORY.THROTTLE)
+        this.debugAction.isEnabled = () => this.on
+
+
         this.actions.push(this.debugAction)
     }
 
@@ -454,7 +533,20 @@ export class Sub extends Entity {
             this.targetEntity = model.world.getEntity(actionController.targetEntityId)
         }
         this.subsystems.forEach(s => s.updateState(deltaMs, model, actionController))
+        if (this.powerBalance < 0) {
+            this._emergencyShutdown()
+        }
         this._updatePosition(deltaMs)
+    }
+
+    _emergencyShutdown() {
+        const shutdownOrder = [...this.subsystems].sort(
+            (a, b) => b.powerConsumption - a.powerConsumption
+            )
+        while (this.powerBalance < 0 && shutdownOrder.length > 0) {
+            const s = shutdownOrder.shift()
+            s.shutdown()
+        }
     }
 
     get throttle() {
@@ -467,6 +559,15 @@ export class Sub extends Entity {
         return result
     }
 
+    get powerGeneration() {
+        var result = 0
+        this.subsystems.forEach(s => {result += s.powerGeneration})
+        return result
+    }
+
+    get powerBalance() {
+        return this.powerGeneration - this.powerConsumption
+    }
 
     _updatePosition(deltaMs) {
         var force = 0
@@ -474,8 +575,8 @@ export class Sub extends Entity {
         this.subsystems
             .filter(s => s.isEngine())
             .forEach(e => {
-                force += e.force
-                rotationalForce += e.rotationalForce
+                force += e.thrust
+                rotationalForce += e.rotationalThrust
             })
         this.body.updateState(deltaMs,
             this.body.dorsalThrustVector(force * this.throttle),
@@ -493,5 +594,6 @@ export class Sub extends Entity {
             position: this.body.position,
         }
     }
+
 
 }

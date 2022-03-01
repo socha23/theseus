@@ -131,8 +131,8 @@ function Sonar({subsystem, actionController}) {
     const scale = SIZE_PX / (subsystem.range * 2)   // px per unit
 
 
-    return <div className="sonar">
-        <Stage width={SIZE_PX} height={SIZE_PX} >
+    return <div className="sonar" style={{width: SIZE_PX, height: SIZE_PX}}>
+        {subsystem.on && <Stage width={SIZE_PX} height={SIZE_PX} >
             <Layer>
                 <Group offsetX={-SIZE_PX / 2} offsetY={-SIZE_PX / 2}>
                     <Group rotation={toDegrees(-subsystem.orientation) + 90}>
@@ -144,7 +144,7 @@ function Sonar({subsystem, actionController}) {
                     {<SubMarker volume={subsystem.subVolume} scale={scale}/>}
                 </Group>
             </Layer>
-        </Stage>
+        </Stage>}
     </div>
 }
 

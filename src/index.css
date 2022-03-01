@@ -33,10 +33,10 @@ hr {
     background-color: #a5d000;
     height: 1px;
     border: none;
+    margin-right: 6px;
 }
 
 .button {
-    cursor: pointer;
     border: 2px solid #a5d000;
     border-radius: 8px;
     padding: 4px 7px 4px 7px;
@@ -46,13 +46,15 @@ hr {
     font-weight: bold;
 }
 
-.button:hover {
+.button.enabled:hover {
+    cursor: pointer;
     color: #ebf100;
     border: 2px solid #ebf100;
 }
 
 .button.disabled {
-    opacity: 0.5;
+    color: #469528;
+    border-color: #469528;
 }
 
 .button .progressContainer {
@@ -133,7 +135,6 @@ hr {
 
 .vertSlider .sliderTrack-0 {
     background-color: #469528;
-    opacity: 0.7
 }
 
 .vertSlider .sliderThumb {
@@ -142,6 +143,31 @@ hr {
     border-radius: 5px;
     background-color: #ebf100;
 }
+
+.vertSlider.disabled .sliderThumb {
+    background-color: #469528
+}
+
+.subsystem.powered .boxWithScroll {
+    overflow-x: auto;
+    overflow-y: scroll;
+}
+
+.subsystem.unpowered .boxWithScroll {
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+::-webkit-scrollbar {
+    background: #469528;
+    width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #a5d000;
+}
+
+
 
 
 .standardActions {
@@ -260,20 +286,50 @@ hr {
     }
 }
 
+@keyframes subsystemShutdown {
+    0% {
+        border-color: #a5d000;
+        color: #ebf100;
+    }
+    50% {
+        border-color: red;
+    }
+    100% {
+        border-color: #469528;
+        color: #469528
+    }
+}
+
 .subsystem.powered {
     border-color: #a5d000;
     color: #ebf100;
-    animation-name: subsystemPowerCycleOn;
-    animation-duration: 0.2s;
 }
 
 .subsystem.unpowered {
     border-color: #469528;
     color: #469528;
-    animation-name: subsystemPowerCycleOff;
-    animation-duration: 0.2s;
 }
 
+.subsystem.shutdown {
+    animation-name: subsystemShutdown;
+    animation-duration: 0.5s;
+    border-color: #469528;
+    color: #469528
+}
+
+.subsystem.poweringDown {
+    animation-name: subsystemPowerCycleOff;
+    animation-duration: 0.2s;
+    border-color: #469528;
+    color: #469528
+}
+
+.subsystem.poweringUp {
+    animation-name: subsystemPowerCycleOn;
+    animation-duration: 0.2s;
+    border-color: #a5d000;
+    color: #ebf100;
+}
 
 .subsystem .titleBar {
     font-weight: bold;
@@ -310,24 +366,58 @@ hr {
     }
 }
 
+@keyframes titleBarShutdown {
+    0% {
+        background-color: #a5d000;
+        color: white;
+        text-shadow: 0 0 8px black;
+    }
+    50% {
+        background-color: red;
+    }
+    100% {
+        background-color: #469528;
+        color: rgba(0,59,53,0.7);
+        text-shadow: none;
+    }
+}
 .subsystem.unpowered .titleBar {
     background-color: #469528;
     color: rgba(0,59,53,0.7);
     text-shadow: none;
-    animation-name: titleBarPowerCycleOff;
-    animation-duration: 0.2s;
 }
 
 .subsystem.powered .titleBar {
     background-color: #a5d000;
     color: white;
     text-shadow: 0 0 8px black;
+}
+
+.subsystem.poweringUp .titleBar {
+    background-color: #a5d000;
+    color: white;
+    text-shadow: 0 0 8px black;
     animation-name: titleBarPowerCycleOn;
+    animation-duration: 0.2s;
+}
+
+.subsystem.poweringDown .titleBar {
+    background-color: #469528;
+    color: rgba(0,59,53,0.7);
+    text-shadow: none;
+    animation-name: titleBarPowerCycleOff;
     animation-duration: 0.2s;
 
 }
 
+.subsystem.shutdown .titleBar {
+    background-color: #a5d000;
+    color: white;
+    text-shadow: 0 0 8px black;
+    animation-name: titleBarShutdown;
+    animation-duration: 0.5s;
 
+}
 
 
 
@@ -343,6 +433,10 @@ hr {
     padding: 0;
     background-color: transparent;
     font-size: 12pt;
+}
+
+.subsystem.unpowered .powerButton .button.enabled {
+    color: #ebf100;
 }
 
 .subsystem.powered .powerButton .button {
@@ -375,12 +469,6 @@ hr {
 
 
 
-.subsystem .tracking .trackedEntity {
-    height: 100px;
-}
-
-
-
 .subsystem .reactor {
     display: flex;
     min-height: 100px;
@@ -389,6 +477,9 @@ hr {
 
 .subsystem .reactor .history {
     border: 1px solid #a5d000;
+}
+
+.subsystem .reactor .history .chart {
     opacity: 0.7;
     background-color: rgba(0,22,19,1)
 }
@@ -404,4 +495,12 @@ hr {
 .subsystem .infoRow {
     display: flex;
     gap: 10px;
+}
+
+.subsystem .subStatus {
+    height: 150px;
+}
+
+.subsystem .tracking {
+    height: 150px;
 }

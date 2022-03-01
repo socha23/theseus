@@ -30,7 +30,8 @@ function AmmoBar({subsystem}) {
 ///////////////////////////////////
 
 function SubStatus({subsystem}) {
-    return <div className='subStatus'>
+    return <div className='subStatus boxWithScroll'>
+        {subsystem.on && <div>
         <div className="infoRow">
             <span>Pos:</span>
             <span>{subsystem.position.x.toFixed(1)}, {subsystem.position.y.toFixed(1)}</span>
@@ -48,6 +49,8 @@ function SubStatus({subsystem}) {
             <span>Rot. speed:</span>
             <span>{subsystem.rotationSpeed.toFixed(2)} m/s</span>
         </div>
+
+        </div>}
     </div>
 }
 
@@ -55,10 +58,10 @@ function SubStatus({subsystem}) {
 
 function Tracking({subsystem}) {
     const tracking = subsystem.tracking
-    return <div className='tracking'>
+    return <div className='tracking infoBox'>
 
-        <div className="trackedEntity">
-            { tracking && <div>
+        {subsystem.on && <div className="trackedEntity">
+            { tracking ? <div>
                 <div className="infoRow">
                     <span className="label">Id:</span>
                     <span>{tracking.entityId}</span>
@@ -77,21 +80,22 @@ function Tracking({subsystem}) {
                     <span>{tracking.planDescription}</span>
                 </div>
                 }
-            </div>}
-        </div>
+            </div> : "Nothing tracked"}
+        </div>}
     </div>
 }
 ///////////////////////////////////
 
 
-function VertSlider({id, actionController, children}) {
+function VertSlider({id, actionController, children, enabled=true}) {
     return <div className="vertSliderContainer">
     <ReactSlider
-    className="vertSlider"
+    className={"vertSlider " + (enabled ? "enabled " : "disabled ")}
     thumbClassName="sliderThumb"
     trackClassName="sliderTrack"
     min={0}
     max={100}
+    disabled={!enabled}
     orientation="vertical"
     onChange={(v, i) => actionController.setValue(id, 1-(v / 100))}
     value={100 - (100 * actionController.getValue(id, 0))}
@@ -106,6 +110,7 @@ function VertSlider({id, actionController, children}) {
 
 function ReactorHistory({subsystem}) {
     const WIDTH = 210
+    const HEIGHT = 200
 
     const history = subsystem.history
     const histGridTimePoints = []
@@ -121,14 +126,17 @@ function ReactorHistory({subsystem}) {
     for (var x = phase * PX_PER_STEP; x <= WIDTH; x += PX_PER_STEP) {
         histGridTimePoints.push(x)
     }
-    return <div className='history'>
-        <AreaChart margin={{top: 0, left: 0, right: 0, bottom: 0}} width={WIDTH} height={200} data={history}>
-            <CartesianGrid verticalPoints={histGridTimePoints} stroke="#469528"/>
-            <YAxis hide={true} type="number" domain={[0, subsystem.maxOutput]}/>
-            <XAxis hide={true} type="number" domain={[subsystem.historyFrom + 200, subsystem.historyTo - 200]} dataKey="timeMs"/>
-            <Area dataKey="output" stroke="#a5d000" strokeWidth={3} fill="green"/>
-            <Area dataKey="consumption" stroke="red" strokeWidth={3} fill="#6f0000"/>
-        </AreaChart>
+    return <div className='history' style={{width: WIDTH, height: HEIGHT}}>
+        {subsystem.on &&
+            <div className="chart">
+                <AreaChart margin={{top: 0, left: 0, right: 0, bottom: 0}} width={WIDTH} height={HEIGHT} data={history}>
+                    <CartesianGrid verticalPoints={histGridTimePoints} stroke="#469528"/>
+                    <YAxis hide={true} type="number" domain={[0, subsystem.maxOutput]}/>
+                    <XAxis hide={true} type="number" domain={[subsystem.historyFrom + 200, subsystem.historyTo - 200]} dataKey="timeMs"/>
+                    <Area dataKey="output" stroke="#a5d000" strokeWidth={3} fill="green"/>
+                    <Area dataKey="consumption" stroke="red" strokeWidth={3} fill="#6f0000"/>
+                </AreaChart>
+            </div>}
     </div>
 
 }
@@ -137,7 +145,7 @@ function ReactorHistory({subsystem}) {
 function Reactor({subsystem, actionController}) {
     return <div className='reactor'>
         <div className='controls'>
-            <VertSlider id={subsystem.id + "_control"} actionController={actionController}>
+            <VertSlider id={subsystem.id + "_control"} actionController={actionController} enabled={subsystem.on}>
                 <i className="fa-solid fa-atom"></i>
             </VertSlider>
         </div>
@@ -186,12 +194,42 @@ function ThrottleActions({actions, actionController}) {
 
 function Subsystem({subsystem, actionController}) {
 
+    const [power, setPower] = useState(false)
+    const [animation, setAnimation] = useState("")
+
+    if (subsystem.shutdown && power) {
+        setPower(false)
+        setAnimation("shutdown")
+        setTimeout(() => {
+            setAnimation("")
+        }, 500)
+    }
+
+    if (subsystem.on && !power) {
+        setPower(true)
+        setAnimation("poweringUp")
+        setTimeout(() => {
+            setAnimation("")
+        }, 500)
+    }
+
+    if (!subsystem.on && !subsystem.shutdown && power) {
+        setPower(false)
+        setAnimation("poweringDown")
+        setTimeout(() => {
+            setAnimation("")
+        }, 500)
+    }
+
     const standardActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.STANDARD)
     const directionActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.DIRECTION)
     const throttleActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.THROTTLE)
 
 
-    return <div className={'subsystem ' + (subsystem.on ? 'powered ' : 'unpowered ')}>
+    return <div className={'subsystem '
+                + (subsystem.on ? 'powered ' : 'unpowered ')
+                + (animation + " ")
+                }>
         <div className="titleBar">
             <span className='name'>{subsystem.name}</span>
 
@@ -290,6 +328,7 @@ function ActionButton({action, actionController}) {
 
     return <div
         className={'button '
+            + (recentlyCompleted ? "recentlyCompleted " : ' ')
             + (recentlyCompleted ? "recentlyCompleted " : ' ')
             + (action.enabled ? "enabled " : 'disabled ')
             + (action.selected ? "selected " : "deselected ")

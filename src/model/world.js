@@ -10,6 +10,7 @@ const WEAPON_TEMPLATES = {
         reloadTime: 5000,
         reloadDecay: 1000,
         ammoMax: 5,
+        powerConsumption: 10,
     },
     RAILGUN: {
         aimTime: 5000,
@@ -17,6 +18,7 @@ const WEAPON_TEMPLATES = {
         reloadTime: 10000,
         reloadDecay: 1000,
         ammoMax: 2,
+        powerConsumption: 15,
     }
 }
 
@@ -24,13 +26,14 @@ const ENGINE_TEMPLATES = {
     BASIC_ENGINE: {
         force: 100 * 1000,
         rotationalForce: 50 * 1000,
-        powerConsumption: 40,
+        powerConsumption: 20,
     }
 }
 
 const SONAR_TEMPLATES = {
     BASIC_SONAR: {
         range: 50,
+        powerConsumption: 10,
     }
 }
 

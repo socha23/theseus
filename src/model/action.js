@@ -107,7 +107,7 @@ export class Action {
         const isClicked = (actionController.isCurrent(this))
             || (this.params.key && actionController.isKeyDown(this.params.key))
 
-        if (isClicked) {
+        if (isClicked && this.isEnabled()) {
             if (this._usesProgress() && this.state == ACTION_STATES.DEFAULT) {
                 this._enterProgress()
             }

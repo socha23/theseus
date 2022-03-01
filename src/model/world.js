@@ -1,6 +1,6 @@
 import { Entity, Fish } from "./entities"
 import { Body, Point, Volume } from "./physics"
-import {Sub, Weapon, Engine, Reactor, SubStatusScreen, Steering, Sonar, Tracking} from "./sub.js"
+import {CheatBox, Sub, Weapon, Engine, Reactor, SubStatusScreen, Steering, Sonar, Tracking} from "./sub.js"
 import { Agent, Flock, FlockAgent } from "./agent"
 
 const WEAPON_TEMPLATES = {
@@ -24,8 +24,8 @@ const WEAPON_TEMPLATES = {
 
 const ENGINE_TEMPLATES = {
     BASIC_ENGINE: {
-        force: 100 * 1000,
-        rotationalForce: 50 * 1000,
+        force: 20 * 1000,
+        rotationalForce: 1 * 1000,
         powerConsumption: 20,
     }
 }
@@ -70,8 +70,9 @@ const FISH_TEMPLATES = {
 
 export function getStartingSub() {
     return new Sub(
-        new Volume(5, 5, 30),
+        new Volume(2, 2, 10),
         [
+            new CheatBox(),
             new Weapon("coil_1", "Coilgun #1", WEAPON_TEMPLATES.COILGUN),
             new Weapon("coil_2", "Coilgun #2", WEAPON_TEMPLATES.COILGUN),
             new Weapon("railgun", "Railgun", WEAPON_TEMPLATES.RAILGUN),

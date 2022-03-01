@@ -89,9 +89,9 @@ export class Action {
         return this.state == ACTION_STATES.ACTIVE
     }
 
-    _enterCompleted() {
+    _enterCompleted(model) {
         this.state = ACTION_STATES.JUST_COMPLETED
-        this.onCompleted()
+        this.onCompleted(model)
     }
 
     updateState(deltaMs, model, actionController) {
@@ -126,14 +126,14 @@ export class Action {
 
             if (!this.usesPressToActivate() && this.state == ACTION_STATES.ACTIVE) {
                 actionController.resetCurrentAction()
-                this._enterCompleted()
+                this._enterCompleted(model)
             }
         } else {
             if (this._usesProgress() && this.state == ACTION_STATES.PROGRESS) {
                 this._decayProgress(deltaMs)
             }
             if (this.usesPressToActivate() && this.state == ACTION_STATES.ACTIVE) {
-                this._enterCompleted()
+                this._enterCompleted(model)
             }
             if (this.state == ACTION_STATES.COMPLETED) {
                 this.state = ACTION_STATES.DEFAULT
@@ -149,7 +149,7 @@ export class Action {
 
     }
 
-    onCompleted() {
+    onCompleted(model=null) {
 
     }
 

@@ -204,39 +204,6 @@ hr {
 }
 
 
-
-
-.directionActions {
-    display: flex;
-    justify-content: space-between;
-    gap: 5px;
-}
-
-.directionActions .button {
-    flex-grow: 1;
-}
-
-.directionActions .button .name{
-    display: none;
-}
-
-.directionActions .button.active {
-    background-color: #ebf100;
-    border-color: #ebf100;
-    color: #003b35;
-
-}
-
-.directionActions .button .container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 36px;
-    font-size: 20pt;
-}
-
-
-
 .sub {
     padding: 15px;
     display: flex;
@@ -479,6 +446,11 @@ hr {
     border: 1px solid #a5d000;
 }
 
+.subsystem .reactor .vertSlider {
+    height: 200px;
+    flex-grow: 0;
+}
+
 .subsystem .reactor .history .chart {
     opacity: 0.7;
     background-color: rgba(0,22,19,1)
@@ -503,4 +475,46 @@ hr {
 
 .subsystem .tracking {
     height: 150px;
+}
+
+
+
+
+.subsystem .steering {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.subsystem .steering .directions {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.subsystem .steering .directions .row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 5px;
+
+}
+
+.subsystem .steering .directions .button .name{
+    display: none;
+}
+
+.subsystem .steering .directions .button.active {
+    background-color: #ebf100;
+    border-color: #ebf100;
+    color: #003b35;
+}
+
+.subsystem .steering .directions .button .container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    width: 36px;
+    font-size: 20pt;
 }

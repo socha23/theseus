@@ -1,6 +1,7 @@
 import {Action, ACTION_CATEGORY, RadioAction, ToggleAction } from './action.js'
 import {Point, Body, Volume} from './physics.js'
 import { Entity } from './entities.js'
+import { Component } from 'react'
 
 export const SUBSYSTEM_CATEGORIES = {
     WEAPON: "WEAPON",
@@ -110,6 +111,8 @@ class Subsystem {
 }
 
 ////////////////////////////////////////
+// REACTOR
+////////////////////////////////////////
 
 const REACTOR_UPDATE_HISTORY_MS = 200
 const REACTOR_HISTORY_FRAMES = 100
@@ -132,10 +135,16 @@ export class Reactor extends Subsystem {
             this._addHistoryFrame()
         }
         this._sinceUpdateHistory = 0
+        this._externalSetControl = false
     }
 
     get output() {
         return this.maxOutput * this.control
+    }
+
+    externalSetControl(val) {
+        this.control = val
+        this._externalSetControl = true
     }
 
     get powerGeneration() {
@@ -156,9 +165,15 @@ export class Reactor extends Subsystem {
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
+        if (this._externalSetControl) {
+            this._externalSetControl = false
+            actionController.setValue(this.id + "_control", this.control)
+        }
+
         if (!this.on) {
             actionController.setValue(this.id + "_control", 0)
         }
+
 
         this.control = actionController.getValue(this.id + "_control", 0)
 
@@ -182,8 +197,36 @@ export class Reactor extends Subsystem {
             maxOutput: this.maxOutput,
         }
     }
+}
 
+////////////////////////////////////////
+// CHEATBOX
+////////////////////////////////////////
 
+class StartSubCheat extends Action {
+    constructor() {
+        super("cheat_startSub", "Start Sub", ACTION_CATEGORY.STANDARD, {
+
+        })
+    }
+
+    onCompleted(model) {
+        model.sub.subsystems.forEach(s => {
+            s.on = true
+            if (s instanceof Reactor) {
+                s.externalSetControl(1)
+            }
+        })
+
+    }
+}
+
+export class CheatBox extends Subsystem {
+    constructor() {
+        super("cheatbox", "Cheatbox", SUBSYSTEM_CATEGORIES.WEAPON)
+        this.actions.push(new StartSubCheat())
+        this.on = true
+    }
 }
 
 ////////////////////////////////////////
@@ -289,7 +332,7 @@ export class Engine extends Subsystem {
     }
 
     get thrust() {
-        return this.on ? this._subThrottle * this.force : 0
+        return this.on ? this.force : 0
     }
 
     get rotationalThrust() {
@@ -299,9 +342,8 @@ export class Engine extends Subsystem {
 }
 
 class DirectionAction extends Action {
-    constructor(id, name, component, value, icon, key) {
+    constructor(id, name, component, icon, key) {
         super(id, name, ACTION_CATEGORY.DIRECTION, {icon: icon, pressToActivate: true, key: key})
-        this.value = value
         this.component = component
     }
 
@@ -310,66 +352,64 @@ class DirectionAction extends Action {
     }
 }
 
-
-class ThrottleAction extends RadioAction {
-    constructor(id, parentId, name, component, value, icon) {
-        super(id, name, ACTION_CATEGORY.THROTTLE, value, {icon: icon}, parentId + "_throttle")
-        this.value = value
-        this.component = component
-    }
-
-    isEnabled() {
-        return this.component.on
-    }
-}
 
 export class Steering extends Subsystem {
     constructor(id, name) {
         super(id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, {powerConsumption: 5})
 
-        this._dirActions = [
-            new DirectionAction(id + "_left", "Left", this, -1, "fa-solid fa-angle-left", "a"),
-            new DirectionAction(id + "_right", "Right", this, 1, "fa-solid fa-angle-right", "d"),
-        ]
-        this.actions.push(...this._dirActions)
+        this._left = new DirectionAction(id + "_left", "Left", this, "fa-solid fa-angle-left", "a")
+        this._right = new DirectionAction(id + "_right", "Right", this, "fa-solid fa-angle-right", "d")
+        this._forward = new DirectionAction(id + "_forward", "Forward", this, "fa-solid fa-angle-up", "w")
+        this._backward = new DirectionAction(id + "_backward", "Backward", this, "fa-solid fa-angle-down", "s")
 
-        this._throttleActions = [
-            new ThrottleAction(id + "_1", id, "Full speed ahead", this, 1, "fa-solid fa-angles-up"),
-            new ThrottleAction(id + "_05", id, "Half power", this, 0.5, "fa-solid fa-angle-up"),
-            new ThrottleAction(id + "_0", id, "Stop", this, 0, "fa-solid fa-ban"),
-            new ThrottleAction(id + "_rev", id, "Reverse", this, -0.3, "fa-solid fa-angle-down"),
-        ]
-        this.actions.push(...this._throttleActions)
+        this.actions.push(this._left, this._right, this._forward, this._backward)
 
+    }
+
+    get rotationControlOn() {
+        return true
     }
 
     getThrottle() {
+        if (!this.on) {
+            return 0
+        }
         var throttle = 0
-        this._throttleActions.forEach(a => {
-            if (a.isSelected()) {
-                throttle += a.value
-            }
-        })
+        if (this._forward.isActive()) {
+            throttle += 1
+        }
+        if (this._backward.isActive()) {
+            throttle -= 0.5
+        }
         return throttle
     }
 
-
     getDirection() {
+        return this.direction
+    }
+
+    get direction() {
         if (!this.on) {
             return 0
         }
         var dir = 0
-        this._dirActions.forEach(a => {
-            if (a.isActive()) {
-                dir += a.value
-            }
-        })
+        if (this._left.isActive()) {
+            dir -= 1
+        }
+        if (this._right.isActive()) {
+            dir += 1
+        }
         return dir
     }
 
     toViewState() {
         return {
             ...super.toViewState(),
+            left: this._left.toViewState(),
+            right: this._right.toViewState(),
+            forward: this._forward.toViewState(),
+            backward: this._backward.toViewState(),
+            isSteering: true,
         }
     }
 }
@@ -578,9 +618,20 @@ export class Sub extends Entity {
                 force += e.thrust
                 rotationalForce += e.rotationalThrust
             })
+
+        var dir = this._steering.direction
+        if (
+            (dir == 0)
+            && (this._steering.rotationControlOn)
+            && (Math.abs(this.body.rotationSpeed) > 0.01)
+         ) {
+            dir = Math.sign(this.body.rotationSpeed) * -1
+        }
+
+
         this.body.updateState(deltaMs,
             this.body.dorsalThrustVector(force * this.throttle),
-            rotationalForce * this._steering.getDirection()
+            rotationalForce * dir
             )
     }
 

@@ -87,11 +87,10 @@ function Tracking({subsystem}) {
 ///////////////////////////////////
 
 
-function VertSlider({id, actionController, children, height=100, enabled=true}) {
+function VertSlider({id, actionController, children, enabled=true}) {
     return <div className="vertSliderContainer">
     <ReactSlider
     className={"vertSlider " + (enabled ? "enabled " : "disabled ")}
-    style={{height: height}}
     thumbClassName="sliderThumb"
     trackClassName="sliderTrack"
     min={0}
@@ -177,11 +176,27 @@ function Throttle({subsystem, actionController}) {
 
 ///////////////////////////////////
 
-function DirectionActions({actions, actionController}) {
+function Steering({subsystem, actionController}) {
+    return <div className="steering">
+        <div className="directions">
+            <div className="row topRow">
+                <div/>
+                <ActionButton action={subsystem.forward} actionController={actionController}/>
+                <div/>
+            </div>
+            <div className="row bottomRow">
+                <ActionButton action={subsystem.left} actionController={actionController}/>
+                <ActionButton action={subsystem.backward} actionController={actionController}/>
+                <ActionButton action={subsystem.right} actionController={actionController}/>
+            </div>
+        </div>
+    </div>
+
+
     return <div className='directionActions'>
         {
-            actions.map(a => <ActionButton key={a.id} action={a} actionController={actionController}/>)
-        }
+/*            actions.map(a => <ActionButton key={a.id} action={a} actionController={actionController}/>)
+        */       }
     </div>
 }
 
@@ -224,7 +239,6 @@ function Subsystem({subsystem, actionController}) {
     }
 
     const standardActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.STANDARD)
-    const directionActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.DIRECTION)
     const throttleActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.THROTTLE)
 
 
@@ -258,6 +272,9 @@ function Subsystem({subsystem, actionController}) {
         {
             subsystem.isReactor && <Reactor subsystem={subsystem} actionController={actionController}/>
         }
+        {
+            subsystem.isSteering && <Steering subsystem={subsystem} actionController={actionController}/>
+        }
         <div className='standardActions'>
             {
                 standardActions.map(a => <ActionButton key={a.id} action={a} actionController={actionController}/>)
@@ -265,9 +282,6 @@ function Subsystem({subsystem, actionController}) {
         </div>
         {
             (throttleActions.length > 0) && <ThrottleActions actions={throttleActions} actionController={actionController}/>
-        }
-        {
-            (directionActions.length > 0) && <DirectionActions actions={directionActions} actionController={actionController}/>
         }
         </div>
     </div>

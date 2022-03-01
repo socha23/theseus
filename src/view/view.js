@@ -87,10 +87,11 @@ function Tracking({subsystem}) {
 ///////////////////////////////////
 
 
-function VertSlider({id, actionController, children, enabled=true}) {
+function VertSlider({id, actionController, children, height=100, enabled=true}) {
     return <div className="vertSliderContainer">
     <ReactSlider
     className={"vertSlider " + (enabled ? "enabled " : "disabled ")}
+    style={{height: height}}
     thumbClassName="sliderThumb"
     trackClassName="sliderTrack"
     min={0}
@@ -108,9 +109,8 @@ function VertSlider({id, actionController, children, enabled=true}) {
 }
 
 
-function ReactorHistory({subsystem}) {
+function ReactorHistory({subsystem, height}) {
     const WIDTH = 210
-    const HEIGHT = 200
 
     const history = subsystem.history
     const histGridTimePoints = []
@@ -126,10 +126,10 @@ function ReactorHistory({subsystem}) {
     for (var x = phase * PX_PER_STEP; x <= WIDTH; x += PX_PER_STEP) {
         histGridTimePoints.push(x)
     }
-    return <div className='history' style={{width: WIDTH, height: HEIGHT}}>
+    return <div className='history' style={{width: WIDTH, height: height}}>
         {subsystem.on &&
             <div className="chart">
-                <AreaChart margin={{top: 0, left: 0, right: 0, bottom: 0}} width={WIDTH} height={HEIGHT} data={history}>
+                <AreaChart margin={{top: 0, left: 0, right: 0, bottom: 0}} width={WIDTH} height={height} data={history}>
                     <CartesianGrid verticalPoints={histGridTimePoints} stroke="#469528"/>
                     <YAxis hide={true} type="number" domain={[0, subsystem.maxOutput]}/>
                     <XAxis hide={true} type="number" domain={[subsystem.historyFrom + 200, subsystem.historyTo - 200]} dataKey="timeMs"/>
@@ -143,14 +143,16 @@ function ReactorHistory({subsystem}) {
 
 
 function Reactor({subsystem, actionController}) {
+    const HEIGHT = 200
+
     return <div className='reactor'>
         <div className='controls'>
-            <VertSlider id={subsystem.id + "_control"} actionController={actionController} enabled={subsystem.on}>
+            <VertSlider id={subsystem.id + "_control"} actionController={actionController} enabled={subsystem.on} height={HEIGHT}>
                 <i className="fa-solid fa-atom"></i>
             </VertSlider>
         </div>
         <div>
-            <ReactorHistory subsystem={subsystem}/>
+            <ReactorHistory subsystem={subsystem} height={HEIGHT}/>
             <div className='fuel'>
             </div>
         </div>

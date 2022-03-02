@@ -206,7 +206,9 @@ export function Subsystem({subsystem, actionController}) {
                 <ActionButton action={subsystem.actionOn} actionController={actionController}/>
             </div>
         </div>
-        <div className='body'>
+        <div className='body'
+            onMouseDown={e => {e.preventDefault(); return false}} /* disable drag & drop */
+        >
             <div className='contents'>
             {
                 subsystem.usesAmmo && <AmmoBar subsystem={subsystem}/>

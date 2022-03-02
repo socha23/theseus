@@ -1,6 +1,7 @@
 .sub {
     position: relative;
-    margin: 15px;
+    _border-bottom: 2px solid rgba(235, 241, 0, 0.1);
+    _border-right: 2px solid rgba(235, 241, 0, 0.1);
 }
 
 .subsystemGrid {

@@ -573,7 +573,7 @@ export class Sub extends Entity {
         this._steering = this._findSubsystem(Steering)
 
         this.gridWidth = 5
-        this.gridHeight = 4
+        this.gridHeight = 5
 
         this._gridBusyCache = this._getGridBusy()
     }

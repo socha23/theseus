@@ -13,6 +13,7 @@ export const SUBSYSTEM_CATEGORIES = {
 
 const DEFAULT_TEMPLATE = {
     powerConsumption: 0,
+    gridSize: new Point(1, 1),
 }
 
 
@@ -43,7 +44,7 @@ class TogglePowerAction extends ToggleAction {
 }
 
 class Subsystem {
-    constructor(id, name, category, template={}) {
+    constructor(gridPosition, id, name, category, template={}) {
         template={...DEFAULT_TEMPLATE, ...template}
         this.id = id
         this.name = name
@@ -55,6 +56,8 @@ class Subsystem {
         this.actions.push(this._actionOn)
 
         this._shutdown = false
+        this.gridPosition = gridPosition
+        this.gridSize = template.gridSize
     }
 
     updateState(deltaMs, model, actionController) {
@@ -71,6 +74,8 @@ class Subsystem {
             actionOn: this._actionOn.toViewState(),
             on: this.on,
             shutdown: this._shutdown,
+            gridPosition: this.gridPosition,
+            gridSize: this.gridSize,
         }
     }
 
@@ -120,8 +125,8 @@ const REACTOR_HISTORY_FRAMES = 100
 const HIST_TIME_MS = REACTOR_HISTORY_FRAMES * REACTOR_UPDATE_HISTORY_MS;
 
 export class Reactor extends Subsystem {
-    constructor(id, name, template) {
-        super(id, name, SUBSYSTEM_CATEGORIES.NAVIGATION)
+    constructor(gridPosition, id, name, template) {
+        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, template)
 
         this.template = template
         this.maxOutput = template.maxOutput
@@ -222,8 +227,8 @@ class StartSubCheat extends Action {
 }
 
 export class CheatBox extends Subsystem {
-    constructor() {
-        super("cheatbox", "Cheatbox", SUBSYSTEM_CATEGORIES.WEAPON)
+    constructor(gridPosition) {
+        super(gridPosition, "cheatbox", "Cheatbox", SUBSYSTEM_CATEGORIES.WEAPON)
         this.actions.push(new StartSubCheat())
         this.on = true
     }
@@ -276,8 +281,8 @@ class ShootAction extends Action {
 }
 
 export class Weapon extends Subsystem {
-    constructor(id, name, template) {
-        super(id, name, SUBSYSTEM_CATEGORIES.WEAPON, template)
+    constructor(gridPosition, id, name, template) {
+        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.WEAPON, template)
         this.template = template
         this.ammo = template.ammoMax
         this.ammoMax = template.ammoMax
@@ -300,8 +305,8 @@ export class Weapon extends Subsystem {
 ////////////////////////////////////////
 
 export class Engine extends Subsystem {
-    constructor(id, name, template) {
-        super(id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, template)
+    constructor(gridPosition, id, name, template) {
+        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, template)
         this.template = template
         this.force = template.force
         this.rotationalForce = template.rotationalForce
@@ -354,8 +359,8 @@ class DirectionAction extends Action {
 
 
 export class Steering extends Subsystem {
-    constructor(id, name) {
-        super(id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, {powerConsumption: 5})
+    constructor(gridPosition, id, name) {
+        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, {powerConsumption: 5})
 
         this._left = new DirectionAction(id + "_left", "Left", this, "fa-solid fa-angle-left", "a")
         this._right = new DirectionAction(id + "_right", "Right", this, "fa-solid fa-angle-right", "d")
@@ -418,8 +423,8 @@ export class Steering extends Subsystem {
 ////////////////////////////////////////
 
 export class SubStatusScreen extends Subsystem {
-    constructor(id, name) {
-        super(id, name, SUBSYSTEM_CATEGORIES.STATUS, {powerConsumption: 5})
+    constructor(gridPosition, id, name) {
+        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.STATUS, {powerConsumption: 5})
         this.position = {x: 0, y: 0}
         this.speed = 0
         this.orientation = 0
@@ -449,8 +454,8 @@ export class SubStatusScreen extends Subsystem {
 ////////////////////////////////////////
 
 export class Tracking extends Subsystem {
-    constructor(id, name) {
-        super(id, name, SUBSYSTEM_CATEGORIES.STATUS, {powerConsumption: 5})
+    constructor(gridPosition, id, name) {
+        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.STATUS, {powerConsumption: 5})
         this.trackingDetails = null
     }
 
@@ -488,8 +493,8 @@ export class Tracking extends Subsystem {
 ////////////////////////////////////////
 
 export class Sonar extends Subsystem {
-    constructor(id, name, template) {
-        super(id, name, SUBSYSTEM_CATEGORIES.SONAR, template)
+    constructor(gridPosition, id, name, template) {
+        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.SONAR, template)
         this.position = Point.ZERO
         this.range = template.range
         this.orientation = 0
@@ -566,9 +571,16 @@ export class Sub extends Entity {
 
         this._engine = this._findSubsystem(Engine)
         this._steering = this._findSubsystem(Steering)
+
+        this.gridWidth = 5
+        this.gridHeight = 4
+
+        this._gridBusyCache = this._getGridBusy()
     }
 
+
     updateState(deltaMs, model, actionController) {
+        this._moveSubsystems(actionController)
         if (actionController.targetEntityId != null) {
             this.targetEntity = model.world.getEntity(actionController.targetEntityId)
         }
@@ -577,6 +589,15 @@ export class Sub extends Entity {
             this._emergencyShutdown()
         }
         this._updatePosition(deltaMs)
+    }
+
+    _moveSubsystems(actionController) {
+        if (actionController.movedSubsystemId) {
+            this.subsystems
+                .find(s => s.id == actionController.movedSubsystemId)
+                .gridPosition = actionController.movedSubsystemPosition
+            this._gridBusyCache = this._getGridBusy()
+        }
     }
 
     _emergencyShutdown() {
@@ -639,10 +660,28 @@ export class Sub extends Entity {
         return this.subsystems.find(s => s instanceof clazz)
     }
 
+    _getGridBusy() {
+        const grid = []
+        for (var x = 0; x < this.gridWidth; x++) {
+            grid.push(new Array(this.gridHeight).fill(null))
+        }
+        this.subsystems.forEach(s => {
+            for (var x = s.gridPosition.x; x < s.gridPosition.x + s.gridSize.x; x++) {
+                for (var y = s.gridPosition.y; y < s.gridPosition.y + s.gridSize.y; y++) {
+                    grid[x][y] = s.id
+                }
+            }
+        })
+        return grid
+    }
+
     toViewState() {
         return {
             subsystems: this.subsystems.map(s => s.toViewState()),
             position: this.body.position,
+            gridWidth: this.gridWidth,
+            gridHeight: this.gridHeight,
+            gridBusy: this._gridBusyCache,
         }
     }
 

@@ -1,0 +1,34 @@
+html, body, .viewport {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+  }
+
+  #root, .app {
+    height: 100%;
+}
+
+html {
+    box-sizing: border-box;
+  }
+  *, *:before, *:after {
+    box-sizing: inherit;
+  }
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+    background: rgb(0,22,19);
+    background: linear-gradient(0deg, rgba(0,22,19,1) 0%, rgba(0,59,53,1) 33%, rgba(0,122,110,1) 100%);
+    color: #ebf100;
+
+    font-family: monospace;
+    font-size: 12pt;
+
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+/Edge */
+    user-select: none; /* Standard */
+}

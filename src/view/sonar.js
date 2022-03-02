@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {Stage, Layer, Line, Circle, Rect, Container, Group, Arc} from 'react-konva'
 import { toDegrees } from "../units";
 
-const SIZE_PX = 400
+const SIZE_PX = 376
 
 
 function SonarBackground({position, scale}) {
@@ -131,7 +131,7 @@ function Sonar({subsystem, actionController}) {
     const scale = SIZE_PX / (subsystem.range * 2)   // px per unit
 
 
-    return <div className="sonar" style={{width: SIZE_PX, height: SIZE_PX}}>
+    return <div className="sonar" style={{width: SIZE_PX + 2, height: SIZE_PX + 2}}>
         {subsystem.on && <Stage width={SIZE_PX} height={SIZE_PX} >
             <Layer>
                 <Group offsetX={-SIZE_PX / 2} offsetY={-SIZE_PX / 2}>

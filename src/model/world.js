@@ -24,8 +24,8 @@ const WEAPON_TEMPLATES = {
 
 const ENGINE_TEMPLATES = {
     BASIC_ENGINE: {
-        force: 20 * 1000,
-        rotationalForce: 1 * 1000,
+        force: 40 * 1000,
+        rotationalForce: 2 * 1000,
         powerConsumption: 20,
     }
 }
@@ -34,12 +34,14 @@ const SONAR_TEMPLATES = {
     BASIC_SONAR: {
         range: 50,
         powerConsumption: 10,
+        gridSize: new Point(2, 3),
     }
 }
 
 const REACTOR_TEMPLATES = {
     BASIC_REACTOR: {
         maxOutput: 100,
+        gridSize: new Point(1, 2),
     }
 }
 
@@ -72,20 +74,19 @@ export function getStartingSub() {
     return new Sub(
         new Volume(2, 2, 10),
         [
-            new CheatBox(),
-            new Weapon("coil_1", "Coilgun #1", WEAPON_TEMPLATES.COILGUN),
-            new Weapon("coil_2", "Coilgun #2", WEAPON_TEMPLATES.COILGUN),
-            new Weapon("railgun", "Railgun", WEAPON_TEMPLATES.RAILGUN),
+            new CheatBox(new Point(0, 0)),
+            new Weapon(new Point(0, 1), "coil_1", "Coilgun #1", WEAPON_TEMPLATES.COILGUN),
+            new Weapon(new Point(0, 2), "coil_2", "Coilgun #2", WEAPON_TEMPLATES.COILGUN),
+            new Weapon(new Point(0, 3), "railgun", "Railgun", WEAPON_TEMPLATES.RAILGUN),
 
-            new Sonar("sonar", "Sonar", SONAR_TEMPLATES.BASIC_SONAR),
+            new Sonar(new Point(1, 0), "sonar", "Sonar", SONAR_TEMPLATES.BASIC_SONAR),
 
-            new SubStatusScreen("status_1", "Status"),
-            new Tracking("tracking_1", "Tracking"),
+            new SubStatusScreen(new Point(3, 0), "status_1", "Status"),
+            new Tracking(new Point(3, 1), "tracking_1", "Tracking"),
 
-            new Reactor("reactor", "Reactor", REACTOR_TEMPLATES.BASIC_REACTOR),
-            new Engine("engine_1", "Engine #1", ENGINE_TEMPLATES.BASIC_ENGINE),
-            new Engine("engine_2", "Engine #2", ENGINE_TEMPLATES.BASIC_ENGINE),
-            new Steering("steering_1", "Steering"),
+            new Reactor(new Point(4, 0), "reactor", "Reactor", REACTOR_TEMPLATES.BASIC_REACTOR),
+            new Engine(new Point(4, 2), "engine_2", "Engine", ENGINE_TEMPLATES.BASIC_ENGINE),
+            new Steering(new Point(4, 3), "steering_1", "Steering"),
     ])
 }
 

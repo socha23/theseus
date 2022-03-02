@@ -1,6 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import './css/index.css';
+import './css/grid.css';
+import './css/widgets.css';
+import './css/subsystemBox.css';
+import './css/subsystems.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 

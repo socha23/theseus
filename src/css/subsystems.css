@@ -1,0 +1,77 @@
+.subsystem .ammo {
+    margin-top: 3px;
+    display: flex;
+    gap: 5px;
+    vertical-align: middle;;
+}
+
+.subsystem .reactor {
+    display: flex;
+    gap: 8px;
+}
+
+.subsystem .reactor .history {
+    border: 1px solid #a5d000;
+}
+
+.subsystem .reactor .vertSlider {
+    height: 200px;
+    flex-grow: 0;
+}
+
+.subsystem .reactor .history .chart {
+    opacity: 0.7;
+    background-color: rgba(0,22,19,1)
+}
+
+
+
+.subsystem .sonar {
+    opacity: 0.8;
+    border: 1px solid #a5d000;
+}
+
+
+.subsystem .infoRow {
+    display: flex;
+    gap: 10px;
+}
+
+.subsystem .steering {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.subsystem .steering .directions {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.subsystem .steering .directions .row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 5px;
+
+}
+
+.subsystem .steering .directions .button .name{
+    display: none;
+}
+
+.subsystem .steering .directions .button.active {
+    background-color: #ebf100;
+    border-color: #ebf100;
+    color: #003b35;
+}
+
+.subsystem .steering .directions .button .container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
+    font-size: 20pt;
+}

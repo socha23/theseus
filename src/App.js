@@ -30,6 +30,9 @@ class ActionController {
         this.keysPressed = {}
         this.targetEntityId = null
         this.values = {}
+
+        this.movedSubsystemId = null
+        this.movedSubsystemPosition = null
     }
 
     isCurrent(action) {
@@ -79,6 +82,14 @@ class ActionController {
     reset() {
         this.keysPressed = {}
         this.targetEntityId = null
+
+        this.movedSubsystemId = null
+        this.movedSubsystemPosition = null
+    }
+
+    onSubsystemMoved(id, position) {
+        this.movedSubsystemId = id
+        this.movedSubsystemPosition = position
     }
 
     resetCurrentAction() {

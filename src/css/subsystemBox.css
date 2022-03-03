@@ -198,16 +198,12 @@
     display: none;
 }
 
-
-
-
 .subsystem .body {
     padding: 3px 8px 8px 8px;
     display: flex;
     flex-direction: column;
     gap: 5px;
     flex-grow: 1;
-    pointer-events: all;
 }
 
 .subsystem .body .contents {

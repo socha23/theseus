@@ -1,20 +1,3 @@
-const DEFAULT_ACTION_PARAMS = {
-    pressToActivate: false,
-    progressMax: 0,
-    progressDecay: 0,
-    icon: "fa-solid fa-angle-right",
-    key: null,
-}
-
-const ACTION_STATES = {
-    DEFAULT: "default",
-    PROGRESS: "progress",
-    AFTER_PROGRESS: "afterProgress",
-    ACTIVE: "active",
-    JUST_COMPLETED: "justCompleted",
-    COMPLETED: "completed"
-}
-
 export const ACTION_CATEGORY = {
     STANDARD: "standard",
     DIRECTION: "direction",
@@ -22,139 +5,73 @@ export const ACTION_CATEGORY = {
     SPECIAL: "special",
 }
 
+///////////////
+// BASE ACTIONS
+///////////////
 
-export class Action {
-    constructor(id, name, category, params={}){
-        this.id = id
-        this.name = name
-        this.category = category
-        this.progress = 0
-        this.state = ACTION_STATES.DEFAULT
+const BASE_ACTION_PARAMS = {
+    id: "",
+    name: "",
+    icon: "fa-solid fa-angle-right",
+    category: ACTION_CATEGORY.STANDARD,
+    key: null,
+    onCompleted: m => {},
+    isEnabled: () => true,
+}
 
-        this.params = {...DEFAULT_ACTION_PARAMS, ...params}
+
+export class BaseAction {
+    constructor(params){
+        this.params = {...BASE_ACTION_PARAMS, ...params}
+        this._active = false
+        this._recentlyCompleted = false
     }
 
-
-    _isProgressCompleted() {
-        return this.progress >= this.params.progressMax
+    get id() {
+        return this.params.id
     }
 
-    _duringProgress() {
-        return this.progress >= this.params.progressMax
-    }
-
-
-    _maybeStartAction() {
-        if (this._usesProgress() && !this._isProgressCompleted())
-            return
+    get name() {
+        return this.params.name
     }
 
     usesPressToActivate() {
-        return this.params.pressToActivate
+        return false
     }
 
-    _usesProgress() {
-        return this.params.progressMax > 0
+    get key() {
+        return this.params.key
     }
 
-    _progress(deltaMs) {
-        this.progress = Math.min(this.params.progressMax, this.progress + deltaMs)
-        if (this.progress >= this.params.progressMax) {
-            this.state = ACTION_STATES.AFTER_PROGRESS
-            this.progress = 0
-        }
+    get active() {
+        return this._active
     }
 
-    _decayProgress(deltaMs) {
-        if (this.params.progressDecay > 0) {
-            const decay = (deltaMs / 1000) * this.params.progressDecay
-            this.progress = Math.max(0, this.progress - decay)
-        } else {
-            this.progress = 0
-        }
-        if (this.progress == 0) {
-            this.state = ACTION_STATES.DEFAULT
-        }
+    get enabled() {
+        return this.params.isEnabled()
     }
 
-    _enterProgress() {
-        this.state = ACTION_STATES.PROGRESS
-    }
 
-    _enterActive() {
-        this.state = ACTION_STATES.ACTIVE
-    }
-
-    isActive() {
-        return this.state == ACTION_STATES.ACTIVE
-    }
-
-    _enterCompleted(model) {
-        this.state = ACTION_STATES.JUST_COMPLETED
+    execute(model) {
+        this._active = true
+        this.onEnterActive(model)
+        this._active = false
+        this.onExitActive(model)
         this.onCompleted(model)
+        this.params.onCompleted(model)
+        this._recentlyCompleted = true
     }
 
-    updateState(deltaMs, model, actionController) {
-        if (this.state == ACTION_STATES.JUST_COMPLETED) {
-            this.state = ACTION_STATES.COMPLETED
-        }
-
-        if (!this.isEnabled()) {
-            this.state = ACTION_STATES.DEFAULT
-            this.progress = 0
-        }
-
-        const isClicked = (actionController.isCurrent(this))
-            || (this.params.key && actionController.isKeyDown(this.params.key))
-
-        if (isClicked && this.isEnabled()) {
-            if (this._usesProgress() && this.state == ACTION_STATES.DEFAULT) {
-                this._enterProgress()
-            }
-
-            if (this.state == ACTION_STATES.PROGRESS) {
-                this._progress(deltaMs)
-            }
-
-            if (this.state == ACTION_STATES.DEFAULT || this.state == ACTION_STATES.AFTER_PROGRESS) {
-                this._enterActive()
-            }
-
-            if (this.state == ACTION_STATES.ACTIVE) {
-                this.onActive(deltaMs)
-            }
-
-            if (!this.usesPressToActivate() && this.state == ACTION_STATES.ACTIVE) {
-                actionController.resetCurrentAction()
-                this._enterCompleted(model)
-            }
-        } else {
-            if (this._usesProgress() && this.state == ACTION_STATES.PROGRESS) {
-                this._decayProgress(deltaMs)
-            }
-            if (this.usesPressToActivate() && this.state == ACTION_STATES.ACTIVE) {
-                this._enterCompleted(model)
-            }
-            if (this.state == ACTION_STATES.COMPLETED) {
-                this.state = ACTION_STATES.DEFAULT
-            }
-        }
+    onEnterActive(model) {
     }
 
-    onActivationStarted() {
-
+    onExitActive(model) {
     }
 
-    onActive(deltaMs) {
-
+    onCompleted(model) {
     }
 
-    onCompleted(model=null) {
-
-    }
-
-    isEnabled() {
-        return true
+    onCancelled(model) {
     }
 
     toViewState() {
@@ -162,18 +79,132 @@ export class Action {
             id: this.id,
             name: this.name,
             iconClass: this.params.icon,
-
-            progress: this.progress,
-            progressMax: this.params.progressMax,
-            recentlyCompleted: this.state == ACTION_STATES.JUST_COMPLETED,
+            recentlyCompleted: false,
             usesPressToActivate: this.usesPressToActivate(),
-            enabled: this.isEnabled(),
-            category: this.category,
-            state: this.state,
+            enabled: this.enabled,
+            active: this._active,
+            category: this.params.category,
+            recentlyCompleted: this._recentlyCompleted,
         }
     }
 
+    updateState(deltaMs, model, actionController) {
+        this._recentlyCompleted = false
+        if (this.enabled && actionController.isCurrent(this)) {
+            this.execute(model)
+        }
+    }
 }
+
+
+export class WrapperAction {
+    constructor(innerAction) {
+        this._innerAction = innerAction
+    }
+
+    usesPressToActivate() {
+        return this._innerAction.usesPressToActivate()
+    }
+
+    get id() {
+        return this._innerAction.id
+    }
+
+    get name() {
+        return this._innerAction.name
+    }
+
+    get key() {
+        return this._innerAction.key
+    }
+
+    get active() {
+        return this._innerAction.active
+    }
+
+    get enabled() {
+        return this._innerAction.enabled
+    }
+
+    execute(model) {
+        this._innerAction.execute(model)
+    }
+
+    onEnterActive(model) {
+        this._innerAction.onEnterActive(model)
+    }
+
+    onExitActive(model) {
+        this._innerAction.onExitActive(model)
+    }
+
+    onCompleted(model) {
+        this._innerAction.onCompleted(model)
+    }
+
+    onCancelled(model) {
+        this._innerAction.onCancelled(model)
+    }
+
+    toViewState() {
+        return this._innerAction.toViewState()
+    }
+
+    updateState(deltaMs, model, actionController) {
+        this._innerAction.updateState(deltaMs, model, actionController)
+    }
+}
+
+///////////////
+// PRESS AND CLICK
+///////////////
+
+export class PressAction extends BaseAction {
+    usesPressToActivate() {
+        return true
+    }
+
+    updateState(deltaMs, model, actionController) {
+        if (this.enabled && actionController.isCurrent(this)) {
+            if (!this.active) {
+                this._active = true
+                this.onEnterActive(model)
+            }
+        } else {
+            if (this.active) {
+                this._active = false
+                this.onExitActive(model)
+            }
+        }
+    }
+}
+
+///////////////
+// TOGGLE
+///////////////
+
+export class ToggleAction extends BaseAction {
+    constructor(params){
+        super(params)
+        this.value = false
+    }
+
+    onCompleted(model) {
+        this.value = !this.value
+    }
+
+    toViewState() {
+        return {
+            ...super.toViewState(),
+            value: this.value,
+            selected: this.value,
+        }
+    }
+}
+
+///////////////
+// RADIO
+///////////////
 
 class RadioController {
     constructor() {
@@ -191,47 +222,18 @@ class RadioController {
 
 const RADIO_CONTROLLER = new RadioController()
 
-export class ToggleAction extends Action {
-    constructor(id, name, category, params={}, value=false){
-        super(id, name, category, params)
-        this.value = value
+export class RadioAction extends BaseAction {
+    constructor(params){
+        super(params)
+        this.toggleGroup = params.toggleGroup ?? params.id + "_group"
+        this.value = params.value
     }
 
-    isSelected() {
-        return this.value
-    }
-
-    onCompleted() {
-        super.onCompleted()
-        this.value = !this.value
-    }
-
-    usesPressToActivate() {
-        return true
-    }
-
-    toViewState() {
-        return {
-            ...super.toViewState(),
-            selected: this.isSelected(),
-        }
-    }
-}
-
-
-export class RadioAction extends Action {
-    constructor(id, name, category, value, params={}, toggleGroup=null){
-        super(id, name, category, params)
-        this.toggleGroup = toggleGroup ?? id + "_group"
-        this.value = value
-    }
-
-    isSelected() {
+    get selected() {
         return RADIO_CONTROLLER.get(this.toggleGroup, null) == this.value
     }
 
-    onCompleted() {
-        super.onCompleted()
+    onCompleted(model) {
         RADIO_CONTROLLER.set(this.toggleGroup, this.value)
     }
 
@@ -239,8 +241,89 @@ export class RadioAction extends Action {
     toViewState() {
         return {
             ...super.toViewState(),
-            selected: this.isSelected(),
+            selected: this.selected,
             value: this.value,
         }
     }
 }
+
+///////////////
+// PROGRESSING
+///////////////
+
+export class ProgressAction extends BaseAction {
+    constructor(progressMax, innerAction) {
+        super(innerAction.params)
+        this._inner = innerAction
+        this._progressMax = progressMax
+        this._progress = 0
+        this._progressing = false
+    }
+
+    execute(model) {
+        this._progressing = true
+    }
+
+    get active() {
+        return this._inner.active || this._progressing
+    }
+
+    get enabled() {
+        return this._inner.enabled
+    }
+
+    onCancelled(model) {
+        if (this.progressing) {
+            this._resetProgress()
+        } else {
+            super.onCancelled(model)
+        }
+    }
+
+    _resetProgress() {
+        this._progressing = false
+        this._progress = 0
+    }
+
+    toViewState() {
+        return {
+            ...this._inner.toViewState(),
+            ...super.toViewState(),
+            usesProgress: true,
+            progress: this._progress,
+            progressMax: this._progressMax,
+        }
+    }
+
+    updateState(deltaMs, model, actionController) {
+        super.updateState(deltaMs, model, actionController)
+        if (this._inner.active) {
+            this._inner.updateState(deltaMs, model, actionController)
+        }
+        if (!this._progressing) {
+            return
+        }
+        if (!this.enabled) {
+            this._resetProgress()
+            return
+        }
+
+        this._progress += deltaMs
+        if (this._progress > this._progressMax) {
+            this._resetProgress()
+            this._inner.execute(model)
+        }
+    }
+
+}
+
+
+
+export function action(params) {
+    var res = new BaseAction(params)
+    if (params.progressTime) {
+        res = new ProgressAction(params.progressTime, res)
+    }
+    return res
+}
+

@@ -25,7 +25,7 @@ class Game {
 class ActionController {
 
     constructor() {
-        this._currentAction = null
+        this._activeActions = {}
         this.keysDown = {}
         this.keysPressed = {}
         this.targetEntityId = null
@@ -36,28 +36,26 @@ class ActionController {
     }
 
     isCurrent(action) {
-        return this._currentAction != null && action.id == this._currentAction.id
+        return ((this._activeActions[action.id] ?? null) != null)
+            || (action.key && this.isKeyDown(action.key))
     }
 
 
     onClick(action) {
         if (!action.usesPressToActivate) {
-            this._currentAction = action
+            this._activeActions[action.id] = action
         }
     }
 
     onMouseUp() {
-        if (this._currentAction == null) {
-            return
-        }
-        if (this._currentAction.usesPressToActivate) {
-            this._currentAction = null
-        }
+        Object.values(this._activeActions)
+            .filter(a => a.usesPressToActivate)
+            .forEach(a => {delete this._activeActions[a.id]})
     }
 
     onMouseDown(action) {
         if (action.usesPressToActivate) {
-            this._currentAction = action
+            this._activeActions[action.id] = action
         }
     }
 
@@ -85,15 +83,16 @@ class ActionController {
 
         this.movedSubsystemId = null
         this.movedSubsystemPosition = null
+
+        Object.values(this._activeActions)
+            .filter(a => !a.usesPressToActivate)
+            .forEach(a => {delete this._activeActions[a.id]})
+
     }
 
     onSubsystemMoved(id, position) {
         this.movedSubsystemId = id
         this.movedSubsystemPosition = position
-    }
-
-    resetCurrentAction() {
-        this._currentAction = null
     }
 
     setValue(key, val) {

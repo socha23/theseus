@@ -42,6 +42,7 @@ export function ActionButton({action, actionController}) {
             + (recentlyCompleted ? "recentlyCompleted " : ' ')
             + (action.enabled ? "enabled " : 'disabled ')
             + (action.selected ? "selected " : "deselected ")
+            + (action.active ? "active " : " ")
             + action.state + " "
         }
         onClick={e => actionController.onClick(action)}

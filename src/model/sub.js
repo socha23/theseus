@@ -1,7 +1,6 @@
-import {Action, ACTION_CATEGORY, RadioAction, ToggleAction } from './action.js'
+import {PressAction, ACTION_CATEGORY, ToggleAction, action } from './action.js'
 import {Point, Body, Volume} from './physics.js'
 import { Entity } from './entities.js'
-import { Component } from 'react'
 
 export const SUBSYSTEM_CATEGORIES = {
     WEAPON: "WEAPON",
@@ -19,17 +18,17 @@ const DEFAULT_TEMPLATE = {
 
 class TogglePowerAction extends ToggleAction {
     constructor(subsystem) {
-        super(subsystem.id + "_on",
-            "Toggle power",
-            ACTION_CATEGORY.SPECIAL,
-            {icon: "fa-solid fa-power-off"},
-            false,
-        )
+        super({
+            id: subsystem.id + "_on",
+            name: "Toggle power",
+            icon: "fa-solid fa-power-off",
+            category: ACTION_CATEGORY.SPECIAL
+        })
         this._enabled = false
         this._subsystem = subsystem
     }
 
-    isEnabled() {
+    get enabled() {
         return this._enabled
     }
 
@@ -208,28 +207,23 @@ export class Reactor extends Subsystem {
 // CHEATBOX
 ////////////////////////////////////////
 
-class StartSubCheat extends Action {
-    constructor() {
-        super("cheat_startSub", "Start Sub", ACTION_CATEGORY.STANDARD, {
-
-        })
-    }
-
-    onCompleted(model) {
-        model.sub.subsystems.forEach(s => {
-            s.on = true
-            if (s instanceof Reactor) {
-                s.externalSetControl(1)
-            }
-        })
-
-    }
-}
-
 export class CheatBox extends Subsystem {
     constructor(gridPosition) {
         super(gridPosition, "cheatbox", "Cheatbox", SUBSYSTEM_CATEGORIES.WEAPON)
-        this.actions.push(new StartSubCheat())
+
+        const cheat1 = action({
+            id: "cheat_startSub",
+            name: "Start Sub",
+            onCompleted: (model) => {
+                model.sub.subsystems.forEach(s => {
+                    s.on = true
+                    if (s instanceof Reactor) {
+                        s.externalSetControl(1)
+                    }
+                })
+            },
+        })
+        this.actions.push(cheat1)
         this.on = true
     }
 }
@@ -238,57 +232,31 @@ export class CheatBox extends Subsystem {
 // WEAPONS
 ////////////////////////////////////////
 
-class ReloadAction extends Action {
-    constructor(weapon) {
-        super(weapon.id + "_reload", "Reload", ACTION_CATEGORY.STANDARD,
-            {
-                progressMax: weapon.template.reloadTime,
-                progressDecay: weapon.template.reloadDecay,
-                icon: "fa-solid fa-repeat",
-
-            })
-        this.weapon = weapon
-    }
-
-    isEnabled() {
-        return this.weapon.on
-    }
-
-    onCompleted() {
-        this.weapon.ammo =this.weapon.template.ammoMax
-    }
-}
-
-
-class ShootAction extends Action {
-    constructor(weapon) {
-        super(weapon.id + "_shoot", "Shoot", ACTION_CATEGORY.STANDARD,
-           {
-               progressMax: weapon.template.aimTime,
-               progressDecay: weapon.template.aimDecay,
-               icon: "fa-solid fa-bullseye",
-            })
-        this.weapon = weapon
-    }
-
-    onCompleted() {
-        this.weapon.ammo = Math.max(0, this.weapon.ammo - 1)
-    }
-
-    isEnabled() {
-        return this.weapon.on && this.weapon.ammo > 0
-    }
-}
-
 export class Weapon extends Subsystem {
     constructor(gridPosition, id, name, template) {
         super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.WEAPON, template)
         this.template = template
         this.ammo = template.ammoMax
         this.ammoMax = template.ammoMax
-        this.shootAction = new ShootAction(this)
+        this.shootAction = action({
+            id: id + "_shoot",
+            name: "Shoot",
+            icon: "fa-solid fa-bullseye",
+            progressTime: template.aimTime,
+            isEnabled: () => {return this.on && this.ammo > 0},
+            onCompleted: m => {this.ammo = Math.max(0, this.ammo - 1)}
+
+        });
         this.actions.push(this.shootAction)
-        this.reloadAction = new ReloadAction(this)
+
+        this.reloadAction = action({
+            id: id + "_reload",
+            name: "Reload",
+            icon: "fa-solid fa-repeat",
+            progressTime: template.reloadTime,
+            isEnabled: () => {return this.on},
+            onCompleted: m => {this.ammo = this.template.ammoMax}
+        });
         this.actions.push(this.reloadAction)
     }
 
@@ -346,13 +314,13 @@ export class Engine extends Subsystem {
 
 }
 
-class DirectionAction extends Action {
+class DirectionAction extends PressAction {
     constructor(id, name, component, icon, key) {
-        super(id, name, ACTION_CATEGORY.DIRECTION, {icon: icon, pressToActivate: true, key: key})
+        super({id: id, name: name, icon: icon, key: key, category: ACTION_CATEGORY.DIRECTION})
         this.component = component
     }
 
-    isEnabled() {
+    get enabled() {
         return this.component.on
     }
 }
@@ -380,10 +348,10 @@ export class Steering extends Subsystem {
             return 0
         }
         var throttle = 0
-        if (this._forward.isActive()) {
+        if (this._forward.active) {
             throttle += 1
         }
-        if (this._backward.isActive()) {
+        if (this._backward.active) {
             throttle -= 0.5
         }
         return throttle
@@ -398,10 +366,10 @@ export class Steering extends Subsystem {
             return 0
         }
         var dir = 0
-        if (this._left.isActive()) {
+        if (this._left.active) {
             dir -= 1
         }
-        if (this._right.isActive()) {
+        if (this._right.active) {
             dir += 1
         }
         return dir
@@ -492,6 +460,17 @@ export class Tracking extends Subsystem {
 
 ////////////////////////////////////////
 
+class SonarDebugAction extends ToggleAction {
+    constructor(sonar) {
+        super({id: sonar.id + "_debug", name: "Debug mode", category: ACTION_CATEGORY.THROTTLE})
+        this.sonar = sonar
+    }
+
+    get enabled() {
+        return this.sonar.on
+    }
+}
+
 export class Sonar extends Subsystem {
     constructor(gridPosition, id, name, template) {
         super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.SONAR, template)
@@ -503,9 +482,7 @@ export class Sonar extends Subsystem {
         this.blips = []
         this.sub = null
 
-        this.debugAction = new ToggleAction(id + "_debug", "Debug mode", ACTION_CATEGORY.THROTTLE)
-        this.debugAction.isEnabled = () => this.on
-
+        this.debugAction = new SonarDebugAction(this)
 
         this.actions.push(this.debugAction)
     }

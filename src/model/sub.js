@@ -42,7 +42,7 @@ class TogglePowerAction extends ToggleAction {
     }
 }
 
-class Subsystem {
+export class Subsystem {
     constructor(gridPosition, id, name, category, template={}) {
         template={...DEFAULT_TEMPLATE, ...template}
         this.id = id

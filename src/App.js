@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import GameModel from './model/model.js'
+import GameModel from './model'
 import GameView from './view/view.js';
 
 class Game {

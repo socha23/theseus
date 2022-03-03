@@ -1,7 +1,9 @@
 import { Entity, Fish } from "./entities"
 import { Body, Point, Volume } from "./physics"
-import {CheatBox, Sub, Weapon, Engine, Reactor, SubStatusScreen, Steering, Sonar, Tracking} from "./sub.js"
+import {CheatBox, Sub, Engine, Reactor, SubStatusScreen, Steering, Sonar, Tracking} from "./sub.js"
 import { Agent, Flock, FlockAgent } from "./agent"
+
+import {Weapon} from "./subsystems/weapons"
 
 const WEAPON_TEMPLATES = {
     COILGUN: {

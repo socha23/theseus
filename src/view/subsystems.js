@@ -4,26 +4,7 @@ import Sonar from "./sonar.js";
 import { toDegrees } from '../units.js'
 import { CartesianGrid, Area, AreaChart, Line, LineChart, XAxis, YAxis } from "recharts";
 import {VertSlider, ActionButton} from "./widgets"
-
-///////////////////////////////////
-
-
-function AmmoBullet({spent}) {
-    return <span className='bullet'>
-        <i className={"fa-circle " + (spent ? "fa-regular": "fa-solid")}></i>
-    </span>
-}
-
-function AmmoBar({subsystem}) {
-    return <div className='ammo'>
-        <span>Ammo: </span>
-        {
-            new Array(subsystem.ammoMax).fill(0).map((key, idx) =>
-                 <AmmoBullet key={subsystem.i + "_ammo_" + idx} spent={idx >= subsystem.ammo}/>
-            )
-        }
-    </div>
-}
+import {Weapon} from "./subsystems/weapons"
 
 ///////////////////////////////////
 
@@ -211,7 +192,7 @@ export function Subsystem({subsystem, actionController}) {
         >
             <div className='contents'>
             {
-                subsystem.usesAmmo && <AmmoBar subsystem={subsystem}/>
+                subsystem.isWeapon && <Weapon subsystem={subsystem}/>
             }
             {
                 subsystem.showsSubStatus && <SubStatus subsystem={subsystem}/>
@@ -231,7 +212,9 @@ export function Subsystem({subsystem, actionController}) {
             </div>
             <div className='standardActions'>
                 {
-                    standardActions.map(a => <ActionButton key={a.id} action={a} actionController={actionController}/>)
+                    standardActions
+                        .filter(a => a.visible)
+                        .map(a => <ActionButton key={a.id} action={a} actionController={actionController}/>)
                 }
             </div>
             {

@@ -75,3 +75,40 @@
     width: 32px;
     font-size: 20pt;
 }
+
+
+
+.subsystem .weapon .aimBar {
+    height: 30px;
+    position: relative;
+    background-color: #003b35;
+    overflow: hidden;
+    border: 1px solid #a5d000;
+}
+
+.subsystem .weapon .aimBar .crosshairs {
+    background-color: #ebf100;
+    position: absolute;
+    height: 100%;
+}
+
+.subsystem .weapon .aimBar .target {
+    background-color: rgba(255, 0, 0, 0.4);
+    border-left: 1px solid red;
+    border-right: 1px solid red;
+    position: absolute;
+    height: 100%;
+}
+
+
+.subsystem .weapon .aimBar .shootMark.hit {
+    background-color: rgba(255, 0, 0, 0.8);
+    position: absolute;
+    height: 100%;
+}
+
+.subsystem .weapon .aimBar .shootMark.miss {
+    background-color: rgba(0, 0, 0, 0.4);
+    position: absolute;
+    height: 100%;
+}

@@ -17,6 +17,7 @@ const BASE_ACTION_PARAMS = {
     key: null,
     onCompleted: m => {},
     isEnabled: () => true,
+    isVisible: () => true,
 }
 
 
@@ -49,6 +50,10 @@ export class BaseAction {
 
     get enabled() {
         return this.params.isEnabled()
+    }
+
+    get visible() {
+        return this.params.isVisible()
     }
 
 
@@ -85,6 +90,7 @@ export class BaseAction {
             active: this._active,
             category: this.params.category,
             recentlyCompleted: this._recentlyCompleted,
+            visible: this.visible,
         }
     }
 
@@ -112,6 +118,10 @@ export class WrapperAction {
 
     get name() {
         return this._innerAction.name
+    }
+
+    get visible() {
+        return this._innerAction.visible
     }
 
     get key() {

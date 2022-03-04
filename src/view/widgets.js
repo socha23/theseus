@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ReactSlider from "react-slider";
 
 
@@ -25,12 +25,16 @@ export function VertSlider({id, actionController, children, enabled=true}) {
 export function ActionButton({action, actionController}) {
     const [recentlyCompleted, setRecentlyCompleted] = useState(false)
 
-    if (action.recentlyCompleted && !recentlyCompleted) {
-        setRecentlyCompleted(true)
-            setTimeout(() => {
+    useEffect(()=> {
+        if (action.recentlyCompleted && !recentlyCompleted) {
+            setRecentlyCompleted(true)
+            const timeout = setTimeout(() => {
                 setRecentlyCompleted(false)
             }, 500)
-    }
+            return () => {clearTimeout(timeout)}
+        }
+    })
+
 
     function getProgressWidth(action) {
         return action.progress * 100 / action.progressMax

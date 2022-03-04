@@ -7,16 +7,33 @@ export class Weapon extends Subsystem {
         this.template = template
         this.ammo = template.ammoMax
         this.ammoMax = template.ammoMax
+        this._aim = null
+
+        this.aimAction = action({
+            id: id + "_aim",
+            name: "Aim",
+            icon: "fa-solid fa-bullseye",
+            isVisible: () => this._aim == null,
+            isEnabled: () => {return this.on && this.ammo > 0 && this._aim == null},
+            onCompleted: m => {this._startAim()}
+
+        });
+        this.actions.push(this.aimAction)
+
+
+
+
         this.shootAction = action({
             id: id + "_shoot",
             name: "Shoot",
             icon: "fa-solid fa-bullseye",
-            progressTime: template.aimTime,
+            isVisible: () => this._aim != null,
             isEnabled: () => {return this.on && this.ammo > 0},
-            onCompleted: m => {this.ammo = Math.max(0, this.ammo - 1)}
+            onCompleted: m => {this._shoot()}
 
         });
         this.actions.push(this.shootAction)
+
 
         this.reloadAction = action({
             id: id + "_reload",
@@ -27,6 +44,30 @@ export class Weapon extends Subsystem {
             onCompleted: m => {this.ammo = this.template.ammoMax}
         });
         this.actions.push(this.reloadAction)
+
+    }
+
+    _startAim() {
+        this._aim = new Aiming({
+            onCompleted: () => {this._aim = null}
+        })
+        this._aim.addTarget({id: "EEE"})
+        this._aim.start()
+    }
+
+    _shoot() {
+        this.ammo = Math.max(0, this.ammo - 1)
+        if (this._aim) {
+            const hit = this._aim.shoot()
+            console.log("shoot:", hit);
+        }
+    }
+
+    updateState(deltaMs, model, actionController) {
+        super.updateState(deltaMs, model, actionController)
+        if (this._aim) {
+            this._aim.updateState(deltaMs)
+        }
     }
 
     toViewState() {
@@ -35,7 +76,116 @@ export class Weapon extends Subsystem {
             usesAmmo: true,
             ammo: this.ammo,
             ammoMax: this.ammoMax,
+            aim: (this._aim ? this._aim.toViewState() : null),
+            isWeapon: true,
         }
     }
 }
 
+
+const DEFAULT_AIM_PARAMS = {
+    onHit: (e) => {},
+    onCompleted: () => {},
+    aimTime: 1500,
+    crosshairsSize: 50,
+    shootCount: 1,
+}
+
+class Aiming {
+    constructor(params = {}) {
+        this.params = {...DEFAULT_AIM_PARAMS, ...params}
+        this._progress = 0
+        this._started = false
+        this._completed = false
+        this._shootCount = params.shootCount
+        this._targets = []
+        this._shootMarks = []
+        this._lastProgress = 0
+    }
+
+
+    inProgress() {
+        return this._started && !this._completed
+    }
+
+    start() {
+        if (this.inProgress()) {
+            return
+        }
+        this._progress = 0
+        this._started = true
+        this._completed = false
+    }
+
+    shoot() {
+        if (!this.inProgress() || this._shootCount <= 0) {
+            return [];
+        } else {
+            this._shootCount--
+            const hits = []
+            this._targets.forEach(t => {
+                const aF = this._progress - this._lastProgress
+                const aT = aF + this.params.crosshairsSize
+                const bF = t.position
+                const bT = aT + t.size
+
+                const hit = (
+                    (aF <= bF && bF <= aT)
+                    || (bF <= aF && aF <= bT)
+                )
+                this._shootMarks.push({position: aF, size: this.params.crosshairsSize, hit: hit, id: "sm" + this._progress})
+                if (hit) {
+                    hits.push(hits)
+                }
+            })
+            return hits;
+        }
+    }
+
+    addTarget(entity) {
+        const targetSize = 100
+        const posFrom = Math.min(400, this.params.aimTime * 0.5)
+        const posTo = this.params.aimTime - targetSize
+        const targetPos = Math.random() * (posTo - posFrom) + posFrom
+
+        this._targets.push({
+            entity: entity,
+            position: targetPos,
+            size: targetSize,
+            entity: entity,
+        })
+    }
+
+    _onCompleted() {
+        this._started = false
+        this._completed = true
+        this.params.onCompleted()
+    }
+
+    updateState(deltaMs) {
+        if (!this.inProgress()) {
+            return
+        }
+        this._progress = Math.min(this._progress + deltaMs, this.params.aimTime)
+        this._lastProgress = deltaMs
+
+        if (this._progress >= this.params.aimTime) {
+            this._onCompleted()
+        }
+    }
+
+    toViewState() {
+        return {
+            progress: this._progress,
+            progressMax: this.params.aimTime,
+            crosshairsSize: this.params.crosshairsSize,
+            targets: this._targets.map(t => ({
+                id: t.entity.id,
+                position: t.position,
+                size: t.size,
+            })),
+            shootMarks: this._shootMarks,
+        }
+    }
+
+}

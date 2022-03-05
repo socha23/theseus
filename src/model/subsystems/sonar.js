@@ -13,6 +13,21 @@ class SonarDebugAction extends ToggleAction {
     }
 }
 
+
+export const RANGE_CIRCLE_TYPE = {
+    HOVER: "hover",
+    DISABLED: "disabled",
+    DEFAULT: "default",
+}
+
+export class RangeCircle {
+    constructor(id, range, type=RANGE_CIRCLE_TYPE.DEFAULT) {
+        this.id = id
+        this.range = range
+        this.type = type
+    }
+}
+
 export class Sonar extends Subsystem {
     constructor(gridPosition, id, name, template) {
         super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.SONAR, template)
@@ -74,6 +89,7 @@ export class Sonar extends Subsystem {
             entities: this.entities,
             debug: this.debugAction.value,
             sub: this.sub,
+            ranges: this.sub?.ranges ?? [],
         }
     }
 }

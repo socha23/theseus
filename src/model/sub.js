@@ -3,6 +3,7 @@ import {Point, Body, Volume} from './physics.js'
 import { Entity } from './entities.js'
 
 import { Engine, Steering } from './subsystems'
+import { RangeCircle } from './subsystems/sonar.js'
 
 
 export class Sub extends Entity {
@@ -75,6 +76,12 @@ export class Sub extends Entity {
 
     get powerBalance() {
         return this.powerGeneration - this.powerConsumption
+    }
+
+    get ranges() {
+        const result = []
+        this.subsystems.forEach(s => {result.push(...s.ranges)})
+        return result
     }
 
     _updatePosition(deltaMs) {

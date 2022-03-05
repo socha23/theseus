@@ -1,14 +1,24 @@
 import {action } from '../action'
 import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
+import { RangeCircle, RANGE_CIRCLE_TYPE } from './sonar'
+
+
+const DEFAULT_WEAPON_PARAMS = {
+    reloadTime: 5000,
+    ammoMax: 5,
+    powerConsumption: 10,
+    range: 20,
+}
 
 export class Weapon extends Subsystem {
     constructor(gridPosition, id, name, template) {
-        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.WEAPON, template)
-        this.template = template
-        this.ammo = template.ammoMax
-        this.ammoMax = template.ammoMax
+        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.WEAPON, {...DEFAULT_WEAPON_PARAMS, ...template})
+        this.ammo = this.template.ammoMax
+        this.ammoMax = this.template.ammoMax
+        this.range = this.template.range
         this._aim = null
         this._target = null
+        this._targetDistance = 0
 
         this.aimAction = action({
             id: id + "_aim",
@@ -46,8 +56,18 @@ export class Weapon extends Subsystem {
     }
 
     _canAim() {
-        return this.on && this.ammo > 0 && this._aim == null && this._target != null
+        return this._aim == null
+            && this._target != null
+            && this._canContinueAim()
     }
+
+    _canContinueAim() {
+        return this.on
+            && this.ammo > 0
+            && this._targetDistance <= this.range
+    }
+
+
     _startAim() {
         this._aim = new Aiming({
             onCompleted: () => {this._aim = null}
@@ -57,7 +77,12 @@ export class Weapon extends Subsystem {
     }
 
     _canShoot() {
-        return this.on && (this.ammo > 0) && (this._aim && this._aim.canShoot())
+        return this.on
+            && (this.ammo > 0)
+            && (this._aim
+            && this._aim.canShoot())
+            && this._targetDistance <= this.range
+
     }
 
     _shoot() {
@@ -73,8 +98,18 @@ export class Weapon extends Subsystem {
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
         this._target = model.sub.trackedEntity
+
+        if (this._target) {
+            this._targetDistance = this._target.position.distanceTo(model.sub.position)
+        } else {
+            this._targetDistance = 0
+        }
         if (this._aim) {
-            this._aim.updateState(deltaMs)
+            if (this._canContinueAim()) {
+                this._aim.updateState(deltaMs)
+            } else {
+                this._aim = null
+            }
         }
     }
 
@@ -88,6 +123,12 @@ export class Weapon extends Subsystem {
             isWeapon: true,
         }
     }
+
+    get ranges() {
+        const rangeType = this.on ? RANGE_CIRCLE_TYPE.DEFAULT : RANGE_CIRCLE_TYPE.DISABLED
+        return [new RangeCircle(this.id, this.range, rangeType)]
+    }
+
 }
 
 

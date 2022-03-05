@@ -43,19 +43,19 @@ class TogglePowerAction extends ToggleAction {
 
 export class Subsystem {
     constructor(gridPosition, id, name, category, template={}) {
-        template={...DEFAULT_TEMPLATE, ...template}
+        this.template={...DEFAULT_TEMPLATE, ...template}
         this.id = id
         this.name = name
         this.category = category
         this.actions = []
-        this._powerConsumption = template.powerConsumption
+        this._powerConsumption = this.template.powerConsumption
 
         this._actionOn = new TogglePowerAction(this)
         this.actions.push(this._actionOn)
 
         this._shutdown = false
         this.gridPosition = gridPosition
-        this.gridSize = template.gridSize
+        this.gridSize = this.template.gridSize
     }
 
     updateState(deltaMs, model, actionController) {
@@ -108,6 +108,10 @@ export class Subsystem {
 
     set on(value) {
         this._actionOn.value  = value
+    }
+
+    get ranges() {
+        return []
     }
 
 

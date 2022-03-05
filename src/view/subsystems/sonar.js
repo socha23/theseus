@@ -1,5 +1,6 @@
 import React from "react";
 import {Stage, Layer, Line, Circle, Rect, Group} from 'react-konva'
+import { RANGE_CIRCLE_TYPE } from "../../model/subsystems/sonar";
 import { toDegrees } from "../../units";
 
 const SIZE_PX = 376
@@ -99,6 +100,28 @@ function SonarBlips({blips, actionController, debug, scale}) {
     </Group>
 }
 
+const RANGE_COLOR = {}
+
+RANGE_COLOR[RANGE_CIRCLE_TYPE.DEFAULT] = "white"
+RANGE_COLOR[RANGE_CIRCLE_TYPE.DISABLED] = ""
+RANGE_COLOR[RANGE_CIRCLE_TYPE.HOVER] = "yellow"
+
+function Ranges({scale, ranges}) {
+    return <Group>
+        {
+            ranges.map(r => <Circle
+                key={r.id}
+                listening={false}
+                radius={r.range}
+                stroke={RANGE_COLOR[r.type] ?? RANGE_COLOR[RANGE_CIRCLE_TYPE.DEFAULT]}
+                strokeWidth={2/scale}
+                dash={[2/scale,4/scale]}
+                opacity={0.5}
+
+                />)
+        }
+    </Group>
+}
 
 function SubMarker({volume, scale}){
     const wPx = volume.width * scale
@@ -139,6 +162,7 @@ function Sonar({subsystem, actionController}) {
                         <SonarBackground position={subsystem.position} scale={scale}/>
                         <SubReferenceFrame position={subsystem.position} scale={scale}>
                             <SonarBlips blips={subsystem.blips} actionController={actionController} scale={scale} debug={subsystem.debug}/>
+                            <Ranges scale={scale} ranges={subsystem.ranges}/>
                         </SubReferenceFrame>
                     </Group>
                     {<SubMarker volume={subsystem.subVolume} scale={scale}/>}

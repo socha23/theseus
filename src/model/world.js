@@ -10,20 +10,18 @@ import {Sonar } from "./subsystems/sonar"
 
 const WEAPON_TEMPLATES = {
     COILGUN: {
-        aimTime: 500,
-        aimDecay: 10000,
+        aimTime: 2000,
         reloadTime: 5000,
-        reloadDecay: 1000,
         ammoMax: 5,
         powerConsumption: 10,
+        range: 25,
     },
     RAILGUN: {
-        aimTime: 5000,
-        aimDecay: 1000,
+        aimTime: 4000,
         reloadTime: 10000,
-        reloadDecay: 1000,
         ammoMax: 2,
-        powerConsumption: 15,
+        powerConsumption: 20,
+        range: 45,
     }
 }
 

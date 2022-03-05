@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ACTION_CATEGORY } from "../model/action.js";
-import Sonar from "./sonar.js";
+import Sonar from "./subsystems/sonar.js";
 import { toDegrees } from '../units.js'
 import { CartesianGrid, Area, AreaChart, Line, LineChart, XAxis, YAxis } from "recharts";
 import {VertSlider, ActionButton} from "./widgets"

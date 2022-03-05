@@ -5,6 +5,7 @@ export class Entity {
     constructor(id, body) {
         this.id = id
         this.body = body
+        this.deleted = false
     }
 
     getPosition() {
@@ -49,6 +50,13 @@ export class Entity {
     get planDescription() {
         return null
     }
+
+    get position() {
+        return this.getPosition()
+    }
+
+    onHit() {
+    }
 }
 
 export class AgentEntity extends Entity {
@@ -85,6 +93,11 @@ export class Fish extends AgentEntity {
         } else {
             return null
         }
+    }
+
+    onHit() {
+        super.onHit()
+        this.deleted = true
     }
 
 

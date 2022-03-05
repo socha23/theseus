@@ -1,9 +1,12 @@
 import { Entity, Fish } from "./entities"
 import { Body, Point, Volume } from "./physics"
-import {CheatBox, Sub, Engine, Reactor, SubStatusScreen, Steering, Sonar, Tracking} from "./sub.js"
+import { Sub } from "./sub"
 import { Agent, Flock, FlockAgent } from "./agent"
 
+import {CheatBox, Engine, Reactor, SubStatusScreen, Steering} from "./subsystems"
 import {Weapon} from "./subsystems/weapons"
+import {Tracking } from "./subsystems/tracking"
+import {Sonar } from "./subsystems/sonar"
 
 const WEAPON_TEMPLATES = {
     COILGUN: {
@@ -37,6 +40,13 @@ const SONAR_TEMPLATES = {
         range: 50,
         powerConsumption: 10,
         gridSize: new Point(2, 3),
+    }
+}
+
+const TRACKING_TEMPLATES = {
+    BASIC_TRACKING: {
+        range: 80,
+        powerConsumption: 5,
     }
 }
 
@@ -84,7 +94,7 @@ export function getStartingSub() {
             new Sonar(new Point(1, 0), "sonar", "Sonar", SONAR_TEMPLATES.BASIC_SONAR),
 
             new SubStatusScreen(new Point(3, 0), "status_1", "Status"),
-            new Tracking(new Point(3, 1), "tracking_1", "Tracking"),
+            new Tracking(new Point(3, 1), "tracking_1", "Tracking", TRACKING_TEMPLATES.BASIC_TRACKING),
 
             new Reactor(new Point(4, 0), "reactor", "Reactor", REACTOR_TEMPLATES.BASIC_REACTOR),
             new Engine(new Point(4, 2), "engine_2", "Engine", ENGINE_TEMPLATES.BASIC_ENGINE),
@@ -118,6 +128,12 @@ export class World {
         Object.values(this.entitiesById).forEach(e => {
             e.updateState(deltaMs, model)
         })
+        Object
+            .values(this.entitiesById)
+            .filter(e => e.deleted)
+            .forEach(e => {delete this.entitiesById[e.id]})
+
+
     }
 
     getEntitiesAround(pos, radius) {

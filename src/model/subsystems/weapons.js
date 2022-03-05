@@ -1,5 +1,5 @@
 import {action } from '../action'
-import { Subsystem, SUBSYSTEM_CATEGORIES } from '../sub'
+import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
 
 export class Weapon extends Subsystem {
     constructor(gridPosition, id, name, template) {
@@ -8,27 +8,25 @@ export class Weapon extends Subsystem {
         this.ammo = template.ammoMax
         this.ammoMax = template.ammoMax
         this._aim = null
+        this._target = null
 
         this.aimAction = action({
             id: id + "_aim",
             name: "Aim",
             icon: "fa-solid fa-bullseye",
             isVisible: () => this._aim == null,
-            isEnabled: () => {return this.on && this.ammo > 0 && this._aim == null},
+            isEnabled: () => this._canAim(),
             onCompleted: m => {this._startAim()}
 
         });
         this.actions.push(this.aimAction)
-
-
-
 
         this.shootAction = action({
             id: id + "_shoot",
             name: "Shoot",
             icon: "fa-solid fa-bullseye",
             isVisible: () => this._aim != null,
-            isEnabled: () => {return this.on && this.ammo > 0},
+            isEnabled: () => this._canShoot(),
             onCompleted: m => {this._shoot()}
 
         });
@@ -47,24 +45,34 @@ export class Weapon extends Subsystem {
 
     }
 
+    _canAim() {
+        return this.on && this.ammo > 0 && this._aim == null && this._target != null
+    }
     _startAim() {
         this._aim = new Aiming({
             onCompleted: () => {this._aim = null}
         })
-        this._aim.addTarget({id: "EEE"})
+        this._aim.addTarget(this._target)
         this._aim.start()
+    }
+
+    _canShoot() {
+        return this.on && (this.ammo > 0) && (this._aim && this._aim.canShoot())
     }
 
     _shoot() {
         this.ammo = Math.max(0, this.ammo - 1)
         if (this._aim) {
             const hit = this._aim.shoot()
-            console.log("shoot:", hit);
+            hit.forEach(e => {
+                e.onHit()
+            })
         }
     }
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
+        this._target = model.sub.trackedEntity
         if (this._aim) {
             this._aim.updateState(deltaMs)
         }
@@ -97,7 +105,7 @@ class Aiming {
         this._progress = 0
         this._started = false
         this._completed = false
-        this._shootCount = params.shootCount
+        this._shootCount = this.params.shootCount
         this._targets = []
         this._shootMarks = []
         this._lastProgress = 0
@@ -115,6 +123,10 @@ class Aiming {
         this._progress = 0
         this._started = true
         this._completed = false
+    }
+
+    canShoot() {
+        return this._shootCount > 0
     }
 
     shoot() {
@@ -135,7 +147,7 @@ class Aiming {
                 )
                 this._shootMarks.push({position: aF, size: this.params.crosshairsSize, hit: hit, id: "sm" + this._progress})
                 if (hit) {
-                    hits.push(hits)
+                    hits.push(t.entity)
                 }
             })
             return hits;

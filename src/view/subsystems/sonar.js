@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import {Stage, Layer, Line, Circle, Rect, Container, Group, Arc} from 'react-konva'
-import { toDegrees } from "../units";
+import React from "react";
+import {Stage, Layer, Line, Circle, Rect, Group} from 'react-konva'
+import { toDegrees } from "../../units";
 
 const SIZE_PX = 376
 
@@ -63,7 +63,7 @@ function SonarBlip({blip, actionController, debug=false, scale}) {
             height={blip.radius * 2}
             fill="red"
         />
-        {blip.targetted && <Circle /* targetted overlay */
+        {blip.tracked && <Circle /* tracked overlay */
             width={blip.radius * 2 + 15 / scale}
             height={blip.radius * 2 + 15 / scale}
             stroke="#ddd"

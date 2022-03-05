@@ -9,6 +9,9 @@ class GameModel {
     updateState(deltaMs, actionController) {
         this.sub.updateState(deltaMs, this, actionController)
         this.world.updateState(deltaMs, this)
+        if (actionController.targetEntityId && !this.world.entitiesById[actionController.targetEntityId]) {
+            actionController.targetEntityId = null
+        }
     }
 
     toViewState() {

@@ -1,5 +1,5 @@
 import {action } from '../action'
-import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
+import { EFFECT_TYPES, Subsystem, SUBSYSTEM_CATEGORIES } from './index'
 import { RangeCircle, RANGE_CIRCLE_TYPE } from './sonar'
 
 
@@ -89,6 +89,7 @@ export class Weapon extends Subsystem {
         this.ammo = Math.max(0, this.ammo - 1)
         if (this._aim) {
             const hit = this._aim.shoot()
+            this.addEffect(hit.length > 0 ? EFFECT_TYPES.SHOOT_HIT : EFFECT_TYPES.SHOOT_MISS, 500)
             hit.forEach(e => {
                 e.onHit()
             })

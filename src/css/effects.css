@@ -1,0 +1,7 @@
+.subsystem.shootHit {
+    border-color: red;
+}
+
+.subsystem.shootMiss {
+    border-color: black;
+}

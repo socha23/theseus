@@ -41,6 +41,26 @@ class TogglePowerAction extends ToggleAction {
     }
 }
 
+export const EFFECT_TYPES = {
+    SHOOT_MISS: "shootMiss",
+    SHOOT_HIT: "shootHit",
+}
+
+class Effect {
+    constructor(type, durationMs) {
+        this.type = type
+        this.durationMs = durationMs
+        this.active = true
+    }
+
+    updateState(deltaMs) {
+        this.durationMs -= deltaMs
+        if (this.durationMs <= 0) {
+            this.active = false
+        }
+    }
+}
+
 export class Subsystem {
     constructor(gridPosition, id, name, category, template={}) {
         this.template={...DEFAULT_TEMPLATE, ...template}
@@ -56,10 +76,18 @@ export class Subsystem {
         this._shutdown = false
         this.gridPosition = gridPosition
         this.gridSize = this.template.gridSize
+
+        this._effects = []
+    }
+
+    addEffect(type, durationMs) {
+        this._effects.push(new Effect(type, durationMs))
     }
 
     updateState(deltaMs, model, actionController) {
+        this._effects = this._effects.filter(e => e.active)
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
+        this._effects.forEach(e => e.updateState(deltaMs))
         this._shutdown = false
     }
 
@@ -74,6 +102,7 @@ export class Subsystem {
             shutdown: this._shutdown,
             gridPosition: this.gridPosition,
             gridSize: this.gridSize,
+            effects: this._effects,
         }
     }
 

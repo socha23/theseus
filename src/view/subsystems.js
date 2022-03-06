@@ -175,10 +175,13 @@ export function Subsystem({subsystem, actionController}) {
     const standardActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.STANDARD)
     const throttleActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.THROTTLE)
 
+    let effectsClassName = ""
+    subsystem.effects.forEach(e => {effectsClassName += (e.type + " ")})
 
     return <div draggable className={'subsystem '
                 + (subsystem.on ? 'powered ' : 'unpowered ')
                 + (animation + " ")
+                + effectsClassName
                 }>
         <div className="titleBar">
             <span className='name'>{subsystem.name}</span>

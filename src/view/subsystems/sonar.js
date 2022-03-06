@@ -100,24 +100,39 @@ function SonarBlips({blips, actionController, debug, scale}) {
     </Group>
 }
 
-const RANGE_COLOR = {}
+const RANGE_COLOR = {
+    [RANGE_CIRCLE_TYPE.DEFAULT]: "#469528",
+    [RANGE_CIRCLE_TYPE.DISABLED]: "",
+    [RANGE_CIRCLE_TYPE.HOVER]: "#469528",
+}
 
-RANGE_COLOR[RANGE_CIRCLE_TYPE.DEFAULT] = "white"
-RANGE_COLOR[RANGE_CIRCLE_TYPE.DISABLED] = ""
-RANGE_COLOR[RANGE_CIRCLE_TYPE.HOVER] = "yellow"
+const RANGE_OPACITY = {
+    [RANGE_CIRCLE_TYPE.DEFAULT]: 0.2,
+    [RANGE_CIRCLE_TYPE.HOVER]: 0.5,
+}
+
+const RANGE_STROKE_WIDTH = {
+    [RANGE_CIRCLE_TYPE.DEFAULT]: 4,
+    [RANGE_CIRCLE_TYPE.HOVER]: 4,
+}
+
+function rangeVal(dict, range) {
+    return dict[range.type] ?? dict[RANGE_CIRCLE_TYPE.DEFAULT]
+}
 
 function Ranges({scale, ranges}) {
+
+
     return <Group>
         {
             ranges.map(r => <Circle
                 key={r.id}
                 listening={false}
                 radius={r.range}
-                stroke={RANGE_COLOR[r.type] ?? RANGE_COLOR[RANGE_CIRCLE_TYPE.DEFAULT]}
-                strokeWidth={2/scale}
-                dash={[2/scale,4/scale]}
-                opacity={0.5}
-
+                stroke={rangeVal(RANGE_COLOR, r)}
+                strokeWidth={rangeVal(RANGE_STROKE_WIDTH, r)/scale}
+                _dash={[2/scale,4/scale]}
+                opacity={rangeVal(RANGE_OPACITY, r)}
                 />)
         }
     </Group>

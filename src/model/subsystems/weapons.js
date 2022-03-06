@@ -19,6 +19,7 @@ export class Weapon extends Subsystem {
         this._aim = null
         this._target = null
         this._targetDistance = 0
+        this._mouseOver = false
 
         this.aimAction = action({
             id: id + "_aim",
@@ -98,6 +99,7 @@ export class Weapon extends Subsystem {
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
+        this._mouseOver = actionController.isMouseOver(this)
         this._target = model.sub.trackedEntity
 
         if (this._target) {
@@ -126,7 +128,10 @@ export class Weapon extends Subsystem {
     }
 
     get ranges() {
-        const rangeType = this.on ? RANGE_CIRCLE_TYPE.DEFAULT : RANGE_CIRCLE_TYPE.DISABLED
+        let rangeType = RANGE_CIRCLE_TYPE.DISABLED
+        if (this.on) {
+            rangeType = this._mouseOver ? RANGE_CIRCLE_TYPE.HOVER : RANGE_CIRCLE_TYPE.DEFAULT
+        }
         return [new RangeCircle(this.id, this.range, rangeType)]
     }
 

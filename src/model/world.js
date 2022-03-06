@@ -85,9 +85,8 @@ export function getStartingSub() {
         new Volume(2, 2, 10),
         [
             new CheatBox(new Point(0, 0)),
-            new Weapon(new Point(0, 1), "coil_1", "Coilgun #1", WEAPON_TEMPLATES.COILGUN),
-            new Weapon(new Point(0, 2), "coil_2", "Coilgun #2", WEAPON_TEMPLATES.COILGUN),
-            new Weapon(new Point(0, 3), "railgun", "Railgun", WEAPON_TEMPLATES.RAILGUN),
+            new Weapon(new Point(0, 1), "coil", "Coilgun", WEAPON_TEMPLATES.COILGUN),
+            new Weapon(new Point(0, 2), "railgun", "Railgun", WEAPON_TEMPLATES.RAILGUN),
 
             new Sonar(new Point(1, 0), "sonar", "Sonar", SONAR_TEMPLATES.BASIC_SONAR),
 

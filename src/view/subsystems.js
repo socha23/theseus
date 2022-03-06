@@ -151,10 +151,14 @@ export function Subsystem({subsystem, actionController}) {
     let effectsClassName = ""
     subsystem.effects.forEach(e => {effectsClassName += (e.type + " ")})
 
-    return <div draggable className={'subsystem '
+    return <div draggable
+            className={'subsystem '
                 + (subsystem.on ? 'powered ' : 'unpowered ')
                 + effectsClassName
-                }>
+                }
+            onMouseOver={()=>{actionController.onMouseOver(subsystem)}}
+            onMouseOut={()=>{actionController.onMouseOut(subsystem)}}
+            >
         <div className="titleBar">
             <span className='name'>{subsystem.name}</span>
 

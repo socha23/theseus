@@ -25,6 +25,7 @@ class Game {
 class ActionController {
 
     constructor() {
+        this._mouseOverSubsystems = {}
         this._activeActions = {}
         this.keysDown = {}
         this.keysPressed = {}
@@ -40,11 +41,28 @@ class ActionController {
             || (action.key && this.isKeyDown(action.key))
     }
 
-
     onClick(action) {
         if (!action.usesPressToActivate) {
             this._activeActions[action.id] = action
         }
+    }
+
+    onMouseOver(subsystem) {
+        this._mouseOverSubsystems[subsystem.id] = subsystem
+    }
+
+    onMouseOut(subsystem) {
+        delete this._mouseOverSubsystems[subsystem.id]
+    }
+
+    isMouseOver(subsystem) {
+        return (this._mouseOverSubsystems[subsystem.id] ?? null) != null
+    }
+
+    onMouseUp() {
+        Object.values(this._activeActions)
+            .filter(a => a.usesPressToActivate)
+            .forEach(a => {delete this._activeActions[a.id]})
     }
 
     onMouseUp() {

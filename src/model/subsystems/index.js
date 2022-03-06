@@ -1,4 +1,5 @@
 import {PressAction, ACTION_CATEGORY, ToggleAction, action } from '../action'
+import { EFFECT_TYPES, EffectsMixin } from '../effects'
 import {Point, Body, Volume} from '../physics.js'
 
 export const SUBSYSTEM_CATEGORIES = {
@@ -42,30 +43,7 @@ class TogglePowerAction extends ToggleAction {
     }
 }
 
-const DEFAULT_EFFECT_DURATION = 500
 
-export const EFFECT_TYPES = {
-    POWER_UP: "poweringUp",
-    POWER_DOWN: "poweringDown",
-    SHUTDOWN: "shutdown",
-    SHOOT_MISS: "shootMiss",
-    SHOOT_HIT: "shootHit",
-}
-
-class Effect {
-    constructor(type, durationMs=DEFAULT_EFFECT_DURATION) {
-        this.type = type
-        this.durationMs = durationMs
-        this.active = true
-    }
-
-    updateState(deltaMs) {
-        this.durationMs -= deltaMs
-        if (this.durationMs <= 0) {
-            this.active = false
-        }
-    }
-}
 
 export class Subsystem {
     constructor(gridPosition, id, name, category, template={}) {
@@ -82,17 +60,13 @@ export class Subsystem {
         this.gridPosition = gridPosition
         this.gridSize = this.template.gridSize
 
-        this._effects = []
     }
 
-    addEffect(type, durationMs) {
-        this._effects.push(new Effect(type, durationMs))
-    }
+
 
     updateState(deltaMs, model, actionController) {
-        this._effects = this._effects.filter(e => e.active)
+        this._updateEffects(deltaMs)
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
-        this._effects.forEach(e => e.updateState(deltaMs))
     }
 
     toViewState() {
@@ -105,7 +79,7 @@ export class Subsystem {
             on: this.on,
             gridPosition: this.gridPosition,
             gridSize: this.gridSize,
-            effects: this._effects,
+            effects: this._effects || [],
         }
     }
 
@@ -147,8 +121,9 @@ export class Subsystem {
         return []
     }
 
-
 }
+
+Object.assign(Subsystem.prototype, EffectsMixin)
 
 ////////////////////////////////////////
 // REACTOR

@@ -1,6 +1,7 @@
 import {action } from '../action'
-import { EFFECT_TYPES, Subsystem, SUBSYSTEM_CATEGORIES } from './index'
+import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
 import { RangeCircle, RANGE_CIRCLE_TYPE } from './sonar'
+import { EFFECT_TYPES } from '../effects'
 
 
 const DEFAULT_WEAPON_PARAMS = {

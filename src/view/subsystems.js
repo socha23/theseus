@@ -145,33 +145,6 @@ function ThrottleActions({actions, actionController}) {
 
 export function Subsystem({subsystem, actionController}) {
 
-    const [power, setPower] = useState(false)
-    const [animation, setAnimation] = useState("")
-
-    if (subsystem.shutdown && power) {
-        setPower(false)
-        setAnimation("shutdown")
-        setTimeout(() => {
-            setAnimation("")
-        }, 500)
-    }
-
-    if (subsystem.on && !power) {
-        setPower(true)
-        setAnimation("poweringUp")
-        setTimeout(() => {
-            setAnimation("")
-        }, 500)
-    }
-
-    if (!subsystem.on && !subsystem.shutdown && power) {
-        setPower(false)
-        setAnimation("poweringDown")
-        setTimeout(() => {
-            setAnimation("")
-        }, 500)
-    }
-
     const standardActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.STANDARD)
     const throttleActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.THROTTLE)
 
@@ -180,7 +153,6 @@ export function Subsystem({subsystem, actionController}) {
 
     return <div draggable className={'subsystem '
                 + (subsystem.on ? 'powered ' : 'unpowered ')
-                + (animation + " ")
                 + effectsClassName
                 }>
         <div className="titleBar">

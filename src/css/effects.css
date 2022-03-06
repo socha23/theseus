@@ -1,7 +1,220 @@
+/*
+ * POWER
+ */
+
+ @keyframes subsystemPowerCycleOn {
+    from {
+        border-color: #469528;
+        color: #469528
+    }
+    to {
+        border-color: #a5d000;
+        color: #ebf100;
+    }
+}
+
+@keyframes subsystemPowerCycleOff {
+    from {
+        border-color: #a5d000;
+        color: #ebf100;
+    }
+    to {
+        border-color: #469528;
+        color: #469528
+    }
+}
+
+@keyframes subsystemShutdown {
+    0% {
+        border-color: #a5d000;
+        color: #ebf100;
+    }
+    50% {
+        border-color: red;
+    }
+    100% {
+        border-color: #469528;
+        color: #469528
+    }
+}
+
+
+ @keyframes titleBarPowerCycleOn {
+    from {
+        background-color: #469528;
+        color: rgba(0,59,53,0.7);
+        text-shadow: none;
+    }
+    to {
+        background-color: #a5d000;
+        color: white;
+        text-shadow: 0 0 8px black;
+    }
+}
+
+@keyframes titleBarPowerCycleOff {
+    from {
+        background-color: #a5d000;
+        color: white;
+        text-shadow: 0 0 8px black;
+    }
+    to {
+        background-color: #469528;
+        color: rgba(0,59,53,0.7);
+        text-shadow: none;
+    }
+}
+
+@keyframes titleBarShutdown {
+    0% {
+        background-color: #a5d000;
+        color: white;
+        text-shadow: 0 0 8px black;
+    }
+    50% {
+        background-color: red;
+    }
+    100% {
+        background-color: #469528;
+        color: rgba(0,59,53,0.7);
+        text-shadow: none;
+    }
+}
+
+
+.subsystem.shutdown {
+    animation-name: subsystemShutdown;
+    animation-duration: 0.5s;
+    border-color: #469528;
+    color: #469528
+}
+
+.subsystem.poweringDown {
+    animation-name: subsystemPowerCycleOff;
+    animation-duration: 0.2s;
+    border-color: #469528;
+    color: #469528
+}
+
+.subsystem.poweringUp {
+    animation-name: subsystemPowerCycleOn;
+    animation-duration: 0.2s;
+    border-color: #a5d000;
+    color: #ebf100;
+}
+
+.subsystem.poweringUp .titleBar {
+    background-color: #a5d000;
+    color: white;
+    text-shadow: 0 0 8px black;
+    animation-name: titleBarPowerCycleOn;
+    animation-duration: 0.2s;
+}
+
+.subsystem.poweringDown .titleBar {
+    background-color: #469528;
+    color: rgba(0,59,53,0.7);
+    text-shadow: none;
+    animation-name: titleBarPowerCycleOff;
+    animation-duration: 0.2s;
+
+}
+
+.subsystem.shutdown .titleBar {
+    background-color: #a5d000;
+    color: white;
+    text-shadow: 0 0 8px black;
+    animation-name: titleBarShutdown;
+    animation-duration: 0.5s;
+
+}
+
+/*
+ * SHOOT HIT
+ */
+
+@keyframes subsystemShootHit {
+    0% {
+        border-color: #a5d000;
+    }
+    20% {
+        border-color: red;
+    }
+    40% {
+        border-color: red;
+    }
+    100% {
+        border-color: #a5d000;
+    }
+}
+
+@keyframes titleBarShootHit {
+    0% {
+        background-color: #a5d000;
+    }
+    20% {
+        background-color: red;
+    }
+    40% {
+        background-color: red;
+    }
+    100% {
+        background-color: #a5d000;
+    }
+}
+
 .subsystem.shootHit {
-    border-color: red;
+    animation-name: subsystemShootHit;
+    animation-duration: 0.5s;
+}
+
+.subsystem.shootHit .titleBar {
+    animation-name: titleBarShootHit;
+    animation-duration: 0.5s;
+}
+
+
+/*
+ * SHOOT MISS
+ */
+
+ @keyframes subsystemShootMiss {
+    0% {
+        border-color: #a5d000;
+    }
+    20% {
+        border-color: #469528;
+    }
+    40% {
+        border-color: #469528;
+    }
+    100% {
+        border-color: #a5d000;
+    }
+}
+
+@keyframes titleBarShootMiss {
+    0% {
+        background-color: #a5d000;
+    }
+    20% {
+        background-color: #469528;
+    }
+    40% {
+        background-color: #469528;
+    }
+    100% {
+        background-color: #a5d000;
+    }
 }
 
 .subsystem.shootMiss {
-    border-color: black;
+    animation-name: subsystemShootMiss;
+    animation-duration: 0.5s;
 }
+
+.subsystem.shootMiss .titleBar {
+    animation-name: titleBarShootMiss;
+    animation-duration: 0.5s;
+}
+

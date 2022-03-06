@@ -18,6 +18,7 @@ const BASE_ACTION_PARAMS = {
     onCompleted: m => {},
     isEnabled: () => true,
     isVisible: () => true,
+    onChange: (newVal, oldVal) => {},
 }
 
 
@@ -196,11 +197,23 @@ export class PressAction extends BaseAction {
 export class ToggleAction extends BaseAction {
     constructor(params){
         super(params)
-        this.value = false
+        this._value = false
     }
 
     onCompleted(model) {
         this.value = !this.value
+    }
+
+    get value() {
+        return this._value
+    }
+
+    set value(val) {
+        const oldVal = this.value
+        if (val != oldVal) {
+            this._value = val
+            this.params.onChange(val, oldVal)
+        }
     }
 
     toViewState() {

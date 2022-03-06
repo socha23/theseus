@@ -21,7 +21,8 @@ class TogglePowerAction extends ToggleAction {
             id: subsystem.id + "_on",
             name: "Toggle power",
             icon: "fa-solid fa-power-off",
-            category: ACTION_CATEGORY.SPECIAL
+            category: ACTION_CATEGORY.SPECIAL,
+            onChange: (val) => {subsystem.addEffect(val ? EFFECT_TYPES.POWER_UP : EFFECT_TYPES.POWER_DOWN)}
         })
         this._enabled = false
         this._subsystem = subsystem
@@ -41,13 +42,18 @@ class TogglePowerAction extends ToggleAction {
     }
 }
 
+const DEFAULT_EFFECT_DURATION = 500
+
 export const EFFECT_TYPES = {
+    POWER_UP: "poweringUp",
+    POWER_DOWN: "poweringDown",
+    SHUTDOWN: "shutdown",
     SHOOT_MISS: "shootMiss",
     SHOOT_HIT: "shootHit",
 }
 
 class Effect {
-    constructor(type, durationMs) {
+    constructor(type, durationMs=DEFAULT_EFFECT_DURATION) {
         this.type = type
         this.durationMs = durationMs
         this.active = true
@@ -73,7 +79,6 @@ export class Subsystem {
         this._actionOn = new TogglePowerAction(this)
         this.actions.push(this._actionOn)
 
-        this._shutdown = false
         this.gridPosition = gridPosition
         this.gridSize = this.template.gridSize
 
@@ -88,7 +93,6 @@ export class Subsystem {
         this._effects = this._effects.filter(e => e.active)
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
         this._effects.forEach(e => e.updateState(deltaMs))
-        this._shutdown = false
     }
 
     toViewState() {
@@ -99,7 +103,6 @@ export class Subsystem {
             actions: this.actions.map(a => a.toViewState()),
             actionOn: this._actionOn.toViewState(),
             on: this.on,
-            shutdown: this._shutdown,
             gridPosition: this.gridPosition,
             gridSize: this.gridSize,
             effects: this._effects,
@@ -116,7 +119,8 @@ export class Subsystem {
 
     shutdown() {
         this.on = false
-        this._shutdown = true
+        this._effects = []
+        this.addEffect(EFFECT_TYPES.SHUTDOWN)
     }
 
     get nominalPowerConsumption() {

@@ -21,6 +21,7 @@ export class Weapon extends Subsystem {
         this._target = null
         this._targetDistance = 0
         this._mouseOver = false
+        this._operator = false
 
         this.aimAction = action({
             id: id + "_aim",
@@ -28,8 +29,9 @@ export class Weapon extends Subsystem {
             icon: "fa-solid fa-bullseye",
             isVisible: () => this._aim == null,
             isEnabled: () => this._canAim(),
-            onCompleted: m => {this._startAim()}
-
+            onEnterActive: m => {this._startAim(m)},
+            onExitActive: m => {this._stopAim(m)},
+            activeUntilCancel: true,
         });
         this.actions.push(this.aimAction)
 
@@ -51,7 +53,8 @@ export class Weapon extends Subsystem {
             icon: "fa-solid fa-repeat",
             progressTime: template.reloadTime,
             isEnabled: () => {return this.on},
-            onCompleted: m => {this.ammo = this.template.ammoMax}
+            onCompleted: m => {this.ammo = this.template.ammoMax},
+            requiresOperator: true,
         });
         this.actions.push(this.reloadAction)
 
@@ -70,12 +73,19 @@ export class Weapon extends Subsystem {
     }
 
 
-    _startAim() {
+    _startAim(model) {
         this._aim = new Aiming({
-            onCompleted: () => {this._aim = null}
+            onCompleted: (m) => {this.aimAction.cancel(m)}
         })
         this._aim.addTarget(this._target)
         this._aim.start()
+        this._operator = model.sub.assignOperator(this.aimAction)
+    }
+
+    _stopAim(model) {
+        this._aim = null
+        this._operator = null
+        model.sub.unassignOperator(this.aimAction)
     }
 
     _canShoot() {
@@ -99,6 +109,9 @@ export class Weapon extends Subsystem {
     }
 
     updateState(deltaMs, model, actionController) {
+        if (this._aim && !model.sub.hasAssignedOperator(this.aimAction)) {
+            this.aimAction.cancel(model)
+        }
         super.updateState(deltaMs, model, actionController)
         this._mouseOver = actionController.isMouseOver(this)
         this._target = model.sub.trackedEntity
@@ -110,9 +123,9 @@ export class Weapon extends Subsystem {
         }
         if (this._aim) {
             if (this._canContinueAim()) {
-                this._aim.updateState(deltaMs)
+                this._aim.updateState(deltaMs, model)
             } else {
-                this._aim = null
+                this.aimAction.cancel(model)
             }
         }
     }
@@ -145,7 +158,6 @@ export class Weapon extends Subsystem {
             if (this.hasEffectOfType(EFFECT_TYPES.SHOOT_MISS)) {
                 type = AIM_LINE_TYPE.MISS
             }
-
 
             return [new AimLine(this.id + "_aim", this._target.position, type)]
         } else {
@@ -234,13 +246,13 @@ class Aiming {
         })
     }
 
-    _onCompleted() {
+    _onCompleted(model) {
         this._started = false
         this._completed = true
-        this.params.onCompleted()
+        this.params.onCompleted(model)
     }
 
-    updateState(deltaMs) {
+    updateState(deltaMs, model) {
         if (!this.inProgress()) {
             return
         }
@@ -248,7 +260,7 @@ class Aiming {
         this._lastProgress = deltaMs
 
         if (this._progress >= this.params.aimTime) {
-            this._onCompleted()
+            this._onCompleted(model)
         }
     }
 

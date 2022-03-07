@@ -1,4 +1,4 @@
-import {PressAction, ACTION_CATEGORY, ToggleAction, action } from './action.js'
+import {PressAction, ACTION_CATEGORY, ToggleAction, action, OperatorController } from './action.js'
 import {Point, Body, Volume} from './physics.js'
 import { Entity } from './entities.js'
 
@@ -20,6 +20,8 @@ export class Sub extends Entity {
         this.gridHeight = 5
 
         this._gridBusyCache = this._getGridBusy()
+
+        this._operatorController = new OperatorController()
     }
 
     updateState(deltaMs, model, actionController) {
@@ -133,6 +135,18 @@ export class Sub extends Entity {
             }
         })
         return grid
+    }
+
+    assignOperator(a) {
+        return this._operatorController.assignOperator(a)
+    }
+
+    unassignOperator(a) {
+        this._operatorController.unassignOperator(a)
+    }
+
+    hasAssignedOperator(a) {
+        return this._operatorController.hasAssignedOperator(a)
     }
 
     toViewState() {

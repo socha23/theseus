@@ -16,9 +16,13 @@ const BASE_ACTION_PARAMS = {
     category: ACTION_CATEGORY.STANDARD,
     key: null,
     onCompleted: m => {},
+    onEnterActive: m => {},
+    onExitActive: m => {},
     isEnabled: () => true,
     isVisible: () => true,
     onChange: (newVal, oldVal) => {},
+    activeUntilCancel: false,
+    requiresOperator: false,
 }
 
 
@@ -26,7 +30,6 @@ export class BaseAction {
     constructor(params){
         this.params = {...BASE_ACTION_PARAMS, ...params}
         this._active = false
-        this._recentlyCompleted = false
     }
 
     get id() {
@@ -59,13 +62,28 @@ export class BaseAction {
 
 
     execute(model) {
+        this._activate(model)
+        if (!this.params.activeUntilCancel) {
+            this._deactivate(model)
+            this._complete(model)
+        }
+    }
+
+    _activate(model) {
         this._active = true
         this.onEnterActive(model)
+        this.params.onEnterActive(model)
+    }
+
+    _deactivate(model) {
         this._active = false
         this.onExitActive(model)
+        this.params.onExitActive(model)
+    }
+
+    _complete(model) {
         this.onCompleted(model)
         this.params.onCompleted(model)
-        this._recentlyCompleted = true
     }
 
     onEnterActive(model) {
@@ -90,16 +108,19 @@ export class BaseAction {
             enabled: this.enabled,
             active: this._active,
             category: this.params.category,
-            recentlyCompleted: this._recentlyCompleted,
             visible: this.visible,
         }
     }
 
     updateState(deltaMs, model, actionController) {
-        this._recentlyCompleted = false
         if (this.enabled && actionController.isCurrent(this)) {
             this.execute(model)
         }
+    }
+
+    cancel(model) {
+        this._deactivate(model)
+        this.onCancelled(model)
     }
 }
 
@@ -151,6 +172,10 @@ export class WrapperAction {
 
     onCompleted(model) {
         this._innerAction.onCompleted(model)
+    }
+
+    cancel(model) {
+        this._innerAction.cancel(model)
     }
 
     onCancelled(model) {
@@ -214,6 +239,7 @@ export class ToggleAction extends BaseAction {
             this._value = val
             this.params.onChange(val, oldVal)
         }
+
     }
 
     toViewState() {
@@ -284,8 +310,10 @@ export class ProgressAction extends BaseAction {
     }
 
     execute(model) {
+        this._activate(model)
         this._progressing = true
     }
+
 
     get active() {
         return this._inner.active || this._progressing
@@ -297,10 +325,15 @@ export class ProgressAction extends BaseAction {
 
     onCancelled(model) {
         if (this.progressing) {
-            this._resetProgress()
+            this._deactivate(model)
         } else {
             super.onCancelled(model)
         }
+    }
+
+    _deactivate(model) {
+        super._deactivate(model)
+        this._resetProgress()
     }
 
     _resetProgress() {
@@ -327,6 +360,8 @@ export class ProgressAction extends BaseAction {
             return
         }
         if (!this.enabled) {
+            this._deactivate(model)
+            this._complete(model)
             this._resetProgress()
             return
         }
@@ -335,17 +370,68 @@ export class ProgressAction extends BaseAction {
         if (this._progress > this._progressMax) {
             this._resetProgress()
             this._inner.execute(model)
+            this._deactivate(model)
+            this._complete(model)
         }
     }
 
 }
 
+export class OperatorController {
+    constructor() {
+        this._currentAction = null
+    }
 
+    assignOperator(a) {
+        this._currentAction = a
+        return {id: "operator"}
+    }
+
+    unassignOperator(a) {
+        if (this._currentAction == a) {
+            this._currentAction = null
+        }
+    }
+
+    hasAssignedOperator(a) {
+        return this._currentAction == a
+    }
+}
+
+export class OperatorAction extends ProgressAction {
+    constructor(progressTime, inner) {
+        super(progressTime, inner)
+        this._operator = null
+    }
+
+    _activate(model) {
+        this._operator = model.sub.assignOperator(this)
+        super._activate(model)
+    }
+
+    _deactivate(model) {
+        super._deactivate(model)
+        model.sub.unassignOperator(this)
+        this._operator = null
+    }
+
+    updateState(deltaMs, model, actionController) {
+        if (this.active && !model.sub.hasAssignedOperator(this)) {
+            this.cancel(model)
+        }
+        super.updateState(deltaMs, model, actionController)
+    }
+
+}
 
 export function action(params) {
     var res = new BaseAction(params)
     if (params.progressTime) {
-        res = new ProgressAction(params.progressTime, res)
+        if (params.requiresOperator) {
+            res = new OperatorAction(params.progressTime, res)
+        } else {
+            res = new ProgressAction(params.progressTime, res)
+        }
     }
     return res
 }

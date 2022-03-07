@@ -122,19 +122,21 @@ class ActionController {
     }
 }
 
-const TICK_MS = 33
-
+const TICK_DELAY_MS = 5
 const game = new Game()
+
+var lastUpdate = Date.now()
 
 function App() {
     const [gameState, setGameState] = useState(game.gameModel.toViewState())
 
+
     useEffect(() => {
         const interval = setInterval(_ => {
-            const timeStart = Date.now()
             const newState = game.updateState(gameState)
             setGameState(newState)
-        }, TICK_MS)
+            lastUpdate = Date.now()
+        }, TICK_DELAY_MS)
         return () => clearInterval(interval)
     })
 

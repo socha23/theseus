@@ -131,7 +131,9 @@ function App() {
 
     useEffect(() => {
         const interval = setInterval(_ => {
-            setGameState(game.updateState(gameState))
+            const timeStart = Date.now()
+            const newState = game.updateState(gameState)
+            setGameState(newState)
         }, TICK_MS)
         return () => clearInterval(interval)
     })

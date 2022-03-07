@@ -9,42 +9,6 @@
     height: 100%;
 }
 
-@keyframes subsystemPowerCycleOn {
-    from {
-        border-color: #469528;
-        color: #469528
-    }
-    to {
-        border-color: #a5d000;
-        color: #ebf100;
-    }
-}
-
-@keyframes subsystemPowerCycleOff {
-    from {
-        border-color: #a5d000;
-        color: #ebf100;
-    }
-    to {
-        border-color: #469528;
-        color: #469528
-    }
-}
-
-@keyframes subsystemShutdown {
-    0% {
-        border-color: #a5d000;
-        color: #ebf100;
-    }
-    50% {
-        border-color: red;
-    }
-    100% {
-        border-color: #469528;
-        color: #469528
-    }
-}
-
 .subsystem.powered {
     border-color: #a5d000;
     color: #ebf100;
@@ -55,26 +19,6 @@
     color: #469528;
 }
 
-.subsystem.shutdown {
-    animation-name: subsystemShutdown;
-    animation-duration: 0.5s;
-    border-color: #469528;
-    color: #469528
-}
-
-.subsystem.poweringDown {
-    animation-name: subsystemPowerCycleOff;
-    animation-duration: 0.2s;
-    border-color: #469528;
-    color: #469528
-}
-
-.subsystem.poweringUp {
-    animation-name: subsystemPowerCycleOn;
-    animation-duration: 0.2s;
-    border-color: #a5d000;
-    color: #ebf100;
-}
 
 .subsystem .titleBar {
     font-weight: bold;
@@ -85,47 +29,6 @@
     align-items: center;
 }
 
-@keyframes titleBarPowerCycleOn {
-    from {
-        background-color: #469528;
-        color: rgba(0,59,53,0.7);
-        text-shadow: none;
-    }
-    to {
-        background-color: #a5d000;
-        color: white;
-        text-shadow: 0 0 8px black;
-    }
-}
-
-@keyframes titleBarPowerCycleOff {
-    from {
-        background-color: #a5d000;
-        color: white;
-        text-shadow: 0 0 8px black;
-    }
-    to {
-        background-color: #469528;
-        color: rgba(0,59,53,0.7);
-        text-shadow: none;
-    }
-}
-
-@keyframes titleBarShutdown {
-    0% {
-        background-color: #a5d000;
-        color: white;
-        text-shadow: 0 0 8px black;
-    }
-    50% {
-        background-color: red;
-    }
-    100% {
-        background-color: #469528;
-        color: rgba(0,59,53,0.7);
-        text-shadow: none;
-    }
-}
 .subsystem.unpowered .titleBar {
     background-color: #469528;
     color: rgba(0,59,53,0.7);
@@ -137,35 +40,6 @@
     color: white;
     text-shadow: 0 0 8px black;
 }
-
-.subsystem.poweringUp .titleBar {
-    background-color: #a5d000;
-    color: white;
-    text-shadow: 0 0 8px black;
-    animation-name: titleBarPowerCycleOn;
-    animation-duration: 0.2s;
-}
-
-.subsystem.poweringDown .titleBar {
-    background-color: #469528;
-    color: rgba(0,59,53,0.7);
-    text-shadow: none;
-    animation-name: titleBarPowerCycleOff;
-    animation-duration: 0.2s;
-
-}
-
-.subsystem.shutdown .titleBar {
-    background-color: #a5d000;
-    color: white;
-    text-shadow: 0 0 8px black;
-    animation-name: titleBarShutdown;
-    animation-duration: 0.5s;
-
-}
-
-
-
 
 
 .subsystem .titleBar .name {
@@ -204,9 +78,11 @@
     flex-direction: column;
     gap: 5px;
     flex-grow: 1;
+    overflow: hidden;
 }
 
 .subsystem .body .contents {
     flex-grow: 1;
+    flex-shrink: 1;
 }
 

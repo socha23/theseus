@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import {Stage, Layer, Line, Circle, Rect, Group} from 'react-konva'
+import { rgbGradientValue } from "../../gradient";
+import { EFFECT_TYPES } from "../../model/effects";
 import { RANGE_CIRCLE_TYPE } from "../../model/subsystems/sonar";
 import { toDegrees } from "../../units";
 
@@ -55,16 +57,50 @@ function Facing({blip, scale}) {
     </Group>
 }
 
+
+
+const HIT_ANIM_TIME = 300
+
+const ANIM_COLOR = [
+    {time: 0, value: "#FF0000"},
+    {time: 0.2, value: "#FFFFFF"},
+    {time: 1, value: "#FF0000"}
+]
+
+function SonarBlipCircle({blip}) {
+
+    const [hitAnimStart, setHitAnimStart] = useState(0)
+    var phase = 0
+    if ((hitAnimStart != 0) || blip.effects.find(e => e.type == EFFECT_TYPES.ENTITY_HIT) != null) {
+        if (hitAnimStart == 0) {
+            setHitAnimStart(Date.now())
+        }
+        const deltaMs = hitAnimStart == 0 ? 0 : (Date.now() - hitAnimStart)
+        if (deltaMs > HIT_ANIM_TIME) {
+            setHitAnimStart(0)
+            phase = 1
+        } else {
+            phase = deltaMs / HIT_ANIM_TIME
+        }
+    }
+    const color = (phase == 0 || phase == 1) ? "red" : rgbGradientValue(phase, ANIM_COLOR)
+    const opacity = (blip.alive ? 1 : 0.8)
+
+    return <Circle
+        width={blip.radius * 2}
+        height={blip.radius * 2}
+        fill={color}
+        opacity={opacity}
+    />
+}
+
+
 function SonarBlip({blip, actionController, debug=false, scale}) {
     const force = blip.lastActingForce.div(blip.mass).multiply(5)
-
     return <ReferenceFrame position={blip.position}>
-        <Circle
-            width={blip.radius * 2}
-            height={blip.radius * 2}
-            fill="red"
-        />
+        <SonarBlipCircle blip={blip}/>
         {blip.tracked && <Circle /* tracked overlay */
+            listening={false}
             width={blip.radius * 2 + 15 / scale}
             height={blip.radius * 2 + 15 / scale}
             stroke="#ddd"
@@ -73,6 +109,7 @@ function SonarBlip({blip, actionController, debug=false, scale}) {
         />}
         {debug && <Facing blip={blip} scale={scale}/>}
         {debug && blip.targetted && blip.targetPosition && <Circle /* entity target */
+            listening={false}
             x = {blip.targetPosition.x - blip.position.x}
             y = {blip.targetPosition.y - blip.position.y}
             stroke="green"
@@ -80,7 +117,8 @@ function SonarBlip({blip, actionController, debug=false, scale}) {
             strokeWidth={3 / scale}
         />}
         {debug && blip.targetted && blip.lastActingForce && <Group /* acting force */>
-                <Line strokeWidth = {2 / scale} stroke="yellow"
+            <Line strokeWidth = {2 / scale} stroke="yellow"
+                listening={false}
                     points={[0, 0, force.x, force.y]} />
             </Group>
         }

@@ -146,6 +146,7 @@ hr {
 .standardActions {
     display: flex;
     gap: 5px;
+    padding: 5px;
 }
 
 

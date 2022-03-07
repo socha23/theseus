@@ -1,5 +1,6 @@
 import { Vector } from "./physics"
 import { FishAgent, MovePlan } from "./agent"
+import { EffectsMixin, EFFECT_TYPES } from "./effects"
 
 export class Entity {
     constructor(id, body) {
@@ -56,18 +57,24 @@ export class Entity {
     }
 
     onHit() {
+        this.addEffect({type: EFFECT_TYPES.ENTITY_HIT, durationMs: 200})
     }
 }
+
+Object.assign(Entity.prototype, EffectsMixin)
 
 export class AgentEntity extends Entity {
     constructor(id, body, agent) {
         super(id, body)
         this.agent = agent
+        this.alive = true
     }
 
     updateState(deltaMs, model) {
         super.updateState()
-        this.agent.updateState(deltaMs, this, model)
+        if (this.alive) {
+            this.agent.updateState(deltaMs, this, model)
+        }
     }
 }
 
@@ -97,13 +104,19 @@ export class Fish extends AgentEntity {
 
     onHit() {
         super.onHit()
-        this.deleted = true
+        this.alive = false
     }
 
 
 
     updateState(deltaMs, model) {
         super.updateState(deltaMs, model)
+        this._updateEffects(deltaMs, model)
+        if (!this.alive) {
+            this.body.updateState(deltaMs, Vector.ZERO)
+            return
+        }
+
         const plan = this.agent.currentPlan
         if (plan instanceof MovePlan) {
             const direction = new Vector(

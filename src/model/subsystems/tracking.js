@@ -16,6 +16,7 @@ export class Tracking extends Subsystem {
             orientation: entity.getOrientation(),
             speed: entity.speedVector.length(),
             planDescription: entity.planDescription,
+            alive: entity.alive,
 
         }
     }

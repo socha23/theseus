@@ -37,13 +37,16 @@ function SubStatus({subsystem}) {
 
 function Tracking({subsystem}) {
     const tracking = subsystem.tracking
-    return <div className='tracking infoBox'>
+    return <div className='tracking boxWithScroll'>
 
         {subsystem.on && <div className="trackedEntity">
             { tracking ? <div>
                 <div className="infoRow">
                     <span className="label">Id:</span>
                     <span>{tracking.entityId}</span>
+                </div>
+                <div className="infoRow">
+                    {tracking.alive ? <span>Alive</span> : <span>Dead</span>}
                 </div>
                 <hr/>
                 <div className="infoRow">
@@ -169,7 +172,6 @@ export function Subsystem({subsystem, actionController}) {
         <div className='body'
             onMouseDown={e => {e.preventDefault(); return false}} /* disable drag & drop */
         >
-            <div className='contents'>
             {
                 subsystem.isWeapon && <Weapon subsystem={subsystem}/>
             }
@@ -199,7 +201,6 @@ export function Subsystem({subsystem, actionController}) {
             {
                 (throttleActions.length > 0) && <ThrottleActions actions={throttleActions} actionController={actionController}/>
             }
-        </div>
     </div>
 }
 

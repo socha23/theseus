@@ -61,6 +61,8 @@ export class Sonar extends Subsystem {
                 entityWidth: e.body.volume.width,
                 entityLength: e.body.volume.length,
                 entityOrientation: e.body.orientation,
+                alive: e.alive,
+                effects: e.getEffects(),
                 tracked: e == model.sub.trackedEntity,
                 mass: e.mass,
                 lastActingForce: e.lastActingForce,

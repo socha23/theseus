@@ -23,7 +23,9 @@ class TogglePowerAction extends ToggleAction {
             name: "Toggle power",
             icon: "fa-solid fa-power-off",
             category: ACTION_CATEGORY.SPECIAL,
-            onChange: (val) => {subsystem.addEffect(val ? EFFECT_TYPES.POWER_UP : EFFECT_TYPES.POWER_DOWN)}
+            onChange: (val) => {subsystem.addEffect({
+                type: val ? EFFECT_TYPES.POWER_UP : EFFECT_TYPES.POWER_DOWN
+            })},
         })
         this._enabled = false
         this._subsystem = subsystem
@@ -65,7 +67,7 @@ export class Subsystem {
 
 
     updateState(deltaMs, model, actionController) {
-        this._updateEffects(deltaMs)
+        this._updateEffects(deltaMs, model)
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
     }
 

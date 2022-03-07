@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {Stage, Layer, Line, Circle, Rect, Group} from 'react-konva'
 import { rgbGradientValue } from "../../gradient";
 import { EFFECT_TYPES } from "../../model/effects";
-import { RANGE_CIRCLE_TYPE } from "../../model/subsystems/sonar";
+import { AIM_LINE_TYPE, RANGE_CIRCLE_TYPE } from "../../model/subsystems/sonar";
 import { toDegrees } from "../../units";
 
 const SIZE_PX = 376
@@ -138,6 +138,10 @@ function SonarBlips({blips, actionController, debug, scale}) {
     </Group>
 }
 
+///////////
+// RANGES
+///////////
+
 const RANGE_COLOR = {
     [RANGE_CIRCLE_TYPE.DEFAULT]: "#469528",
     [RANGE_CIRCLE_TYPE.DISABLED]: "",
@@ -158,7 +162,7 @@ function rangeVal(dict, range) {
     return dict[range.type] ?? dict[RANGE_CIRCLE_TYPE.DEFAULT]
 }
 
-function Ranges({scale, ranges}) {
+function Ranges({position, scale, ranges}) {
 
 
     return <Group>
@@ -167,6 +171,8 @@ function Ranges({scale, ranges}) {
                 key={r.id}
                 listening={false}
                 radius={r.range}
+                x={position.x}
+                y={position.y}
                 stroke={rangeVal(RANGE_COLOR, r)}
                 strokeWidth={rangeVal(RANGE_STROKE_WIDTH, r)/scale}
                 _dash={[2/scale,4/scale]}
@@ -175,6 +181,52 @@ function Ranges({scale, ranges}) {
         }
     </Group>
 }
+
+
+///////////
+// AIMLINES
+///////////
+
+const AIM_LINE_COLOR = {
+    [AIM_LINE_TYPE.DEFAULT]: "white",
+    [AIM_LINE_TYPE.HIT]: "red",
+}
+
+const AIM_LINE_OPACITY = {
+    [AIM_LINE_TYPE.DEFAULT]: 0.5,
+    [AIM_LINE_TYPE.HIT]: 1,
+}
+
+const AIM_LINE_STROKE_WIDTH = {
+    [AIM_LINE_TYPE.DEFAULT]: 2,
+    [AIM_LINE_TYPE.HIT]: 3,
+    [AIM_LINE_TYPE.MISS]: 3,
+}
+
+function aimlineVal(dict, a) {
+    return dict[a.type] ?? dict[AIM_LINE_TYPE.DEFAULT]
+}
+
+function AimLines({position, scale, aimLines}) {
+    return <Group>
+        {
+            aimLines.map(a => <Line
+                key={a.id}
+                points={[position.x, position.y, a.position.x, a.position.y]}
+                listening={false}
+                stroke={aimlineVal(AIM_LINE_COLOR, a)}
+                strokeWidth={aimlineVal(AIM_LINE_STROKE_WIDTH, a)/scale}
+                _dash={[2/scale,4/scale]}
+                opacity={aimlineVal(AIM_LINE_OPACITY, a)}
+                />)
+        }
+    </Group>
+}
+
+
+
+
+
 
 function SubMarker({volume, scale}){
     const wPx = volume.width * scale
@@ -214,8 +266,9 @@ function Sonar({subsystem, actionController}) {
                     <Group rotation={toDegrees(-subsystem.orientation) + 90}>
                         <SonarBackground position={subsystem.position} scale={scale}/>
                         <SubReferenceFrame position={subsystem.position} scale={scale}>
+                            <AimLines position={subsystem.position} scale={scale} aimLines={subsystem.aimLines}/>
                             <SonarBlips blips={subsystem.blips} actionController={actionController} scale={scale} debug={subsystem.debug}/>
-                            <Ranges scale={scale} ranges={subsystem.ranges}/>
+                            <Ranges position={subsystem.position} scale={scale} ranges={subsystem.ranges}/>
                         </SubReferenceFrame>
                     </Group>
                     {<SubMarker volume={subsystem.subVolume} scale={scale}/>}

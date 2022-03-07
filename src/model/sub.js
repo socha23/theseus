@@ -84,6 +84,12 @@ export class Sub extends Entity {
         return result
     }
 
+    get aimLines() {
+        const result = []
+        this.subsystems.forEach(s => {result.push(...s.aimLines)})
+        return result
+    }
+
     _updatePosition(deltaMs) {
         var force = 0
         var rotationalForce = 0

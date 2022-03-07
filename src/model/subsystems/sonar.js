@@ -20,10 +20,24 @@ export const RANGE_CIRCLE_TYPE = {
     DEFAULT: "default",
 }
 
+export const AIM_LINE_TYPE = {
+    DEFAULT: "default",
+    HIT: "hit",
+    MISS: "miss",
+}
+
 export class RangeCircle {
     constructor(id, range, type=RANGE_CIRCLE_TYPE.DEFAULT) {
         this.id = id
         this.range = range
+        this.type = type
+    }
+}
+
+export class AimLine {
+    constructor(id, position, type=AIM_LINE_TYPE.DEFAULT) {
+        this.id = id
+        this.position = position
         this.type = type
     }
 }
@@ -92,6 +106,7 @@ export class Sonar extends Subsystem {
             debug: this.debugAction.value,
             sub: this.sub,
             ranges: this.sub?.ranges ?? [],
+            aimLines: this.sub?.aimLines ?? [],
         }
     }
 }

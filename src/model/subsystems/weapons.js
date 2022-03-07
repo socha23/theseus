@@ -1,6 +1,6 @@
 import {action } from '../action'
 import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
-import { RangeCircle, RANGE_CIRCLE_TYPE } from './sonar'
+import { AimLine, AIM_LINE_TYPE, RangeCircle, RANGE_CIRCLE_TYPE } from './sonar'
 import { EFFECT_TYPES } from '../effects'
 
 
@@ -134,6 +134,23 @@ export class Weapon extends Subsystem {
             rangeType = this._mouseOver ? RANGE_CIRCLE_TYPE.HOVER : RANGE_CIRCLE_TYPE.DEFAULT
         }
         return [new RangeCircle(this.id, this.range, rangeType)]
+    }
+
+    get aimLines() {
+        if (this._aim != null && this._target) {
+            var type = AIM_LINE_TYPE.DEFAULT
+            if (this.hasEffectOfType(EFFECT_TYPES.SHOOT_HIT)) {
+                type = AIM_LINE_TYPE.HIT
+            }
+            if (this.hasEffectOfType(EFFECT_TYPES.SHOOT_MISS)) {
+                type = AIM_LINE_TYPE.MISS
+            }
+
+
+            return [new AimLine(this.id + "_aim", this._target.position, type)]
+        } else {
+            return []
+        }
     }
 
 }

@@ -49,5 +49,8 @@ export const EffectsMixin = {
     },
     getEffects() {
         return this._effects || []
+    },
+    hasEffectOfType(type) {
+        return this._effects.find(e => e.type == type) ?? null != null
     }
 }

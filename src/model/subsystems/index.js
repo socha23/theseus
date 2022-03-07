@@ -123,6 +123,10 @@ export class Subsystem {
         return []
     }
 
+    get aimLines() {
+        return []
+    }
+
 }
 
 Object.assign(Subsystem.prototype, EffectsMixin)

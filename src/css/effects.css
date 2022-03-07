@@ -136,15 +136,23 @@
 @keyframes subsystemShootHit {
     0% {
         border-color: #a5d000;
+        left: 0px;
+        top: 0px;
     }
     20% {
         border-color: red;
+        left: -5px;
+        top: 5px;
     }
     40% {
         border-color: red;
+        left: 5px;
+        top: -5px;
     }
     100% {
         border-color: #a5d000;
+        left: 0px;
+        top: 0px;
     }
 }
 
@@ -181,15 +189,23 @@
  @keyframes subsystemShootMiss {
     0% {
         border-color: #a5d000;
+        left: 0px;
+        top: 0px;
     }
     20% {
         border-color: #469528;
+        left: -5px;
+        top: 5px;
     }
     40% {
         border-color: #469528;
+        left: 5px;
+        top: -5px;
     }
     100% {
         border-color: #a5d000;
+        left: 0px;
+        top: 0px;
     }
 }
 

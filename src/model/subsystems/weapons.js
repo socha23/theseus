@@ -204,12 +204,13 @@ class Aiming {
                 const aF = this._progress - this._lastProgress
                 const aT = aF + this.params.crosshairsSize
                 const bF = t.position
-                const bT = aT + t.size
+                const bT = bF + t.size
 
                 const hit = (
                     (aF <= bF && bF <= aT)
                     || (bF <= aF && aF <= bT)
                 )
+
                 this._shootMarks.push({position: aF, size: this.params.crosshairsSize, hit: hit, id: "sm" + this._progress})
                 if (hit) {
                     hits.push(t.entity)

@@ -73,6 +73,11 @@ export class Vector {
 
 }
 
+export const DRAG_COEFFICIENTS = {
+    SLEEK: 0.2,
+    DEFAULT: 1,
+}
+
 const DEFAULT_DRAG_COEFFICIENT = 1
 const WATER_DENSITY = 1000
 
@@ -80,7 +85,7 @@ const MOVEMENT_HUSH = 0.1
 const ROTATION_MOVEMENT_HUSH = 0.05
 
 export class Volume {
-    constructor(width, height, length, dragCoefficient = DEFAULT_DRAG_COEFFICIENT) {
+    constructor(width, height, length, dragCoefficient = DRAG_COEFFICIENTS.DEFAULT) {
         this.width = width
         this.height = height
         this.length = length

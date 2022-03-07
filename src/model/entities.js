@@ -1,4 +1,4 @@
-import { Vector } from "./physics"
+import { DRAG_COEFFICIENTS, Vector } from "./physics"
 import { FishAgent, MovePlan } from "./agent"
 import { EffectsMixin, EFFECT_TYPES } from "./effects"
 
@@ -104,7 +104,9 @@ export class Fish extends AgentEntity {
 
     onHit() {
         super.onHit()
+
         this.alive = false
+        this.body.volume.dragCoefficient = DRAG_COEFFICIENTS.DEFAULT
     }
 
 

@@ -27,20 +27,18 @@ class TogglePowerAction extends ToggleAction {
                 type: val ? EFFECT_TYPES.POWER_UP : EFFECT_TYPES.POWER_DOWN
             })},
         })
-        this._enabled = false
+
         this._subsystem = subsystem
     }
 
-    get enabled() {
-        return this._enabled
+    get longName() {
+        return this.value ? "Turn off " : "Turn on "
     }
 
-    updateState(deltaMs, model, actionController) {
-        super.updateState(deltaMs, model, actionController)
-        if (this._subsystem.on) {
-            this._enabled = true
-        } else {
-            this._enabled = (model.sub.powerBalance >= this._subsystem.nominalPowerConsumption)
+    addErrorConditions(conditions, model) {
+        super.addErrorConditions(conditions, model)
+        if (!this._subsystem.on && (model.sub.powerBalance < this._subsystem.nominalPowerConsumption)) {
+            conditions.push("Insufficient power")
         }
     }
 }
@@ -246,48 +244,6 @@ export class CheatBox extends Subsystem {
 }
 
 ////////////////////////////////////////
-// WEAPONS
-////////////////////////////////////////
-
-export class Weapon extends Subsystem {
-    constructor(gridPosition, id, name, template) {
-        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.WEAPON, template)
-        this.template = template
-        this.ammo = template.ammoMax
-        this.ammoMax = template.ammoMax
-        this.shootAction = action({
-            id: id + "_shoot",
-            name: "Shoot",
-            icon: "fa-solid fa-bullseye",
-            progressTime: template.aimTime,
-            isEnabled: () => {return this.on && this.ammo > 0},
-            onCompleted: m => {this.ammo = Math.max(0, this.ammo - 1)}
-
-        });
-        this.actions.push(this.shootAction)
-
-        this.reloadAction = action({
-            id: id + "_reload",
-            name: "Reload",
-            icon: "fa-solid fa-repeat",
-            progressTime: template.reloadTime,
-            isEnabled: () => {return this.on},
-            onCompleted: m => {this.ammo = this.template.ammoMax}
-        });
-        this.actions.push(this.reloadAction)
-    }
-
-    toViewState() {
-        return {
-            ...super.toViewState(),
-            usesAmmo: true,
-            ammo: this.ammo,
-            ammoMax: this.ammoMax,
-        }
-    }
-}
-
-////////////////////////////////////////
 
 export class Engine extends Subsystem {
     constructor(gridPosition, id, name, template) {
@@ -337,8 +293,10 @@ class DirectionAction extends PressAction {
         this.component = component
     }
 
-    get enabled() {
-        return this.component.on
+    addErrorConditions(c) {
+        if (!this.component.on) {
+            c.push("Unpowered")
+        }
     }
 }
 

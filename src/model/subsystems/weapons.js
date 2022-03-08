@@ -26,9 +26,10 @@ export class Weapon extends Subsystem {
         this.aimAction = action({
             id: id + "_aim",
             name: "Aim",
+            longName: "Aim " + name,
             icon: "fa-solid fa-bullseye",
             isVisible: () => this._aim == null,
-            isEnabled: () => this._canAim(),
+            addErrorConditions: c => this._addAimErrors(c),
             onEnterActive: m => {this._startAim(m)},
             onExitActive: m => {this._stopAim(m)},
             activeUntilCancel: true,
@@ -40,7 +41,7 @@ export class Weapon extends Subsystem {
             name: "Shoot",
             icon: "fa-solid fa-bullseye",
             isVisible: () => this._aim != null,
-            isEnabled: () => this._canShoot(),
+            addErrorConditions: c => this._addShootErrors(c),
             onCompleted: m => {this._shoot()}
 
         });
@@ -52,7 +53,7 @@ export class Weapon extends Subsystem {
             name: "Reload",
             icon: "fa-solid fa-repeat",
             progressTime: template.reloadTime,
-            isEnabled: () => {return this.on},
+            addErrorConditions: c => this._addReloadErrors(c),
             onCompleted: m => {this.ammo = this.template.ammoMax},
             requiresOperator: true,
         });
@@ -60,10 +61,19 @@ export class Weapon extends Subsystem {
 
     }
 
-    _canAim() {
-        return this._aim == null
-            && this._target != null
-            && this._canContinueAim()
+    _addAimErrors(c) {
+        if (!this.on) {
+            c.push("Unpowered")
+        }
+        if (this.ammo == 0) {
+            c.push("Out of ammo")
+        }
+        if (!this._target) {
+            c.push("No target")
+        }
+        if (this._target && this.range < this._targetDistance) {
+            c.push("Out of range")
+        }
     }
 
     _canContinueAim() {
@@ -88,13 +98,29 @@ export class Weapon extends Subsystem {
         model.sub.unassignOperator(this.aimAction)
     }
 
-    _canShoot() {
-        return this.on
-            && (this.ammo > 0)
-            && (this._aim
-            && this._aim.canShoot())
-            && this._targetDistance <= this.range
 
+    _addReloadErrors(c) {
+        if (!this.on) {
+            c.push("Unpowered")
+        }
+    }
+
+    _addShootErrors(c) {
+        if (!this.on) {
+            c.push("Unpowered")
+        }
+        if (this.ammo == 0) {
+            c.push("Out of ammo")
+        }
+        if (!this._target) {
+            c.push("No target")
+        }
+        if (this._aim && !this._aim.canShoot()) {
+            c.push("Out of shots")
+        }
+        if (this._target && this.range < this._targetDistance) {
+            c.push("Out of range")
+        }
     }
 
     _shoot() {

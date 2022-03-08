@@ -176,3 +176,51 @@ hr {
     border-color: #ebf100;
     color: #ebf100;
 }
+
+
+
+
+
+/*****************
+ * TOOLTIP
+ ****************/
+
+ @keyframes tooltipFadeIn {
+    0% {
+        opacity: 0;
+    }
+    70% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 0.8;
+    }
+}
+
+
+.tooltip {
+    display: none;
+}
+
+
+:hover > .tooltip {
+    animation-name: tooltipFadeIn;
+    animation-duration: 0.2s;
+    z-index: 1000;
+    display: block;
+    position: absolute;
+    top: 40px;
+    left: 0px;
+    background-color: black;
+    border: 1px solid #ebf100;
+    padding: 8px;
+    color: white;
+    opacity: 0.8;
+    min-width: 200px;
+}
+
+.tooltip .errorConditions {
+    display: flex;
+    flex-direction: column;
+    color: red;
+}

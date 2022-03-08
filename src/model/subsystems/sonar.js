@@ -8,8 +8,10 @@ class SonarDebugAction extends ToggleAction {
         this.sonar = sonar
     }
 
-    get enabled() {
-        return this.sonar.on
+    addErrorConditions(c) {
+        if (!this.sonar.on) {
+            c.push("Unpowered")
+        }
     }
 }
 

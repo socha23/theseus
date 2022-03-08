@@ -61,8 +61,24 @@ export function ActionButton({action, actionController}) {
         </div>
         {
             (action.progressMax > 0) && <div className='progressContainer'>
-            <div className='progress' style={{width: getProgressWidth(action) + "%"}}/>
-        </div>
+                <div className='progress' style={{width: getProgressWidth(action) + "%"}}/>
+            </div>
+        }
+        {
+            action.showTooltip && <div className="tooltip">
+                <div className="longName">{action.longName}</div>
+                <div className="errorConditions">
+                    {
+                        action.errorConditions.map(c => <div className="condition" key={c}>{c}</div>)
+                    }
+                </div>
+            </div>
         }
     </div>
 }
+
+
+///////////////////
+// TOOLTIPS
+///////////////////
+

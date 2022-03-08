@@ -12,13 +12,15 @@ export const ACTION_CATEGORY = {
 const BASE_ACTION_PARAMS = {
     id: "",
     name: "",
+    longName: "",
     icon: "fa-solid fa-angle-right",
     category: ACTION_CATEGORY.STANDARD,
     key: null,
+    getLongName: null,
     onCompleted: m => {},
     onEnterActive: m => {},
     onExitActive: m => {},
-    isEnabled: () => true,
+    addErrorConditions: c => {},
     isVisible: () => true,
     onChange: (newVal, oldVal) => {},
     activeUntilCancel: false,
@@ -30,6 +32,7 @@ export class BaseAction {
     constructor(params){
         this.params = {...BASE_ACTION_PARAMS, ...params}
         this._active = false
+        this.errorConditions = []
     }
 
     get id() {
@@ -39,6 +42,14 @@ export class BaseAction {
     get name() {
         return this.params.name
     }
+
+    get longName() {
+        if (this.params.getLongName) {
+            return this.params.getLongName()
+        }
+        return this.params.longName || this.name
+    }
+
 
     usesPressToActivate() {
         return false
@@ -53,13 +64,15 @@ export class BaseAction {
     }
 
     get enabled() {
-        return this.params.isEnabled()
+        return this.errorConditions.length == 0
     }
 
     get visible() {
         return this.params.isVisible()
     }
 
+    addErrorConditions(conditions, model) {
+    }
 
     execute(model) {
         this._activate(model)
@@ -109,10 +122,20 @@ export class BaseAction {
             active: this._active,
             category: this.params.category,
             visible: this.visible,
+            longName: this.longName,
+            showTooltip: true,
+            errorConditions: this.errorConditions,
         }
     }
 
+    _updateErrorConditions(deltaMs, model) {
+        this.errorConditions = []
+        this.addErrorConditions(this.errorConditions, model)
+        this.params.addErrorConditions(this.errorConditions, model)
+    }
+
     updateState(deltaMs, model, actionController) {
+        this._updateErrorConditions(deltaMs, model)
         if (this.enabled && actionController.isCurrent(this)) {
             this.execute(model)
         }
@@ -142,6 +165,10 @@ export class WrapperAction {
         return this._innerAction.name
     }
 
+    get longName() {
+        return this._innerAction.longName
+    }
+
     get visible() {
         return this._innerAction.visible
     }
@@ -157,6 +184,11 @@ export class WrapperAction {
     get enabled() {
         return this._innerAction.enabled
     }
+
+    addErrorConditions(c, m) {
+        this._innerAction.addErrorConditions(c, m)
+    }
+
 
     execute(model) {
         this._innerAction.execute(model)
@@ -201,6 +233,7 @@ export class PressAction extends BaseAction {
     }
 
     updateState(deltaMs, model, actionController) {
+        this._updateErrorConditions(deltaMs, model)
         if (this.enabled && actionController.isCurrent(this)) {
             if (!this.active) {
                 this._active = true
@@ -319,10 +352,6 @@ export class ProgressAction extends BaseAction {
         return this._inner.active || this._progressing
     }
 
-    get enabled() {
-        return this._inner.enabled
-    }
-
     onCancelled(model) {
         if (this.progressing) {
             this._deactivate(model)
@@ -335,6 +364,11 @@ export class ProgressAction extends BaseAction {
         super._deactivate(model)
         this._resetProgress()
     }
+
+    addErrorConditions(c, m) {
+        this._inner.addErrorConditions(c, m)
+    }
+
 
     _resetProgress() {
         this._progressing = false

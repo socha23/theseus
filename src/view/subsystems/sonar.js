@@ -223,10 +223,30 @@ function AimLines({position, scale, aimLines}) {
     </Group>
 }
 
+///////////
+// FEATURES
+///////////
 
+function Features({features}) {
+    return <Group>
+        {
+            features.map(f => <Feature key={f.id} feature={f}/>)
+        }
+    </Group>
+}
 
+function Feature({feature}) {
+    console.log(feature)
+    const points = []
+    feature.polygon.points.forEach(p => {
+        points.push(p.x, p.y)
+    })
+    return <Line points={points} closed={true} fill="#444"/>
+}
 
-
+///////////
+// SUB MARKER
+///////////
 
 function SubMarker({volume, scale}){
     const wPx = volume.width * scale
@@ -266,6 +286,7 @@ function Sonar({subsystem, actionController}) {
                     <Group rotation={toDegrees(-subsystem.orientation) + 90}>
                         <SonarBackground position={subsystem.position} scale={scale}/>
                         <SubReferenceFrame position={subsystem.position} scale={scale}>
+                            <Features scale={scale} features={subsystem.features}/>
                             <AimLines position={subsystem.position} scale={scale} aimLines={subsystem.aimLines}/>
                             <SonarBlips blips={subsystem.blips} actionController={actionController} scale={scale} debug={subsystem.debug}/>
                             <Ranges position={subsystem.position} scale={scale} ranges={subsystem.ranges}/>

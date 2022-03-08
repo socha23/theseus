@@ -176,3 +176,20 @@ export class Body {
 
 
 }
+
+
+
+export class Polygon {
+    constructor(points) {
+        this.points = points
+    }
+}
+
+export function rectangle(position, size) {
+    return new Polygon([
+        new Point(position.x - size.x / 2, position.y - size.y / 2),
+        new Point(position.x - size.x / 2, position.y + size.y / 2),
+        new Point(position.x + size.x / 2, position.y + size.y / 2),
+        new Point(position.x + size.x / 2, position.y - size.y / 2),
+    ])
+}

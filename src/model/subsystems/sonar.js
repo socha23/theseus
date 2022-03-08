@@ -1,6 +1,6 @@
 import {ToggleAction, ACTION_CATEGORY } from '../action'
 import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
-import {Point, Volume} from "../physics"
+import {Point, rectangle, Volume} from "../physics"
 
 class SonarDebugAction extends ToggleAction {
     constructor(sonar) {
@@ -53,6 +53,7 @@ export class Sonar extends Subsystem {
         this.template = template
         this.subVolume = new Volume(1, 1, 1)
         this.blips = []
+        this.features = []
         this.sub = null
 
         this.debugAction = new SonarDebugAction(this)
@@ -86,12 +87,19 @@ export class Sonar extends Subsystem {
             }})
     }
 
+    _observeFeatures(model) {
+        const viewPort = rectangle(this,this.position, new Point(3 * this.range, 3 * this.range)) // 3 is a range hack as above
+        return model.map.getFeaturesIntersecting(viewPort)
+    }
+
+
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
         this.position = model.sub.body.position
         this.orientation = model.sub.body.orientation
         this.subVolume = model.sub.body.volume
         this.blips = this._observeBlips(model)
+        this.features = this._observeFeatures(model)
         this.sub = model.sub
     }
 
@@ -104,11 +112,11 @@ export class Sonar extends Subsystem {
             orientation: this.orientation,
             blips: this.blips,
             subVolume: this.subVolume,
-            entities: this.entities,
             debug: this.debugAction.value,
             sub: this.sub,
             ranges: this.sub?.ranges ?? [],
             aimLines: this.sub?.aimLines ?? [],
+            features: this.features ?? [],
         }
     }
 }

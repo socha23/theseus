@@ -1,9 +1,10 @@
-import {getStartingSub, getStartingWorld} from "./world"
+import {getStartingSub, getStartingWorld, getStartingMap} from "./world"
 
 class GameModel {
     constructor() {
         this.sub = getStartingSub()
         this.world = getStartingWorld()
+        this.map = getStartingMap()
     }
 
     updateState(deltaMs, actionController) {

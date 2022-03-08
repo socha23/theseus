@@ -1,5 +1,5 @@
 import { Entity, Fish } from "./entities"
-import { Body, Point, Volume } from "./physics"
+import { Body, Point, rectangle, Volume } from "./physics"
 import { Sub } from "./sub"
 import { Agent, Flock, FlockAgent } from "./agent"
 
@@ -7,6 +7,7 @@ import {CheatBox, Engine, Reactor, SubStatusScreen, Steering} from "./subsystems
 import {Weapon} from "./subsystems/weapons"
 import {Tracking } from "./subsystems/tracking"
 import {Sonar } from "./subsystems/sonar"
+import { Map } from "./map"
 
 const WEAPON_TEMPLATES = {
     COILGUN: {
@@ -181,4 +182,10 @@ function createFlock(template, count = 1, position=new Point(0, 0), spread = 100
         )
     }
     return flock
+}
+
+export function getStartingMap() {
+    const res = new Map()
+    res.addFeature(rectangle(new Point(0, -20), new Point(40, 5)))
+    return res
 }

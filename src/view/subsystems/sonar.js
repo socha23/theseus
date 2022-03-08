@@ -223,6 +223,16 @@ function AimLines({position, scale, aimLines}) {
     </Group>
 }
 
+
+function linePointsFromPolygon(polygon) {
+    const points = []
+    polygon.points.forEach(p => {
+        points.push(p.x, p.y)
+    })
+    return points
+
+}
+
 ///////////
 // FEATURES
 ///////////
@@ -236,12 +246,7 @@ function Features({features}) {
 }
 
 function Feature({feature}) {
-    console.log(feature)
-    const points = []
-    feature.polygon.points.forEach(p => {
-        points.push(p.x, p.y)
-    })
-    return <Line points={points} closed={true} fill="#444"/>
+    return <Line points={linePointsFromPolygon(feature.polygon)} closed={true} fill="#444"/>
 }
 
 ///////////
@@ -267,6 +272,10 @@ function SubMarker({volume, scale}){
 
 }
 
+function BoundingBox({polygon, scale}) {
+    return <Line points={linePointsFromPolygon(polygon)} stroke="white" closed={true} strokeWidth={1/scale}/>
+}
+
 function SubReferenceFrame({position, scale=1, children}) {
     return <Group >
                 <Group offsetX={position.x} offsetY={position.y} scaleX={scale} scaleY={scale}>
@@ -277,8 +286,6 @@ function SubReferenceFrame({position, scale=1, children}) {
 
 function Sonar({subsystem, actionController}) {
     const scale = SIZE_PX / (subsystem.range * 2)   // px per unit
-
-
     return <div className="sonar" style={{width: SIZE_PX + 2, height: SIZE_PX + 2}}>
         {subsystem.on && <Stage width={SIZE_PX} height={SIZE_PX} >
             <Layer>
@@ -290,6 +297,7 @@ function Sonar({subsystem, actionController}) {
                             <AimLines position={subsystem.position} scale={scale} aimLines={subsystem.aimLines}/>
                             <SonarBlips blips={subsystem.blips} actionController={actionController} scale={scale} debug={subsystem.debug}/>
                             <Ranges position={subsystem.position} scale={scale} ranges={subsystem.ranges}/>
+                            {/*<BoundingBox polygon={subsystem.subBoundingBox} scale={scale}/>*/}
                         </SubReferenceFrame>
                     </Group>
                     {<SubMarker volume={subsystem.subVolume} scale={scale}/>}

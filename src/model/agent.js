@@ -31,6 +31,25 @@ class Wait extends Plan {
     }
 }
 
+export class BackOff extends Plan {
+    constructor(id, fromPosition, minDistance = 1) {
+        super(id)
+        this.description = "Back off"
+        this.position = fromPosition
+        this.fromPosition = fromPosition
+        this.minDistance = minDistance
+    }
+
+    updateState(deltaMs, entity, model) {
+        this.position = entity.getPosition()
+    }
+
+    isValid() {
+        return this.position.distanceTo(this.fromPosition) < this.minDistance
+    }
+
+}
+
 export class MovePlan extends Plan {
     constructor(id, distanceTolerance = 1) {
         super(id)
@@ -103,6 +122,10 @@ export class Agent {
         if (!this.currentPlan.isValid()) {
             this.currentPlan = null
         }
+    }
+
+    resetPlan() {
+        this.currentPlan = null
     }
 
     _nextPlan(entity, model) {

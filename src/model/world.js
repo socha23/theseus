@@ -186,6 +186,6 @@ function createFlock(template, count = 1, position=new Point(0, 0), spread = 100
 
 export function getStartingMap() {
     const res = new Map()
-    res.addFeature(rectangle(new Point(0, -20), new Point(40, 5)))
+    res.addFeature(rectangle(new Point(0, -20), new Point(20, 5), 0))
     return res
 }

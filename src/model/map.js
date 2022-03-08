@@ -12,8 +12,6 @@ export class MapFeature {
     }
 }
 
-
-
 export class Map {
 
     static autoinc = 0
@@ -26,9 +24,18 @@ export class Map {
         return this.features
     }
 
-
     addFeature(polygon, type =MAP_FEATURE_TYPE.DEFAULT) {
         this.features.push(new MapFeature(("feature" + Map.autoinc++), polygon, type))
+    }
+
+    detectCollision(polygon) {
+        let result = false
+        this.features.forEach(f => {
+            if (f.polygon.overlaps(polygon)) {
+                result = true
+            }
+        })
+        return result
     }
 
 

@@ -1,5 +1,5 @@
 import { DRAG_COEFFICIENTS, Vector } from "./physics"
-import { FishAgent, MovePlan } from "./agent"
+import { BackOff, FishAgent, MovePlan } from "./agent"
 import { EffectsMixin, EFFECT_TYPES } from "./effects"
 
 export class Entity {
@@ -59,6 +59,24 @@ export class Entity {
     onHit() {
         this.addEffect({type: EFFECT_TYPES.ENTITY_HIT, durationMs: 200})
     }
+
+    onMapCollision(model) {
+
+    }
+
+    updateState(deltaMs, model) {
+        this._updateEffects(deltaMs, model)
+        if (model.map.detectCollision(this.body.boundingBox)) {
+            console.log("BB!")
+        }
+        if (model.map.detectCollision(this.body.nextBoundingBox)) {
+            // collision!
+            this.body.stop()
+            this.onMapCollision(model)
+        } else {
+            this.body.commitUpdate();
+        }
+    }
 }
 
 Object.assign(Entity.prototype, EffectsMixin)
@@ -71,11 +89,11 @@ export class AgentEntity extends Entity {
     }
 
     updateState(deltaMs, model) {
-        super.updateState()
+        super.updateState(deltaMs, model)
         if (this.alive) {
             this.agent.updateState(deltaMs, this, model)
         }
-    }
+   }
 }
 
 export class Fish extends AgentEntity {
@@ -112,34 +130,47 @@ export class Fish extends AgentEntity {
 
 
     updateState(deltaMs, model) {
-        super.updateState(deltaMs, model)
-        this._updateEffects(deltaMs, model)
         if (!this.alive) {
             this.body.updateState(deltaMs, Vector.ZERO)
-            return
+        } else {
+            const plan = this.agent.currentPlan
+            if (plan instanceof MovePlan) {
+                const direction = new Vector(
+                    plan.target.x - this.body.position.x,
+                    plan.target.y - this.body.position.y,
+                    )
+                const rotationAngle = ((4 * Math.PI + direction.theta() - this.body.orientation) % (2 * Math.PI)) - Math.PI
+                const rotationDir = Math.sign(rotationAngle)
+                const rotationForce = Math.abs(rotationAngle) / Math.PI * this.rotationSpeed
+
+                const rotation = rotationDir * rotationForce * deltaMs / 1000
+
+                //const rotationForce = Math.sign(rotationAngle) * this.rotationForce * (Math.abs(rotationAngle) / Math.PI)
+
+                const tailForce = this.body.dorsalThrustVector(this.tailForce)
+
+                    // can't get rotation to work by vectors
+                this.body.updateState(deltaMs, tailForce)
+                this.body._nextOrientation = this.body.orientation + rotation // todo HACK
+            } else if (plan instanceof BackOff) {
+                const force = this.body.dorsalThrustVector(this.tailForce).negative()
+                this.body.updateState(deltaMs, force)
+            }
         }
+        super.updateState(deltaMs, model)
 
-        const plan = this.agent.currentPlan
-        if (plan instanceof MovePlan) {
-            const direction = new Vector(
-                plan.target.x - this.body.position.x,
-                plan.target.y - this.body.position.y,
-                )
-            const rotationAngle = ((4 * Math.PI + direction.theta() - this.body.orientation) % (2 * Math.PI)) - Math.PI
-            const rotationDir = Math.sign(rotationAngle)
-            const rotationForce = Math.abs(rotationAngle) / Math.PI * this.rotationSpeed
+    }
 
-            const rotation = rotationDir * rotationForce * deltaMs / 1000
-
-            //const rotationForce = Math.sign(rotationAngle) * this.rotationForce * (Math.abs(rotationAngle) / Math.PI)
-
-            const tailForce = this.body.dorsalThrustVector(this.tailForce)
-
-                // can't get rotation to work by vectors
-            this.body.updateState(deltaMs, tailForce)
-            this.body.orientation = this.body.orientation + rotation
+    onMapCollision(model) {
+        if (this.alive) {
+            if (Math.random() < 0.5) {
+                this.agent.currentPlan = new BackOff(this.id + "_backoff", this.position, this.body.radius * 2)
+            } else {
+                this.agent.currentPlan = null;
+            }
         }
     }
+
 }
 
 

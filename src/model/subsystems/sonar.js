@@ -117,6 +117,7 @@ export class Sonar extends Subsystem {
             ranges: this.sub?.ranges ?? [],
             aimLines: this.sub?.aimLines ?? [],
             features: this.features ?? [],
+            subBoundingBox: this.sub?.boundingBox ?? [],
         }
     }
 }

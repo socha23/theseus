@@ -38,7 +38,7 @@ export class Sub extends Entity {
         if (this.powerBalance < 0) {
             this._emergencyShutdown()
         }
-        this._updatePosition(deltaMs, model)
+        this._updatePosition()
         super.updateState(deltaMs, model)
 
     }
@@ -98,7 +98,7 @@ export class Sub extends Entity {
         return this.body.boundingBox
     }
 
-    _updatePosition(deltaMs, model) {
+    _updatePosition() {
         var force = 0
         var rotationalForce = 0
         this.subsystems
@@ -116,10 +116,8 @@ export class Sub extends Entity {
          ) {
             dir = Math.sign(this.body.rotationSpeed) * -1
         }
-        this.body.updateState(deltaMs,
-            this.body.dorsalThrustVector(force * this.throttle),
-            rotationalForce * dir
-            )
+        this.body.addActingForce(this.body.dorsalThrustVector(force * this.throttle))
+        this.body.addActingRotation(rotationalForce * dir)
     }
 
     _findSubsystem(clazz) {

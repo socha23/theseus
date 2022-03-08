@@ -56,26 +56,20 @@ export class Entity {
         return this.getPosition()
     }
 
+    get boundingBox() {
+        return this.body.boundingBox
+    }
+
     onHit() {
         this.addEffect({type: EFFECT_TYPES.ENTITY_HIT, durationMs: 200})
     }
 
-    onMapCollision(model) {
-
+    onCollision(collision) {
     }
 
     updateState(deltaMs, model) {
         this._updateEffects(deltaMs, model)
-        if (model.map.detectCollision(this.body.boundingBox)) {
-            console.log("BB!")
-        }
-        if (model.map.detectCollision(this.body.nextBoundingBox)) {
-            // collision!
-            this.body.stop()
-            this.onMapCollision(model)
-        } else {
-            this.body.commitUpdate();
-        }
+        this.body.updateState(deltaMs, model, c => {this.onCollision(c)})
     }
 }
 
@@ -130,9 +124,9 @@ export class Fish extends AgentEntity {
 
 
     updateState(deltaMs, model) {
-        if (!this.alive) {
-            this.body.updateState(deltaMs, Vector.ZERO)
-        } else {
+        super.updateState(deltaMs, model)
+
+        if (this.alive) {
             const plan = this.agent.currentPlan
             if (plan instanceof MovePlan) {
                 const direction = new Vector(
@@ -150,18 +144,19 @@ export class Fish extends AgentEntity {
                 const tailForce = this.body.dorsalThrustVector(this.tailForce)
 
                     // can't get rotation to work by vectors
-                this.body.updateState(deltaMs, tailForce)
-                this.body._nextOrientation = this.body.orientation + rotation // todo HACK
+                this.body.addActingForce(tailForce)
+                this.body.addActingRotation(rotationForce)
+                this.body.setActingOrientation(this.body.orientation + rotation) // todo HACK
             } else if (plan instanceof BackOff) {
                 const force = this.body.dorsalThrustVector(this.tailForce).negative()
-                this.body.updateState(deltaMs, force)
+                this.body.addActingForce(force)
             }
         }
-        super.updateState(deltaMs, model)
 
     }
 
-    onMapCollision(model) {
+    onCollision(collision) {
+        super.onCollision(collision)
         if (this.alive) {
             if (Math.random() < 0.5) {
                 this.agent.currentPlan = new BackOff(this.id + "_backoff", this.position, this.body.radius * 2)

@@ -133,7 +133,9 @@ function App() {
 
     useEffect(() => {
         const interval = setInterval(_ => {
+            const updateStart = Date.now()
             const newState = game.updateState(gameState)
+            //console.log("Update took", Date.now() - updateStart)
             setGameState(newState)
             lastUpdate = Date.now()
         }, TICK_DELAY_MS)

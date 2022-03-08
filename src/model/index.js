@@ -3,8 +3,8 @@ import {getStartingSub, getStartingWorld, getStartingMap} from "./world"
 class GameModel {
     constructor() {
         this.sub = getStartingSub()
-        this.world = getStartingWorld()
-        this.map = getStartingMap()
+        this.map = getStartingMap(this.sub.boundingBox)
+        this.world = getStartingWorld(this.map)
     }
 
     updateState(deltaMs, actionController) {

@@ -100,13 +100,13 @@ export function getStartingSub() {
     ])
 }
 
-export function getStartingWorld() {
+export function getStartingWorld(map) {
     return new World(
         [
-            ...createFlock(FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
-            ...createFlock(FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
-            ...createFish(FISH_TEMPLATES.FAT_FISH, 10, Point.ZERO, 100),
-            ...createFish(FISH_TEMPLATES.BIG_FISH, 4, Point.ZERO, 100),
+            ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
+            ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
+            ...createFish(map, FISH_TEMPLATES.FAT_FISH, 10, Point.ZERO, 100),
+            ...createFish(map, FISH_TEMPLATES.BIG_FISH, 4, Point.ZERO, 100),
         ]
     )
 }
@@ -158,34 +158,78 @@ function randomPointAround(position, distanceMax) {
     return new Point(position.x + dx, position.y + dy)
 }
 
-function createFish(template, count = 1, position=new Point(0, 0), spread = 100) {
+function createFish(map, template, count = 1, position=new Point(0, 0), spread = 100) {
     const result = []
     for (var i = 0; i < count; i++) {
-        const location = randomPointAround(position, spread)
-        result.push(new Fish(
-            template.id + autoinc++,
-            new Body(location, template.volume, Math.random() * 2 * Math.PI),
-            template))
+
+        while (true) {
+            const location = randomPointAround(position, spread)
+            const fish = new Fish(
+                template.id + autoinc++,
+                new Body(location, template.volume, Math.random() * 2 * Math.PI),
+                template)
+            if (!map.detectCollision(fish.boundingBox)) {
+                result.push(fish)
+                break
+            }
+        }
     }
     return result
 }
 
-function createFlock(template, count = 1, position=new Point(0, 0), spread = 100) {
+function createFlock(map, template, count = 1, position=new Point(0, 0), spread = 100) {
     const flock = new Flock()
     for (var i = 0; i < count; i++) {
-        const location = randomPointAround(position, spread)
-        flock.addEntity(new Fish(
-            template.id + autoinc++,
-            new Body(location, template.volume, Math.random() * 2 * Math.PI),
-            template,
-            new FlockAgent(flock))
-        )
+
+        while (true) {
+
+            const location = randomPointAround(position, spread)
+            const fish = new Fish(
+                template.id + autoinc++,
+                new Body(location, template.volume, Math.random() * 2 * Math.PI),
+                template,
+                new FlockAgent(flock)
+                )
+            if (!map.detectCollision(fish.boundingBox)) {
+                flock.addEntity(fish)
+                break
+
+            }
+
+        }
+
     }
     return flock
 }
 
-export function getStartingMap() {
+
+
+
+function randomPolygon(position) {
+    const width = 10 + Math.random() * 50
+    const height = 10 + Math.random() * 50
+    const theta = Math.random() * 2 * Math.PI
+    return rectangle(position, new Point(width, height), theta)
+
+}
+
+const DEFAULT_MAP_PARAMS = {
+    position: new Point(0, 0),
+    featuresCount: 20,
+    featuresSpread: 100,
+}
+
+export function getStartingMap(subBoundingBox, params={}) {
+    params = {...DEFAULT_MAP_PARAMS, ...params}
     const res = new Map()
-    res.addFeature(rectangle(new Point(0, -20), new Point(20, 5), 0))
+    for (var i = 0; i < params.featuresCount; i++) {
+        while (true) {
+            const poly = randomPolygon(randomPointAround(params.position, params.featuresSpread))
+            if (!poly.overlaps(subBoundingBox)) {
+                res.addFeature(poly)
+                break;
+            }
+        }
+    }
     return res
 }

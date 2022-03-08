@@ -29,10 +29,13 @@ export class Map {
     }
 
     detectCollision(polygon) {
-        let result = false
+        let result = null
         this.features.forEach(f => {
             if (f.polygon.overlaps(polygon)) {
-                result = true
+                result = {
+                    mapFeature: f,
+                    mapFeatureWall: f.polygon.myOverlappingEdge(polygon),
+                }
             }
         })
         return result

@@ -134,33 +134,95 @@ export class Body {
         this.rotationSpeed = 0
         this.lastActingForce = Vector.ZERO
 
-        this._nextPosition = new Point(position.x, position.y)
-        this._nextOrientation = orientation
-    }
-
-    stop() {
-        this.rotationSpeed = 0
-        this.speed = Vector.ZERO
+        this._actingForce = Vector.ZERO
+        this._actingRotation = 0
+        this._actingFixedOrientation = null
     }
 
     // acting force should be a vector
     // rotational force should be a scalar
-    updateState(deltaMs, actingForce, rotationalForce = 0) {
-        const deltaS = deltaMs / 1000
-        this._nextPosition = this._updatePosition(deltaS, actingForce)
-        this._nextOrientation = this._updateOrientation(deltaS, rotationalForce)
+
+    addActingForce(force) {
+        this._actingForce = this._actingForce.plus(force)
     }
 
-    _updatePosition(deltaS, actingForce) {
-        this.lastActingForce = actingForce
-        const force = actingForce.plus(this.getFrictionVector())
+    addActingRotation(rotation) {
+        this._actingRotation += rotation
+    }
+
+    setActingOrientation(orientation) {
+        this._actingFixedOrientation = orientation
+    }
+
+
+    updateState(deltaMs, model, onCollision) {
+        const deltaS = deltaMs / 1000
+
+        var projectedMove = this._projectMove(deltaS)
+        while (true) {
+            const collision = model.map.detectCollision(projectedMove.boundingBox)
+            if (collision) {
+                this._resolveCollision(collision, onCollision)
+                projectedMove = this._projectMove(deltaS)
+            } else {
+                break
+            }
+        }
+        this.position = projectedMove.position
+        this.orientation = projectedMove.orientation
+        this.speed = projectedMove.speed
+        this.rotationSpeed = projectedMove.rotationSpeed
+
+        this.lastActingForce = this._actingForce
+        this._actingForce = Vector.ZERO
+        this._actingRotation = 0
+        this._actingFixedOrientation = null
+    }
+
+    _resolveCollision(collision, onCollision) {
+        this.speed = new Vector(0, 0)
+        this.rotationSpeed = 0
+
+        this._actingForce = Vector.ZERO
+        this._actingRotation = 0
+        this._actingFixedOrientation = null
+        onCollision(collision)
+    }
+
+    _projectMove(deltaS) {
+
+        // speed and position
+
+        const force = this._actingForce.plus(this.getFrictionVector())
         const acc = force.div(this.volume.getMass())
         const deltaV = acc.times(deltaS)
-        this.speed = this.speed.plus(deltaV)
-        if (this.speed.length() < MOVEMENT_HUSH && actingForce.isZero()) {
-            this.speed = new Vector(0, 0)
+        var projectedSpeed = this.speed.plus(deltaV)
+        if (projectedSpeed.length() < MOVEMENT_HUSH && this._actingForce.isZero()) {
+            projectedSpeed = new Vector(0, 0)
         }
-        return this.position.plus(this.speed.times(deltaS))
+        const projectedPosition = this.position.plus(projectedSpeed.times(deltaS))
+
+        // orientation and rotation speed
+
+        const frictionForce =  -Math.sign(this.rotationSpeed) * 0.5 * WATER_DENSITY * this.rotationSpeed * this.rotationSpeed * this.volume.dragCoefficient * this.volume.sideSection()
+        const rForce = this._actingRotation + frictionForce
+        const rAcc = rForce / this.volume.getMass()
+        const rDeltaV = rAcc * deltaS
+        var projectedRotationSpeed = this.rotationSpeed + rDeltaV
+        if (Math.abs(projectedRotationSpeed) < ROTATION_MOVEMENT_HUSH && this._actingRotation == 0) {
+            this.rotationSpeed = 0
+        }
+        const projectedOrientation = this._actingFixedOrientation != null ? this._actingFixedOrientation : ((2 * Math.PI + this.orientation + projectedRotationSpeed * deltaS) % (2 * Math.PI))
+
+        const projectedBoundingBox = rectangle(projectedPosition, new Point(this.volume.length, this.volume.width)).rotate(projectedOrientation, projectedPosition)
+
+        return {
+            position: projectedPosition,
+            orientation: projectedOrientation,
+            speed: projectedSpeed,
+            rotationSpeed: projectedRotationSpeed,
+            boundingBox: projectedBoundingBox,
+        }
     }
 
     getFrictionVector() {
@@ -172,28 +234,6 @@ export class Body {
         const frictionForce =  0.5 * WATER_DENSITY * this.speed.squared() * this.volume.dragCoefficient * frictionFace
         const frictionDir = this.speed.theta() + Math.PI
         return vectorForPolar(frictionForce, frictionDir)
-
-    }
-
-    _updateOrientation(deltaS, rotationalForce) {
-        const frictionForce =  -Math.sign(this.rotationSpeed) * 0.5 * WATER_DENSITY * this.rotationSpeed * this.rotationSpeed * this.volume.dragCoefficient * this.volume.sideSection()
-        const force = rotationalForce + frictionForce
-        const acc = force / this.volume.getMass()
-        const deltaV = acc * deltaS
-        this.rotationSpeed = this.rotationSpeed + deltaV
-        if (Math.abs(this.rotationSpeed) < ROTATION_MOVEMENT_HUSH && rotationalForce == 0) {
-            this.rotationSpeed = 0
-        }
-        return (2 * Math.PI + this.orientation + this.rotationSpeed * deltaS) % (2 * Math.PI)
-    }
-
-    commitUpdate() {
-        this.position = this._nextPosition
-        this.orientation = this._nextOrientation
-    }
-
-    get nextBoundingBox() {
-        return rectangle(this._nextPosition, new Point(this.volume.length, this.volume.width)).rotate(this._nextOrientation, this._nextPosition)
 
     }
 
@@ -213,6 +253,35 @@ export class Body {
 
 
 
+class Edge {
+    constructor(from, to) {
+        this.from = from
+        this.to = to
+    }
+
+    intersects(other) {
+        // after https://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function
+        const a = this.from.x
+        const b = this.from.y
+        const c = this.to.x
+        const d = this.to.y
+        const p = other.from.x
+        const q = other.from.y
+        const r = other.to.x
+        const s = other.to.y
+
+        var det, gamma, lambda;
+        det = (c - a) * (s - q) - (r - p) * (d - b);
+        if (det === 0) {
+          return false;
+        } else {
+          lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+          gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+          return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+        }
+    }
+}
+
 export class Polygon {
     constructor(points) {
         this.points = points
@@ -224,6 +293,7 @@ export class Polygon {
 
             for (var i1 = 0; i1 < polygon.points.length; i1++) {
                 var i2 = (i1 + 1) % polygon.points.length
+
                 const p1 = polygon.points[i1]
                 const p2 = polygon.points[i2]
 
@@ -262,6 +332,27 @@ export class Polygon {
             }
         }
         return true
+    }
+
+    get edges() {
+        const res = []
+        for (var i1 = 0; i1 < this.points.length; i1++) {
+            var i2 = (i1 + 1) % this.points.length
+            res.push(new Edge(this.points[i1], this.points[i2]))
+        }
+        return res
+    }
+
+    myOverlappingEdge(polygon) {
+        var result = null
+        this.edges.forEach(e => {
+            polygon.edges.forEach(f => {
+                if (e.intersects(f)) {
+                    result = e
+                }
+            })
+        })
+        return result
     }
 
     rotate(theta, origin=this._center()) {

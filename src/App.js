@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import GameModel from './model'
+import { STATISTICS } from "./stats";
 import GameView from './view/view.js';
 
 class Game {
@@ -122,7 +123,7 @@ class ActionController {
     }
 }
 
-const TICK_DELAY_MS = 5
+const TICK_DELAY_MS = 0
 const game = new Game()
 
 var lastUpdate = Date.now()
@@ -134,7 +135,9 @@ function App() {
     useEffect(() => {
         const interval = setInterval(_ => {
             const updateStart = Date.now()
+            STATISTICS.RENDER_TIME_MS.add(updateStart - lastUpdate)
             const newState = game.updateState(gameState)
+            STATISTICS.STATE_UPDATE_MS.add(Date.now() - updateStart)
             //console.log("Update took", Date.now() - updateStart)
             setGameState(newState)
             lastUpdate = Date.now()

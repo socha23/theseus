@@ -3,7 +3,6 @@ import {SubsystemCell, DropTargets, GRID_CELL_HEIGHT, GRID_CELL_WIDTH} from "./g
 import {Subsystem} from "./subsystems"
 
 
-
 function Sub({sub, actionController}) {
     return <div className='sub' style={{width: sub.gridWidth * GRID_CELL_WIDTH, height: sub.gridHeight * GRID_CELL_HEIGHT}}>
         <div className='subsystems' >

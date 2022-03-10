@@ -1,5 +1,5 @@
 import { Entity, Fish } from "./entities"
-import { Body, Point, rectangle, Volume } from "./physics"
+import { Body, Point, rectangle, Vector, Volume } from "./physics"
 import { Sub } from "./sub"
 import { Agent, Flock, FlockAgent } from "./agent"
 
@@ -28,7 +28,7 @@ const WEAPON_TEMPLATES = {
 
 const ENGINE_TEMPLATES = {
     BASIC_ENGINE: {
-        force: 40 * 1000,
+        force: 10 * 40 * 1000,
         rotationalForce: 2 * 1000,
         powerConsumption: 20,
     }
@@ -206,8 +206,8 @@ function createFlock(map, template, count = 1, position=new Point(0, 0), spread 
 
 
 function randomPolygon(position) {
-    const width = 10 + Math.random() * 50
-    const height = 10 + Math.random() * 50
+    const width = 100 + Math.random() * 200
+    const height = 10 + Math.random() * 10
     const theta = Math.random() * 2 * Math.PI
     return rectangle(position, new Point(width, height), theta)
 
@@ -215,13 +215,16 @@ function randomPolygon(position) {
 
 const DEFAULT_MAP_PARAMS = {
     position: new Point(0, 0),
-    featuresCount: 20,
-    featuresSpread: 100,
+    featuresCount: 100,
+    featuresSpread: 400,
 }
 
 export function getStartingMap(subBoundingBox, params={}) {
     params = {...DEFAULT_MAP_PARAMS, ...params}
     const res = new Map()
+
+    res.addFeature(rectangle(new Point(0, -40), new Point(40, 4), -Math.PI / 4))
+
     for (var i = 0; i < params.featuresCount; i++) {
         while (true) {
             const poly = randomPolygon(randomPointAround(params.position, params.featuresSpread))

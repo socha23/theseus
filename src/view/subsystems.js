@@ -5,12 +5,26 @@ import { toDegrees } from '../units.js'
 import { CartesianGrid, Area, AreaChart, Line, LineChart, XAxis, YAxis } from "recharts";
 import {VertSlider, ActionButton} from "./widgets"
 import {Weapon} from "./subsystems/weapons"
+import { STATISTICS } from "../stats.js";
 
 ///////////////////////////////////
 
 function SubStatus({subsystem}) {
     return <div className='subStatus boxWithScroll'>
         {subsystem.on && <div>
+            {
+                Object.values(STATISTICS).map(s =>
+
+                    <div key={s.name} className="infoRow">
+                        <span>{s.name}:</span>
+                        <span>{s.avgString}</span>
+                    </div>
+                )
+            }
+        <hr/>
+
+
+
         <div className="infoRow">
             <span>Pos:</span>
             <span>{subsystem.position.x.toFixed(1)}, {subsystem.position.y.toFixed(1)}</span>

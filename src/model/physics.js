@@ -159,10 +159,20 @@ export class Body {
         const deltaS = deltaMs / 1000
 
         var projectedMove = this._projectMove(deltaS)
+
+
+        var recounts = 0
         while (true) {
             const collision = model.map.detectCollision(projectedMove.boundingBox)
             if (collision) {
                 this._resolveCollision(collision, onCollision)
+
+                if (recounts == 50) {
+                    console.log("COLLISION RECOUNTS MAX")
+                    break
+                }
+
+                recounts++
                 projectedMove = this._projectMove(deltaS)
             } else {
                 break
@@ -180,12 +190,33 @@ export class Body {
     }
 
     _resolveCollision(collision, onCollision) {
-        this.speed = new Vector(0, 0)
-        this.rotationSpeed = 0
+        const collisionAngle = this.speed.theta() - collision.mapFeatureWall.theta()
 
-        this._actingForce = Vector.ZERO
-        this._actingRotation = 0
+        const IMPACT_SPEED_MULTIPLIER = 0.95
+
+        var newSpeedValue = Math.cos(collisionAngle) * this.speed.length() * IMPACT_SPEED_MULTIPLIER
+        if (Math.abs(newSpeedValue) < MOVEMENT_HUSH) {
+            newSpeedValue = 0
+        }
+
+        const newActForceVal = Math.cos(collisionAngle) * this._actingForce.length()
+        const impactSpeed = Math.sin(collisionAngle) * this.speed.length()
+
+//        console.log("edge theta", collision.mapFeatureWall.theta())
+//        console.log("new speed val", )
+
+        this.speed = vectorForPolar(newSpeedValue, collision.mapFeatureWall.theta())
+        this.rotationSpeed = 0
+        this._actingForce = vectorForPolar(newActForceVal, collision.mapFeatureWall.theta())
+        this._actingRotation = this._actingRotation * IMPACT_SPEED_MULTIPLIER
+        if (Math.abs(this._actingRotation) < ROTATION_MOVEMENT_HUSH) {
+            this._actingRotation = 0
+        }
         this._actingFixedOrientation = null
+
+        collision.angle = collisionAngle
+        collision.impactSpeed =  impactSpeed
+
         onCollision(collision)
     }
 
@@ -279,6 +310,10 @@ class Edge {
           gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
           return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
         }
+    }
+
+    theta() {
+        return Math.atan2(this.from.y - this.to.y, this.from.x - this.to.x)
     }
 }
 

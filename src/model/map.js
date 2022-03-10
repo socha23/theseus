@@ -1,4 +1,4 @@
-import { Point } from "./physics"
+import { Edge, Point } from "./physics"
 
 export const MAP_FEATURE_TYPE = {
     DEFAULT: "default",
@@ -9,6 +9,10 @@ export class MapFeature {
         this.id = id
         this.polygon = polygon
         this.type = type
+    }
+
+    get edges() {
+        return this.polygon.edges
     }
 }
 
@@ -39,6 +43,24 @@ export class Map {
             }
         })
         return result
+    }
+
+    raycast(from, to) {
+        const features = this.features // possible optimization not to raycast against everything
+        const e = new Edge(from, to)
+        var result = null
+        var minDistance = Infinity
+        features.forEach(f => {
+            f.edges.forEach(fEdge => {
+                const intersection = e.intersects(fEdge)
+                if (intersection && from.distanceTo(intersection) < minDistance) {
+                    result = intersection
+                    minDistance = from.distanceTo(intersection)
+                }
+            })
+        })
+        return result
+
     }
 
 

@@ -284,32 +284,54 @@ export class Body {
 
 
 
-class Edge {
+export class Edge {
     constructor(from, to) {
         this.from = from
         this.to = to
     }
 
     intersects(other) {
-        // after https://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function
-        const a = this.from.x
-        const b = this.from.y
-        const c = this.to.x
-        const d = this.to.y
-        const p = other.from.x
-        const q = other.from.y
-        const r = other.to.x
-        const s = other.to.y
+        // https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
+        // Some variables for reuse, others may do this differently
 
-        var det, gamma, lambda;
-        det = (c - a) * (s - q) - (r - p) * (d - b);
-        if (det === 0) {
-          return false;
-        } else {
-          lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
-          gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
-          return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+        const p0x = this.from.x;
+        const p0y = this.from.y;
+        const p1x = this.to.x;
+        const p1y = this.to.y;
+        const p2x = other.from.x;
+        const p2y = other.from.y;
+        const p3x = other.to.x;
+        const p3y = other.to.y;
+
+        var ix, iy, collisionDetected;
+
+        // do stuff, call other functions, set endpoints...
+
+        // note: for my purpose I use |t| < |d| as opposed to
+        // |t| <= |d| which is equivalent to 0 <= t < 1 rather than
+        // 0 <= t <= 1 as in Gavin's answer - results may vary
+
+        var d, dx1, dx2, dx3, dy1, dy2, dy3, s, t;
+
+        dx1 = p1x - p0x;      dy1 = p1y - p0y;
+        dx2 = p3x - p2x;      dy2 = p3y - p2y;
+        dx3 = p0x - p2x;      dy3 = p0y - p2y;
+
+        collisionDetected = 0;
+
+        d = dx1 * dy2 - dx2 * dy1;
+
+        if(d !== 0){
+            s = dx1 * dy3 - dx3 * dy1;
+            if((s <= 0 && d < 0 && s >= d) || (s >= 0 && d > 0 && s <= d)){
+                t = dx2 * dy3 - dx3 * dy2;
+                if((t <= 0 && d < 0 && t > d) || (t >= 0 && d > 0 && t < d)){
+                    t = t / d;
+                    return new Point(p0x + t * dx1, p0y + t * dy1)
+                }
+            }
         }
+        return null
     }
 
     theta() {

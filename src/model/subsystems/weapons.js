@@ -20,6 +20,7 @@ export class Weapon extends Subsystem {
         this._aim = null
         this._target = null
         this._targetDistance = 0
+        this._targetVisible = false
         this._mouseOver = false
         this._operator = false
 
@@ -70,16 +71,19 @@ export class Weapon extends Subsystem {
         }
         if (!this._target) {
             c.push("No target")
-        }
-        if (this._target && this.range < this._targetDistance) {
+        } else if (!this._targetVisible) {
+            c.push("Target obscured")
+        } else if (this._target && this.range < this._targetDistance) {
             c.push("Out of range")
         }
+
     }
 
     _canContinueAim() {
         return this.on
             && this.ammo > 0
             && this._targetDistance <= this.range
+            && this._targetVisible
     }
 
 
@@ -97,7 +101,6 @@ export class Weapon extends Subsystem {
         this._operator = null
         model.sub.unassignOperator(this.aimAction)
     }
-
 
     _addReloadErrors(c) {
         if (!this.on) {
@@ -144,6 +147,7 @@ export class Weapon extends Subsystem {
 
         if (this._target) {
             this._targetDistance = this._target.position.distanceTo(model.sub.position)
+            this._targetVisible = (model.map.raycast(model.sub.position, this._target.position) == null)
         } else {
             this._targetDistance = 0
         }

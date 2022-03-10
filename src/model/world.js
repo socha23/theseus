@@ -193,9 +193,7 @@ function createFlock(map, template, count = 1, position=new Point(0, 0), spread 
             if (!map.detectCollision(fish.boundingBox)) {
                 flock.addEntity(fish)
                 break
-
             }
-
         }
 
     }
@@ -206,8 +204,8 @@ function createFlock(map, template, count = 1, position=new Point(0, 0), spread 
 
 
 function randomPolygon(position) {
-    const width = 100 + Math.random() * 200
-    const height = 10 + Math.random() * 10
+    const width = 10 + Math.random() * 100
+    const height = 10 + Math.random() * 100
     const theta = Math.random() * 2 * Math.PI
     return rectangle(position, new Point(width, height), theta)
 
@@ -215,7 +213,7 @@ function randomPolygon(position) {
 
 const DEFAULT_MAP_PARAMS = {
     position: new Point(0, 0),
-    featuresCount: 100,
+    featuresCount: 50,
     featuresSpread: 400,
 }
 

@@ -1,6 +1,6 @@
 import { DRAG_COEFFICIENTS, Vector } from "./physics"
 import { BackOff, FishAgent, MovePlan } from "./agent"
-import { EffectsMixin, EFFECT_TYPES } from "./effects"
+import { EffectsMixin, entityHit } from "./effects"
 
 export class Entity {
     constructor(id, body) {
@@ -61,7 +61,7 @@ export class Entity {
     }
 
     onHit() {
-        this.addEffect({type: EFFECT_TYPES.ENTITY_HIT, durationMs: 200})
+        this.addEffect(entityHit())
     }
 
     onCollision(collision) {

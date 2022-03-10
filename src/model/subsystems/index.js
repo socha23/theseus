@@ -1,5 +1,5 @@
 import {PressAction, ACTION_CATEGORY, ToggleAction, action } from '../action'
-import { EFFECT_TYPES, EffectsMixin } from '../effects'
+import { EffectsMixin, poweringUp, poweringDown, shutdown } from '../effects'
 import {Point, Body, Volume} from '../physics.js'
 
 export const SUBSYSTEM_CATEGORIES = {
@@ -23,9 +23,7 @@ class TogglePowerAction extends ToggleAction {
             name: "Toggle power",
             icon: "fa-solid fa-power-off",
             category: ACTION_CATEGORY.SPECIAL,
-            onChange: (val) => {subsystem.addEffect({
-                type: val ? EFFECT_TYPES.POWER_UP : EFFECT_TYPES.POWER_DOWN
-            })},
+            onChange: (val) => {subsystem.addEffect(val ? poweringUp() : poweringDown())},
         })
 
         this._subsystem = subsystem
@@ -71,6 +69,7 @@ export class Subsystem {
 
     toViewState() {
         return {
+            ...this._effectsViewState(),
             id: this.id,
             name: this.name,
             category: this.category,
@@ -79,7 +78,7 @@ export class Subsystem {
             on: this.on,
             gridPosition: this.gridPosition,
             gridSize: this.gridSize,
-            effects: this._effects || [],
+
         }
     }
 
@@ -93,8 +92,7 @@ export class Subsystem {
 
     shutdown() {
         this.on = false
-        this._effects = []
-        this.addEffect(EFFECT_TYPES.SHUTDOWN)
+        this.addEffect(shutdown())
     }
 
     get nominalPowerConsumption() {

@@ -1,7 +1,7 @@
 import {action } from '../action'
 import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
 import { AimLine, AIM_LINE_TYPE, RangeCircle, RANGE_CIRCLE_TYPE } from './sonar'
-import { EFFECT_TYPES } from '../effects'
+import { EFFECT_TYPES, shootHit, shootMiss } from '../effects'
 
 
 const DEFAULT_WEAPON_PARAMS = {
@@ -130,7 +130,7 @@ export class Weapon extends Subsystem {
         this.ammo = Math.max(0, this.ammo - 1)
         if (this._aim) {
             const hit = this._aim.shoot()
-            this.addEffect({type: hit.length > 0 ? EFFECT_TYPES.SHOOT_HIT : EFFECT_TYPES.SHOOT_MISS})
+            this.addEffect({type: hit.length > 0 ? shootHit() : shootMiss()})
             hit.forEach(e => {
                 e.onHit()
             })

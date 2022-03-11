@@ -44,6 +44,17 @@ export function SubStatus({subsystem}) {
     </div>
 }
 
+
+///////////////////////////////////
+
+export function Cheatbox({subsystem, actionController}) {
+    return <div className="cheatbox">
+        {
+            subsystem.cheats.map(c => <ActionButton action={c} actionController={actionController}/>)
+        }
+    </div>
+}
+
 ///////////////////////////////////
 
 export function Tracking({subsystem}) {

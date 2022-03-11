@@ -1,0 +1,12 @@
+.subsystem .statusEffects {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.subsystem .statusEffects .effect {
+    border-bottom: 1px solid #a5d000;
+    display: flex;
+    align-items: center;
+    min-height: 50px;
+}

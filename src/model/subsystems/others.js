@@ -104,30 +104,40 @@ export class CheatBox extends Subsystem {
     constructor(gridPosition) {
         super(gridPosition, "cheatbox", "Cheatbox", SUBSYSTEM_CATEGORIES.WEAPON)
 
-        this.actions.push(action({
-            id: "cheat_startSub",
-            name: "Start Sub",
-            onCompleted: (model) => {
-                model.sub.subsystems.forEach(s => {
-                    s.on = true
-                    if (s instanceof Reactor) {
-                        s.externalSetControl(1)
-                    }
-                })
-            },
-        }))
+        this.cheats = [
+            action({
+                id: "cheat_startSub",
+                name: "Start Sub",
+                onCompleted: (model) => {
+                    model.sub.subsystems.forEach(s => {
+                        s.on = true
+                        if (s instanceof Reactor) {
+                            s.externalSetControl(1)
+                        }
+                    })
+                },
+            }),
+            action({
+                id: "cheat_addstatus",
+                name: "Add random status",
+                onCompleted: (model) => {
+                    const s = random(model.sub.subsystems)
+                    s.addSampleStatus()
+                },
+            }),
+        ]
 
-        this.actions.push(action({
-            id: "cheat_addstatus",
-            name: "Add random status",
-            onCompleted: (model) => {
-                const s = random(model.sub.subsystems)
-                s.addSampleStatus()
-            },
-        }))
-
-
+        this.actions.push(...this.cheats)
         this.on = true
+    }
+
+    toViewState() {
+        return {
+            ...super.toViewState(),
+            cheats: this.cheats.map(c => c.toViewState()),
+            isCheatbox: true,
+
+        }
     }
 }
 

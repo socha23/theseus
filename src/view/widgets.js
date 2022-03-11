@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import ReactSlider from "react-slider";
+import { TooltipContext } from "./tooltip";
 
 
 
@@ -40,6 +41,20 @@ export function ActionButton({action, actionController}) {
         return action.progress * 100 / action.progressMax
     }
 
+    const tooltipCtx = useContext(TooltipContext)
+
+    var tooltip = null
+    if (action.showTooltip) {
+        tooltip = <div>
+            <div className="longName">{action.longName}</div>
+            <div className="errorConditions">
+            {
+                action.errorConditions.map(c => <div className="condition" key={c}>{c}</div>)
+            }
+            </div>
+        </div>
+    }
+
     return <div
         className={'button '
             + (recentlyCompleted ? "recentlyCompleted " : ' ')
@@ -51,6 +66,9 @@ export function ActionButton({action, actionController}) {
         }
         onClick={e => actionController.onClick(action)}
         onMouseDown={e => actionController.onMouseDown(action)}
+
+        onMouseOver ={e => {tooltipCtx.tooltip = tooltip}}
+        onMouseOut ={e => {tooltipCtx.tooltip = null}}
     >
         <div className='container'>
             <i className={'icon ' + action.iconClass}/>
@@ -64,21 +82,6 @@ export function ActionButton({action, actionController}) {
                 <div className='progress' style={{width: getProgressWidth(action) + "%"}}/>
             </div>
         }
-        {
-            action.showTooltip && <div className="tooltip">
-                <div className="longName">{action.longName}</div>
-                <div className="errorConditions">
-                    {
-                        action.errorConditions.map(c => <div className="condition" key={c}>{c}</div>)
-                    }
-                </div>
-            </div>
-        }
     </div>
 }
-
-
-///////////////////
-// TOOLTIPS
-///////////////////
 

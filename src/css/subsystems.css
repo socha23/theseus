@@ -122,3 +122,11 @@
 .tracking.boxWithScroll {
     height: 100px;
 }
+
+
+
+.subsystem .cheatbox {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}

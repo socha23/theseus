@@ -1,6 +1,7 @@
 import React from "react";
 import {SubsystemCell, DropTargets, GRID_CELL_HEIGHT, GRID_CELL_WIDTH} from "./grid"
 import {Subsystem} from "./subsystems"
+import { TooltipArea } from "./tooltip";
 
 
 function Sub({sub, actionController}) {
@@ -21,7 +22,9 @@ function Sub({sub, actionController}) {
 
 function GameView({model, actionController}) {
     return <div className="gameView">
-        <Sub sub={model.sub} actionController={actionController}/>
+        <TooltipArea>
+            <Sub sub={model.sub} actionController={actionController}/>
+        </TooltipArea>
     </div>
 }
 

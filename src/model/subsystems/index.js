@@ -143,6 +143,17 @@ export class StatusEffect extends Effect {
         this.statusEffect = true
     }
 
+    toViewState() {
+        return {
+            ...super.toViewState(),
+            name: this.name,
+        }
+    }
+
+    get name() {
+        return this.params.name
+    }
+
 
 }
 

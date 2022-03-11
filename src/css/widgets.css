@@ -196,11 +196,13 @@ hr {
 }
 
 
-.tooltip {
-    display: none;
+
+
+.tooltipArea {
+    position: relative;
 }
 
-:hover > .tooltip {
+.tooltip {
     animation-name: tooltipFadeIn;
     animation-duration: 0.2s;
     z-index: 1000;
@@ -214,6 +216,7 @@ hr {
     color: white;
     opacity: 0.8;
     min-width: 200px;
+    position: absolute;
 }
 
 .tooltip .errorConditions {

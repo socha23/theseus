@@ -3,7 +3,7 @@ import { ACTION_CATEGORY } from "../../model/action.js";
 import Sonar from "./sonar.js";
 import { ActionButton} from "../widgets"
 import { Weapon } from "./weapons"
-import { SubStatus, Tracking, Reactor, Steering } from "./others";
+import { SubStatus, Tracking, Reactor, Steering, Cheatbox } from "./others";
 
 import '../../css/subsystemBox.css';
 import '../../css/subsystemStatus.css';
@@ -38,17 +38,13 @@ function SubsystemMainTab({subsystem, actionController}) {
                 subsystem.showsSonar && <Sonar subsystem={subsystem} actionController={actionController}/>
             }
             {
+                subsystem.isCheatbox && <Cheatbox subsystem={subsystem} actionController={actionController}/>
+            }
+            {
                 subsystem.isReactor && <Reactor subsystem={subsystem} actionController={actionController}/>
             }
             {
                 subsystem.isSteering && <Steering subsystem={subsystem} actionController={actionController}/>
-            }
-        </div>
-        <div className='standardActions'>
-            {
-                standardActions
-                    .filter(a => a.visible)
-                    .map(a => <ActionButton key={a.id} action={a} actionController={actionController}/>)
             }
         </div>
         {
@@ -57,14 +53,35 @@ function SubsystemMainTab({subsystem, actionController}) {
     </div>
 }
 
-function StatusTab({subsystem}) {
-    return <div className="tab">
-        SITUATION NORMAL
+function StatusEffect({subsystem, effect}) {
+    return <div className="effect">
+        <div className="name">
+            {effect.name}
+        </div>
     </div>
 }
 
+function StatusTab({subsystem}) {
+    const effects = subsystem.statusEffects
+
+    return <div className="tab">
+            {(effects.length > 0 ?
+                <div className="statusEffects">
+                    {
+                        effects.map(e => <StatusEffect key={e.id} effect={e} subsystem={subsystem}/>)
+                    }
+                </div> : <div>
+                    No active effects
+                </div>
+            )}
+        </div>
+}
+
 function StatusTabIcon({subsystem, active, onClick}) {
-    return <span className={"statusTabIcon " + (active ? "active " : "inactive ")}>
+    return <span className={"statusTabIcon "
+        + (active ? "active " : "inactive ")
+        + ((subsystem.statusEffects.length > 0) ? "hasEffects " : "noEffects ")
+        }>
         <span className="icon" onClick={onClick}>
             <i className="fa-solid fa-screwdriver-wrench" />
         </span>

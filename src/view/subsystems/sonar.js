@@ -75,7 +75,7 @@ function SonarBlipCircle({blip}) {
         if (hitAnimStart === 0) {
             setHitAnimStart(Date.now())
         }
-        const deltaMs = hitAnimStart === 0 ? 0 : (Date.now() - hitAnimStart)
+        const deltaMs = (hitAnimStart === 0) ? 0 : (Date.now() - hitAnimStart)
         if (deltaMs > HIT_ANIM_TIME) {
             setHitAnimStart(0)
             phase = 1

@@ -130,7 +130,7 @@ export class Weapon extends Subsystem {
         this.ammo = Math.max(0, this.ammo - 1)
         if (this._aim) {
             const hit = this._aim.shoot()
-            this.addEffect({type: hit.length > 0 ? shootHit() : shootMiss()})
+            this.addEffect(hit.length > 0 ? shootHit() : shootMiss())
             hit.forEach(e => {
                 e.onHit()
             })

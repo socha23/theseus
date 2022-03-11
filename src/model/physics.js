@@ -167,7 +167,7 @@ export class Body {
                 this._resolveCollision(collision, onCollision)
 
                 if (recounts === 50) {
-                    console.log("COLLISION RECOUNTS MAX")
+                    //console.log("COLLISION RECOUNTS MAX")
                     break
                 }
 

@@ -1,5 +1,5 @@
 import { ACTION_CATEGORY, ToggleAction  } from '../action'
-import { EffectsMixin, poweringUp, poweringDown, shutdown } from '../effects'
+import { Effect, EffectsMixin, poweringUp, poweringDown, shutdown } from '../effects'
 import { Point } from '../physics.js'
 
 export const SUBSYSTEM_CATEGORIES = {
@@ -41,8 +41,6 @@ class TogglePowerAction extends ToggleAction {
     }
 }
 
-
-
 export class Subsystem {
     constructor(gridPosition, id, name, category, template={}) {
         this.template={...DEFAULT_TEMPLATE, ...template}
@@ -78,6 +76,7 @@ export class Subsystem {
             on: this.on,
             gridPosition: this.gridPosition,
             gridSize: this.gridSize,
+            statusEffects: this.statusEffects.map(e => e.toViewState()),
 
         }
     }
@@ -123,7 +122,25 @@ export class Subsystem {
         return []
     }
 
+    get statusEffects() {
+        return this.effects.filter(e => e.statusEffect)
+    }
+
 }
 
 Object.assign(Subsystem.prototype, EffectsMixin)
+
+
+
+
+export class StatusEffect extends Effect {
+    constructor(params) {
+        super(params)
+        this.statusEffect = true
+    }
+
+
+}
+
+
 

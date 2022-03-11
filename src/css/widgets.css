@@ -11,8 +11,8 @@ hr {
     border: 2px solid #a5d000;
     border-radius: 8px;
     padding: 4px 7px 4px 7px;
-    position: relative;
     color: #a5d000;
+    position: relative;
     background-color: transparent;
     font-weight: bold;
 }
@@ -146,9 +146,7 @@ hr {
 .standardActions {
     display: flex;
     gap: 5px;
-    padding: 5px;
 }
-
 
 
 .throttleActions {
@@ -202,12 +200,11 @@ hr {
     display: none;
 }
 
-
 :hover > .tooltip {
     animation-name: tooltipFadeIn;
     animation-duration: 0.2s;
     z-index: 1000;
-    display: block;
+    display: inline-block;
     position: absolute;
     top: 40px;
     left: 0px;

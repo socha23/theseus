@@ -69,7 +69,7 @@ export function entityHit(params = {}) {
     })
 }
 
-class Effect {
+export class Effect {
     constructor(params) {
         this.params = {...DEFAULT_EFFECT_PARAMS, ...params}
         this._active = true
@@ -84,7 +84,7 @@ class Effect {
     }
 
     get type() {
-        return this.params['type']
+        return this.params.type
     }
 
     onCompleted(m) {
@@ -141,6 +141,10 @@ export const EffectsMixin = {
     },
 
     getEffects() {
+        return this.effects
+    },
+
+    get effects() {
         return this._effects || []
     },
 

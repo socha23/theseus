@@ -112,3 +112,13 @@
     position: absolute;
     height: 100%;
 }
+
+
+
+.subStatus.boxWithScroll {
+    height: 100px;
+}
+
+.tracking.boxWithScroll {
+    height: 100px;
+}

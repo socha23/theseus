@@ -2,7 +2,7 @@ import { OperatorController } from './action.js'
 import {Point, Body } from './physics.js'
 import { Entity } from './entities.js'
 
-import { Engine, Steering } from './subsystems'
+import { Engine, Steering } from './subsystems/others'
 
 export class Sub extends Entity {
     constructor(volume, subsystems = []) {

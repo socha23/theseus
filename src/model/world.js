@@ -3,7 +3,7 @@ import { Body, Point, rectangle, Volume } from "./physics"
 import { Sub } from "./sub"
 import { Flock, FlockAgent } from "./agent"
 
-import {CheatBox, Engine, Reactor, SubStatusScreen, Steering} from "./subsystems"
+import {CheatBox, Engine, Reactor, SubStatusScreen, Steering} from "./subsystems/others"
 import {Weapon} from "./subsystems/weapons"
 import {Tracking } from "./subsystems/tracking"
 import {Sonar } from "./subsystems/sonar"

@@ -1,5 +1,5 @@
 import { ACTION_CATEGORY, ToggleAction  } from '../action'
-import { Effect, EffectsMixin, poweringUp, poweringDown, shutdown } from '../effects'
+import { Effect, EffectsMixin, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects } from '../effects'
 import { Point } from '../physics.js'
 
 export const SUBSYSTEM_CATEGORIES = {
@@ -41,8 +41,9 @@ class TogglePowerAction extends ToggleAction {
     }
 }
 
-export class Subsystem {
+export class Subsystem extends HasEffects {
     constructor(gridPosition, id, name, category, template={}) {
+        super()
         this.template={...DEFAULT_TEMPLATE, ...template}
         this.id = id
         this.name = name
@@ -61,13 +62,13 @@ export class Subsystem {
 
 
     updateState(deltaMs, model, actionController) {
-        this._updateEffects(deltaMs, model)
+        super.updateState(deltaMs, model)
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
     }
 
     toViewState() {
         return {
-            ...this._effectsViewState(),
+            ...super.toViewState(),
             id: this.id,
             name: this.name,
             category: this.category,
@@ -126,16 +127,19 @@ export class Subsystem {
         return this.effects.filter(e => e.statusEffect)
     }
 
+    addSampleStatus() {
+        this.addEffect(new StatusEffect({
+            name: "Sample effect",
+            type: "sample"
+        }))
+    }
+
 }
-
-Object.assign(Subsystem.prototype, EffectsMixin)
-
-
 
 
 export class StatusEffect extends Effect {
     constructor(params) {
-        super(params)
+        super({...params, category: EFFECT_CATEGORIES.STATUS})
         this.statusEffect = true
     }
 

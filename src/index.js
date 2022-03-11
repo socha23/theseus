@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import './css/index.css';
 import './css/grid.css';
 import './css/widgets.css';
-import './css/subsystemBox.css';
 import './css/subsystems.css';
 import './css/effects.css';
 import App from './App';

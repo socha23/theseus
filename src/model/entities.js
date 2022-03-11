@@ -1,9 +1,10 @@
 import { DRAG_COEFFICIENTS, Vector } from "./physics"
 import { BackOff, FishAgent, MovePlan } from "./agent"
-import { EffectsMixin, entityHit } from "./effects"
+import { EffectsMixin, entityHit, HasEffects } from "./effects"
 
-export class Entity {
+export class Entity extends HasEffects {
     constructor(id, body) {
+        super()
         this.id = id
         this.body = body
         this.deleted = false
@@ -65,12 +66,11 @@ export class Entity {
     }
 
     updateState(deltaMs, model) {
-        this._updateEffects(deltaMs, model)
+        super.updateState(deltaMs, model)
         this.body.updateState(deltaMs, model, c => {this.onCollision(c)})
     }
 }
 
-Object.assign(Entity.prototype, EffectsMixin)
 
 export class AgentEntity extends Entity {
     constructor(id, body, agent) {
@@ -117,8 +117,6 @@ export class Fish extends AgentEntity {
         this.alive = false
         this.body.volume.dragCoefficient = DRAG_COEFFICIENTS.DEFAULT
     }
-
-
 
     updateState(deltaMs, model) {
         super.updateState(deltaMs, model)

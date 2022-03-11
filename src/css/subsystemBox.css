@@ -27,6 +27,7 @@
     font-size: 14pt;
     display: flex;
     align-items: center;
+    gap: 5px;
 }
 
 .subsystem.unpowered .titleBar {
@@ -38,13 +39,62 @@
 .subsystem.powered .titleBar {
     background-color: #a5d000;
     color: white;
-    text-shadow: 0 0 8px black;
 }
 
 
 .subsystem .titleBar .name {
     flex-grow: 1;
 }
+
+.subsystem .name.inactive .label {
+    cursor: pointer;
+}
+
+.subsystem.unpowered .statusTabIcon {
+}
+
+.subsystem .statusTabIcon.active {
+}
+
+.subsystem .statusTabIcon.inactive {
+    cursor: pointer;
+}
+
+
+.subsystem .titleBar .statusTabIcon {
+    font-size: 12pt;
+    text-shadow: none;
+    position: relative;
+}
+
+.subsystem.unpowered .titleBar .statusTabIcon {
+    _color: #ebf100;
+
+}
+
+
+
+.subsystem .titleBar .statusTabIcon .effectCount {
+    pointer-events: none;
+    background-color: red;
+    padding: 0 4px 0 4px;
+    position: absolute;
+    left: -10px;
+    top: 6px;
+    font-size: 10pt;
+    border-radius: 7px;
+    z-index: 1;
+}
+
+
+.subsystem.powered .titleBar .statusTabIcon.active {
+    text-shadow: 0 0 8px black;
+}
+
+.subsystem.powered .titleBar .name.active {
+    text-shadow: 0 0 8px black;
+}
+
 
 .subsystem .powerButton .button {
     color: rgba(0,59,53,0.7);
@@ -60,7 +110,7 @@
 
 .subsystem.powered .powerButton .button {
     color: white;
-    text-shadow: 0 0 8px black
+    text-shadow: none;
 }
 
 

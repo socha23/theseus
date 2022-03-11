@@ -95,11 +95,16 @@ export class Reactor extends Subsystem {
 // CHEATBOX
 ////////////////////////////////////////
 
+
+function random(list) {
+    return list[Math.floor(Math.random()*list.length)];
+}
+
 export class CheatBox extends Subsystem {
     constructor(gridPosition) {
         super(gridPosition, "cheatbox", "Cheatbox", SUBSYSTEM_CATEGORIES.WEAPON)
 
-        const cheat1 = action({
+        this.actions.push(action({
             id: "cheat_startSub",
             name: "Start Sub",
             onCompleted: (model) => {
@@ -110,8 +115,18 @@ export class CheatBox extends Subsystem {
                     }
                 })
             },
-        })
-        this.actions.push(cheat1)
+        }))
+
+        this.actions.push(action({
+            id: "cheat_addstatus",
+            name: "Add random status",
+            onCompleted: (model) => {
+                const s = random(model.sub.subsystems)
+                s.addSampleStatus()
+            },
+        }))
+
+
         this.on = true
     }
 }

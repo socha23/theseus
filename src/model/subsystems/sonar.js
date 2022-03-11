@@ -70,7 +70,7 @@ export class Sonar extends Subsystem {
     _observeBlips(model) {
         return this._observeEntities(model)
             .map(e => {return {
-                ...e._effectsViewState(),
+                effects: e.toViewState().effects,
                 id: this.id + "_" + e.id + "_blip",
                 color: "red",
                 position: e.getPosition(),

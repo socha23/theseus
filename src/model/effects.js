@@ -69,9 +69,12 @@ export function entityHit(params = {}) {
     })
 }
 
+var autoinc = 0
+
 export class Effect {
     constructor(params) {
         this.params = {...DEFAULT_EFFECT_PARAMS, ...params}
+        this.id = "effect" + autoinc++
         this._active = true
     }
 
@@ -97,6 +100,7 @@ export class Effect {
 
     toViewState() {
         return {
+            id: this.id,
             type: this.type,
         }
     }
@@ -126,44 +130,41 @@ class TimedEffect extends Effect {
 
 }
 
-export const EffectsMixin = {
+export class HasEffects {
 
-    _updateEffects(deltaMs, model) {
-        this._effects = (this._effects || []).filter(e => e.active)
+    constructor() {
+        this._effects = []
+    }
+
+    updateState(deltaMs, model) {
+        this._effects = this._effects.filter(e => e.active)
         this._effects.forEach(e => e.updateState(deltaMs, model))
-    },
+    }
 
     addEffect(effect) {
-        if (!this._effects) {
-            this._effects = []
-        }
         this._effects.push(effect)
-    },
-
-    getEffects() {
-        return this.effects
-    },
+    }
 
     get effects() {
-        return this._effects || []
-    },
+        return this._effects
+    }
 
     getEffectsOfCategory(category) {
-        return this._effects.filter(e => e.category === category)
-    },
+        return this.effects.filter(e => e.category === category)
+    }
 
-    _effectsViewState() {
+    toViewState() {
         return {
-            effects: (this._effects || []).map(e => {
+            effects: this.effects.map(e => {
                 return e.toViewState()
             }),
         }
-    },
+    }
 
     hasEffectOfType(type) {
         if (type instanceof Effect) {
             type = type.type
         }
-        return this._effects.some(e => e.type === type)
+        return this.effects.some(e => e.type === type)
     }
 }

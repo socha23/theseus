@@ -80,7 +80,7 @@ export class Sonar extends Subsystem {
                 entityOrientation: e.body.orientation,
                 alive: e.alive,
                 effects: e.getEffects(),
-                tracked: e == model.sub.trackedEntity,
+                tracked: e === model.sub.trackedEntity,
                 mass: e.mass,
                 lastActingForce: e.lastActingForce,
                 targetPosition: e.targetPosition,

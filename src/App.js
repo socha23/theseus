@@ -13,7 +13,7 @@ class Game {
     updateState(state) {
         var time = Date.now()
         var delta = time - this.lastStateUpate
-        if (delta == 0) {
+        if (delta === 0) {
             return
         }
         this.gameModel.updateState(delta, this.actionController)
@@ -58,12 +58,6 @@ class ActionController {
 
     isMouseOver(subsystem) {
         return (this._mouseOverSubsystems[subsystem.id] ?? null) != null
-    }
-
-    onMouseUp() {
-        Object.values(this._activeActions)
-            .filter(a => a.usesPressToActivate)
-            .forEach(a => {delete this._activeActions[a.id]})
     }
 
     onMouseUp() {

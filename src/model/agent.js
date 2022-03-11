@@ -134,10 +134,6 @@ export class Agent {
 }
 
 export class FishAgent extends Agent {
-    constructor() {
-        super()
-    }
-
     _nextPlan(entity, model) {
         const plan = Math.random()
         if (plan < 0.5) {

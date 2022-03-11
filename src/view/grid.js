@@ -34,8 +34,8 @@ class GridController {
 
     isDragOver(position) {
         return this.positionOver
-            && this.positionOver.x == position.x
-            && this.positionOver.y == position.y
+            && this.positionOver.x === position.x
+            && this.positionOver.y === position.y
     }
 
     drop(actionController) {
@@ -61,7 +61,7 @@ class GridController {
                             || (dy + y >= sub.gridHeight)
                             || (
                                 (sub.gridBusy[dx + x][dy + y] != null)
-                                && (sub.gridBusy[dx + x][dy + y] != this.draggedSubsystem.id)
+                                && (sub.gridBusy[dx + x][dy + y] !== this.draggedSubsystem.id)
                             )
                         ) {
                             matches = false
@@ -134,7 +134,7 @@ export function SubsystemGrid({sub}) {
     for (var i = 0; i < sub.gridWidth; i++) {
         cols.push(i)
     }
-    for (var i = 0; i < sub.gridHeight; i++) {
+    for (i = 0; i < sub.gridHeight; i++) {
         rows.push(i)
     }
 

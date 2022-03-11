@@ -1,6 +1,6 @@
 import {PressAction, ACTION_CATEGORY, ToggleAction, action } from '../action'
 import { EffectsMixin, poweringUp, poweringDown, shutdown } from '../effects'
-import {Point, Body, Volume} from '../physics.js'
+import {Point } from '../physics.js'
 
 export const SUBSYSTEM_CATEGORIES = {
     WEAPON: "WEAPON",

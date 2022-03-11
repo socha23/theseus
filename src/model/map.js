@@ -1,4 +1,4 @@
-import { Edge, Point } from "./physics"
+import { Edge } from "./physics"
 
 export const MAP_FEATURE_TYPE = {
     DEFAULT: "default",

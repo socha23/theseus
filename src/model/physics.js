@@ -74,7 +74,7 @@ export class Vector {
     }
 
     isZero() {
-        return this.x == 0 && this.y == 0
+        return this.x === 0 && this.y === 0
     }
 
     withLength(len = 1) {
@@ -90,7 +90,6 @@ export const DRAG_COEFFICIENTS = {
     DEFAULT: 1,
 }
 
-const DEFAULT_DRAG_COEFFICIENT = 1
 const WATER_DENSITY = 1000
 
 const MOVEMENT_HUSH = 0.1
@@ -167,7 +166,7 @@ export class Body {
             if (collision) {
                 this._resolveCollision(collision, onCollision)
 
-                if (recounts == 50) {
+                if (recounts === 50) {
                     console.log("COLLISION RECOUNTS MAX")
                     break
                 }
@@ -240,7 +239,7 @@ export class Body {
         const rAcc = rForce / this.volume.getMass()
         const rDeltaV = rAcc * deltaS
         var projectedRotationSpeed = this.rotationSpeed + rDeltaV
-        if (Math.abs(projectedRotationSpeed) < ROTATION_MOVEMENT_HUSH && this._actingRotation == 0) {
+        if (Math.abs(projectedRotationSpeed) < ROTATION_MOVEMENT_HUSH && this._actingRotation === 0) {
             this.rotationSpeed = 0
         }
         const projectedOrientation = this._actingFixedOrientation != null ? this._actingFixedOrientation : ((2 * Math.PI + this.orientation + projectedRotationSpeed * deltaS) % (2 * Math.PI))
@@ -303,21 +302,11 @@ export class Edge {
         const p3x = other.to.x;
         const p3y = other.to.y;
 
-        var ix, iy, collisionDetected;
-
-        // do stuff, call other functions, set endpoints...
-
-        // note: for my purpose I use |t| < |d| as opposed to
-        // |t| <= |d| which is equivalent to 0 <= t < 1 rather than
-        // 0 <= t <= 1 as in Gavin's answer - results may vary
-
         var d, dx1, dx2, dx3, dy1, dy2, dy3, s, t;
 
         dx1 = p1x - p0x;      dy1 = p1y - p0y;
         dx2 = p3x - p2x;      dy2 = p3y - p2y;
         dx3 = p0x - p2x;      dy3 = p0y - p2y;
-
-        collisionDetected = 0;
 
         d = dx1 * dy2 - dx2 * dy1;
 
@@ -346,7 +335,7 @@ export class Polygon {
 
     overlaps(other) {
         for (var x = 0; x < 2; x++) {
-            const polygon = (x == 0) ? this : other;
+            const polygon = (x === 0) ? this : other;
 
             for (var i1 = 0; i1 < polygon.points.length; i1++) {
                 var i2 = (i1 + 1) % polygon.points.length
@@ -359,7 +348,8 @@ export class Polygon {
                 var minA = Infinity
                 var maxA = -Infinity
 
-                this.points.forEach(p => {
+                for (var i = 0; i < this.points.length; i++) {
+                    const p = this.points[i]
                     const projected = normal.x * p.x + normal.y * p.y
                     if (projected < minA) {
                         minA = projected
@@ -367,12 +357,13 @@ export class Polygon {
                     if (projected > maxA) {
                         maxA = projected
                     }
-                })
+                }
 
                 var minB = Infinity
                 var maxB = -Infinity
 
-                other.points.forEach(p => {
+                for (i = 0; i < other.points.length; i++) {
+                    const p = other.points[i]
                     const projected = normal.x * p.x + normal.y * p.y
 
                     if (projected < minB) {
@@ -381,7 +372,7 @@ export class Polygon {
                     if (projected > maxB) {
                         maxB = projected
                     }
-                })
+                }
 
                 if (maxA < minB || maxB < minA) {
                     return false
@@ -413,7 +404,7 @@ export class Polygon {
     }
 
     rotate(theta, origin=this._center()) {
-        if (theta != 0) {
+        if (theta !== 0) {
             this.points = this.points.map(p => p.rotate(theta, origin))
         }
         return this

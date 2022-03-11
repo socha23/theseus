@@ -17,9 +17,6 @@ export class Entity {
         return this.body.volume.getRadius()
     }
 
-    updateState(deltaMs, model) {
-    }
-
     getWidth() {
         return this.body.volume.width
     }

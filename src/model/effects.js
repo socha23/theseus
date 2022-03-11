@@ -145,7 +145,7 @@ export const EffectsMixin = {
     },
 
     getEffectsOfCategory(category) {
-        return this._effects.filter(e => e.category == category)
+        return this._effects.filter(e => e.category === category)
     },
 
     _effectsViewState() {
@@ -160,6 +160,6 @@ export const EffectsMixin = {
         if (type instanceof Effect) {
             type = type.type
         }
-        return this._effects.find(e => e.type == type) ?? null != null
+        return this._effects.some(e => e.type === type)
     }
 }

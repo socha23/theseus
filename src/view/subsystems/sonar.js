@@ -71,11 +71,11 @@ function SonarBlipCircle({blip}) {
 
     const [hitAnimStart, setHitAnimStart] = useState(0)
     var phase = 0
-    if ((hitAnimStart != 0) || blip.effects.find(e => e.type == EFFECT_TYPES.ENTITY_HIT) != null) {
-        if (hitAnimStart == 0) {
+    if ((hitAnimStart !== 0) || blip.effects.some(e => e.type === EFFECT_TYPES.ENTITY_HIT)) {
+        if (hitAnimStart === 0) {
             setHitAnimStart(Date.now())
         }
-        const deltaMs = hitAnimStart == 0 ? 0 : (Date.now() - hitAnimStart)
+        const deltaMs = hitAnimStart === 0 ? 0 : (Date.now() - hitAnimStart)
         if (deltaMs > HIT_ANIM_TIME) {
             setHitAnimStart(0)
             phase = 1
@@ -83,7 +83,7 @@ function SonarBlipCircle({blip}) {
             phase = deltaMs / HIT_ANIM_TIME
         }
     }
-    const color = (phase == 0 || phase == 1) ? "red" : rgbGradientValue(phase, ANIM_COLOR)
+    const color = (phase === 0 || phase === 1) ? "red" : rgbGradientValue(phase, ANIM_COLOR)
     const opacity = (blip.alive ? 1 : 0.8)
 
     return <Circle
@@ -270,10 +270,6 @@ function SubMarker({volume, scale}){
 
     </Group>
 
-}
-
-function BoundingBox({polygon, scale}) {
-    return <Line points={linePointsFromPolygon(polygon)} stroke="white" closed={true} strokeWidth={1/scale}/>
 }
 
 function SubReferenceFrame({position, scale=1, children}) {

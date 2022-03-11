@@ -66,7 +66,7 @@ export class Weapon extends Subsystem {
         if (!this.on) {
             c.push("Unpowered")
         }
-        if (this.ammo == 0) {
+        if (this.ammo === 0) {
             c.push("Out of ammo")
         }
         if (!this._target) {
@@ -112,7 +112,7 @@ export class Weapon extends Subsystem {
         if (!this.on) {
             c.push("Unpowered")
         }
-        if (this.ammo == 0) {
+        if (this.ammo === 0) {
             c.push("Out of ammo")
         }
         if (!this._target) {
@@ -272,7 +272,6 @@ class Aiming {
             entity: entity,
             position: targetPos,
             size: targetSize,
-            entity: entity,
         })
     }
 

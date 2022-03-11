@@ -64,7 +64,7 @@ export class BaseAction {
     }
 
     get enabled() {
-        return this.errorConditions.length == 0
+        return this.errorConditions.length === 0
     }
 
     get visible() {
@@ -268,7 +268,7 @@ export class ToggleAction extends BaseAction {
 
     set value(val) {
         const oldVal = this.value
-        if (val != oldVal) {
+        if (val !== oldVal) {
             this._value = val
             this.params.onChange(val, oldVal)
         }
@@ -312,7 +312,7 @@ export class RadioAction extends BaseAction {
     }
 
     get selected() {
-        return RADIO_CONTROLLER.get(this.toggleGroup, null) == this.value
+        return RADIO_CONTROLLER.get(this.toggleGroup, null) === this.value
     }
 
     onCompleted(model) {
@@ -422,13 +422,13 @@ export class OperatorController {
     }
 
     unassignOperator(a) {
-        if (this._currentAction == a) {
+        if (this._currentAction === a) {
             this._currentAction = null
         }
     }
 
     hasAssignedOperator(a) {
-        return this._currentAction == a
+        return this._currentAction === a
     }
 }
 

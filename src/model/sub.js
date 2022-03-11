@@ -1,10 +1,8 @@
-import {PressAction, ACTION_CATEGORY, ToggleAction, action, OperatorController } from './action.js'
-import {Point, Body, Volume} from './physics.js'
+import { OperatorController } from './action.js'
+import {Point, Body } from './physics.js'
 import { Entity } from './entities.js'
 
 import { Engine, Steering } from './subsystems'
-import { RangeCircle } from './subsystems/sonar.js'
-
 
 export class Sub extends Entity {
     constructor(volume, subsystems = []) {
@@ -46,7 +44,7 @@ export class Sub extends Entity {
     _moveSubsystems(actionController) {
         if (actionController.movedSubsystemId) {
             this.subsystems
-                .find(s => s.id == actionController.movedSubsystemId)
+                .find(s => s.id === actionController.movedSubsystemId)
                 .gridPosition = actionController.movedSubsystemPosition
             this._gridBusyCache = this._getGridBusy()
         }
@@ -110,7 +108,7 @@ export class Sub extends Entity {
 
         var dir = this._steering.direction
         if (
-            (dir == 0)
+            (dir === 0)
             && (this._steering.rotationControlOn)
             && (Math.abs(this.body.rotationSpeed) > 0.01)
          ) {

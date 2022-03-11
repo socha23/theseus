@@ -23,7 +23,7 @@ class Statistic {
     }
 
     get avg() {
-        if (this._values.length == 0) {
+        if (this._values.length === 0) {
             return 0
         }
         var sum = 0

@@ -1,7 +1,7 @@
-import { Entity, Fish } from "./entities"
-import { Body, Point, rectangle, Vector, Volume } from "./physics"
+import { Fish } from "./entities"
+import { Body, Point, rectangle, Volume } from "./physics"
 import { Sub } from "./sub"
-import { Agent, Flock, FlockAgent } from "./agent"
+import { Flock, FlockAgent } from "./agent"
 
 import {CheatBox, Engine, Reactor, SubStatusScreen, Steering} from "./subsystems"
 import {Weapon} from "./subsystems/weapons"

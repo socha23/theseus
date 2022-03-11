@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { ACTION_CATEGORY } from "../model/action.js";
 import Sonar from "./subsystems/sonar.js";
 import { toDegrees } from '../units.js'
-import { CartesianGrid, Area, AreaChart, Line, LineChart, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Area, AreaChart, XAxis, YAxis } from "recharts";
 import {VertSlider, ActionButton} from "./widgets"
 import {Weapon} from "./subsystems/weapons"
 import { STATISTICS } from "../stats.js";
@@ -162,8 +162,8 @@ function ThrottleActions({actions, actionController}) {
 
 export function Subsystem({subsystem, actionController}) {
 
-    const standardActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.STANDARD)
-    const throttleActions = subsystem.actions.filter(a => a.category == ACTION_CATEGORY.THROTTLE)
+    const standardActions = subsystem.actions.filter(a => a.category === ACTION_CATEGORY.STANDARD)
+    const throttleActions = subsystem.actions.filter(a => a.category === ACTION_CATEGORY.THROTTLE)
 
     let effectsClassName = ""
     subsystem.effects.forEach(e => {effectsClassName += (e.type + " ")})

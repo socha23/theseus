@@ -3,7 +3,6 @@
 
 const SECONDS_IN_H = 60 * 60
 
-const MILLIS_IN_H = SECONDS_IN_H * 1000
 const M_IN_KM =  1000
 
 export function toKph(speed) {

@@ -3,6 +3,7 @@ import {Point, Body } from './physics.js'
 import { Entity } from './entities.js'
 
 import { Engine, Steering } from './subsystems/others'
+import { randomElem } from '../utils.js'
 
 export class Sub extends Entity {
     constructor(volume, subsystems = []) {
@@ -167,8 +168,68 @@ export class Sub extends Entity {
         }
     }
 
+
+    _randomSubsystemFromSide(direction) {
+        const subsystemLots = []
+        this.subsystems.forEach(s => {
+            if (s.takesDamage) {
+                // number of lots is dependent on position in grid amd direction
+                var lots = 0
+
+                if (direction === "front") {
+                    lots = this.gridHeight - s.gridPosition.y
+                } else if (direction === "right") {
+                    lots = s.gridPosition.x + s.gridSize.x
+                } else if (direction === "left") {
+                    lots = this.gridWidth - s.gridPosition.x
+                } else {
+                    lots = s.gridPosition.y + s.gridSize.y
+                }
+                for (var i = 0; i < lots*lots; i++) {
+                    subsystemLots.push(s)
+                }
+            }
+        })
+        return randomElem(subsystemLots)
+
+    }
+
+    _allocateImpactDamage(collision) {
+        const speed = collision.impactSpeed
+        console.log("allocating damage for speed ", speed)
+        if (speed < 1) {
+            return
+        }
+
+        const direction = this._getDirection(collision)
+        for (var i = 0; i < Math.random() * speed * 2; i++) {
+            this._randomSubsystemFromSide(direction).addLightDamage()
+        }
+        for (i = 0; i < Math.random() * (speed - 1); i++) {
+            this._randomSubsystemFromSide(direction).addMediumDamage()
+        }
+        for (i = 0; i < Math.random() * (speed - 3) * 0.2; i++) {
+            this._randomSubsystemFromSide(direction).addHeavyDamage()
+        }
+    }
+
+    _getDirection(collision) {
+        const a = collision.relativeAngle
+        if ((a <= Math.PI / 4) || (7 / 4 * Math.PI <= a)) {
+            return "front"
+        } else if ((Math.PI / 4 <= a) && (a <= 3 * (Math.PI / 4))) {
+            return "right"
+        } else if ((3 * Math.PI / 4 <= a) && (a <= 5 * (Math.PI / 4))) {
+            return "back"
+        } else {
+            return "left"
+        }
+
+    }
+
     onCollision(collision) {
         super.onCollision(collision)
+        this._allocateImpactDamage(collision)
     }
 
     get leak() {

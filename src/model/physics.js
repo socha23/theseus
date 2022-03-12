@@ -203,6 +203,9 @@ export class Body {
 
 //        console.log("edge theta", collision.mapFeatureWall.theta())
 //        console.log("new speed val", )
+        const impactTheta = (collision.mapFeatureWall.theta() - Math.PI / 2) % (2 * Math.PI)
+        const impactForce = vectorForPolar(impactSpeed, impactTheta)
+
 
         this.speed = vectorForPolar(newSpeedValue, collision.mapFeatureWall.theta())
         this.rotationSpeed = 0
@@ -215,6 +218,7 @@ export class Body {
 
         collision.angle = collisionAngle
         collision.impactSpeed =  impactSpeed
+        collision.relativeAngle = (2 * Math.PI + impactForce.theta() - this.orientation) % (2 * Math.PI)
 
         onCollision(collision)
     }

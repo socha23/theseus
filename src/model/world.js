@@ -31,7 +31,7 @@ const WEAPON_TEMPLATES = {
 const ENGINE_TEMPLATES = {
     BASIC_ENGINE: {
         force: 10 * 40 * 1000,
-        rotationalForce: 2 * 1000,
+        rotationalForce: 10 * 2 * 1000,
         powerConsumption: 20,
     }
 }

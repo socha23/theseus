@@ -35,7 +35,6 @@ export class Weapon extends Subsystem {
             onExitActive: m => {this._stopAim(m)},
             activeUntilCancel: true,
         });
-        this.actions.push(this.aimAction)
 
         this.shootAction = action({
             id: id + "_shoot",
@@ -46,8 +45,6 @@ export class Weapon extends Subsystem {
             onCompleted: m => {this._shoot()}
 
         });
-        this.actions.push(this.shootAction)
-
 
         this.reloadAction = action({
             id: id + "_reload",
@@ -58,7 +55,10 @@ export class Weapon extends Subsystem {
             onCompleted: m => {this.ammo = this.template.ammoMax},
             requiresOperator: true,
         });
-        this.actions.push(this.reloadAction)
+
+        this.weaponActions = [this.aimAction, this.shootAction, this.reloadAction]
+
+        this.actions.push(...this.weaponActions)
 
     }
 
@@ -168,6 +168,7 @@ export class Weapon extends Subsystem {
             ammoMax: this.ammoMax,
             aim: (this._aim ? this._aim.toViewState() : null),
             isWeapon: true,
+            weaponActions: this.weaponActions.filter(a => a.visible).map(a => a.toViewState()),
         }
     }
 

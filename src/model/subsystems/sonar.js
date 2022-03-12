@@ -4,7 +4,7 @@ import {Point, rectangle, Volume} from "../physics"
 
 class SonarDebugAction extends ToggleAction {
     constructor(sonar) {
-        super({id: sonar.id + "_debug", name: "Debug mode", category: ACTION_CATEGORY.THROTTLE})
+        super({id: sonar.id + "_debug", name: "Toggle debug mode", category: ACTION_CATEGORY.THROTTLE, icon: "fa-solid fa-bug"})
         this.sonar = sonar
     }
 
@@ -118,6 +118,7 @@ export class Sonar extends Subsystem {
             aimLines: this.sub?.aimLines ?? [],
             features: this.features ?? [],
             subBoundingBox: this.sub?.boundingBox ?? [],
+            toggleActions: [this.debugAction.toViewState()],
         }
     }
 }

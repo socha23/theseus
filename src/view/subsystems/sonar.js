@@ -4,8 +4,9 @@ import { rgbGradientValue } from "../../gradient";
 import { EFFECT_TYPES } from "../../model/effects";
 import { AIM_LINE_TYPE, RANGE_CIRCLE_TYPE } from "../../model/subsystems/sonar";
 import { toDegrees } from "../../units";
+import { ActionButton } from "../widgets";
 
-const SIZE_PX = 376
+const SIZE_PX = 420//376
 
 
 function SonarBackground({position, scale}) {
@@ -282,24 +283,35 @@ function SubReferenceFrame({position, scale=1, children}) {
 
 function Sonar({subsystem, actionController}) {
     const scale = SIZE_PX / (subsystem.range * 2)   // px per unit
-    return <div className="sonar" style={{width: SIZE_PX + 2, height: SIZE_PX + 2}}>
-        {subsystem.on && <Stage width={SIZE_PX} height={SIZE_PX} >
-            <Layer>
-                <Group offsetX={-SIZE_PX / 2} offsetY={-SIZE_PX / 2}>
-                    <Group rotation={toDegrees(-subsystem.orientation) + 90}>
-                        <SonarBackground position={subsystem.position} scale={scale}/>
-                        <SubReferenceFrame position={subsystem.position} scale={scale}>
-                            <Features scale={scale} features={subsystem.features}/>
-                            <AimLines position={subsystem.position} scale={scale} aimLines={subsystem.aimLines}/>
-                            <SonarBlips blips={subsystem.blips} actionController={actionController} scale={scale} debug={subsystem.debug}/>
-                            <Ranges position={subsystem.position} scale={scale} ranges={subsystem.ranges}/>
-                            {/*<BoundingBox polygon={subsystem.subBoundingBox} scale={scale}/>*/}
-                        </SubReferenceFrame>
+    return <div className="sonar">
+        <div className="display" style={{width: SIZE_PX + 2, height: SIZE_PX + 2}}>
+            {subsystem.on && <Stage width={SIZE_PX} height={SIZE_PX} >
+                <Layer>
+                    <Group offsetX={-SIZE_PX / 2} offsetY={-SIZE_PX / 2}>
+                        <Group rotation={toDegrees(-subsystem.orientation) + 90}>
+                            <SonarBackground position={subsystem.position} scale={scale}/>
+                            <SubReferenceFrame position={subsystem.position} scale={scale}>
+                                <Features scale={scale} features={subsystem.features}/>
+                                <AimLines position={subsystem.position} scale={scale} aimLines={subsystem.aimLines}/>
+                                <SonarBlips blips={subsystem.blips} actionController={actionController} scale={scale} debug={subsystem.debug}/>
+                                <Ranges position={subsystem.position} scale={scale} ranges={subsystem.ranges}/>
+                                {/*<BoundingBox polygon={subsystem.subBoundingBox} scale={scale}/>*/}
+                            </SubReferenceFrame>
+                        </Group>
+                        {<SubMarker volume={subsystem.subVolume} scale={scale}/>}
                     </Group>
-                    {<SubMarker volume={subsystem.subVolume} scale={scale}/>}
-                </Group>
-            </Layer>
-        </Stage>}
+                </Layer>
+            </Stage>}
+        </div>
+        <div className="toggles">
+            {
+                subsystem.toggleActions.map(a => <ActionButton
+                    key={a.id}
+                    action={a}
+                    actionController={actionController}
+                    />)
+            }
+        </div>
     </div>
 }
 

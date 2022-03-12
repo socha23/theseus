@@ -19,8 +19,6 @@ const TABS = {
 
 
 function SubsystemMainTab({subsystem, actionController}) {
-    const standardActions = subsystem.actions.filter(a => a.category === ACTION_CATEGORY.STANDARD)
-    const throttleActions = subsystem.actions.filter(a => a.category === ACTION_CATEGORY.THROTTLE)
     return <div className="tab">
         <div className='body'
             onMouseDown={e => {e.preventDefault(); return false}} /* disable drag & drop */
@@ -47,9 +45,6 @@ function SubsystemMainTab({subsystem, actionController}) {
                 subsystem.isSteering && <Steering subsystem={subsystem} actionController={actionController}/>
             }
         </div>
-        {
-            (throttleActions.length > 0) && <ThrottleActions actions={throttleActions} actionController={actionController}/>
-        }
     </div>
 }
 

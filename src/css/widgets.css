@@ -142,43 +142,6 @@ hr {
 
 
 
-
-.standardActions {
-    display: flex;
-    gap: 5px;
-}
-
-
-.throttleActions {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 5px;
-}
-
-.throttleActions .button .rightSide {
-    width: 15px;
-    height: 15px;
-    border-radius: 3px;
-    background-color: #469528;
-    opacity: 0.5
-}
-
-.throttleActions .button.selected .rightSide {
-    border-color: #ebf100;
-    background-color: #ebf100;
-    opacity: 1;
-}
-
-.throttleActions .button.selected {
-    border-color: #ebf100;
-    color: #ebf100;
-}
-
-
-
-
-
 /*****************
  * TOOLTIP
  ****************/

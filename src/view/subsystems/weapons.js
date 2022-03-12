@@ -1,3 +1,5 @@
+import { ActionButton } from "../widgets"
+
 function AmmoBullet({spent}) {
     return <span className='bullet'>
         <i className={"fa-circle " + (spent ? "fa-regular": "fa-solid")}></i>
@@ -50,9 +52,15 @@ function AimBar({aim}) {
 }
 
 
-export function Weapon({subsystem}) {
+export function Weapon({subsystem, actionController}) {
     return <div className="weapon">
         <AmmoBar subsystem={subsystem}/>
+        <div className="filler"/>
         {subsystem.aim && <AimBar aim={subsystem.aim}/>}
+        <div className="actions">
+            {subsystem.weaponActions.map(a =>
+            <ActionButton key={a.id}
+                action={a} actionController={actionController}/>)}
+        </div>
     </div>
 }

@@ -26,10 +26,45 @@
 
 
 
+
+
+
 .subsystem .sonar {
+    display: flex;
+    gap: 5px;
+}
+
+.subsystem .sonar .toggles {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px
+}
+.subsystem .sonar .toggles .button {
+    width: 32px
+}
+
+.subsystem .sonar .toggles .button.selected {
+    border-color: #ebf100;
+    color: #003b35;
+    background-color: #ebf100;
+    opacity: 1;
+}
+
+.subsystem .sonar .toggles .button .name {
+    display: none;
+}
+
+
+.subsystem .sonar .display {
     opacity: 0.8;
     border: 1px solid #a5d000;
 }
+
+
+
+
+
 
 
 .subsystem .infoRow {
@@ -77,6 +112,12 @@
 }
 
 
+.subsystem .weapon {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 5px;
+}
 
 .subsystem .weapon .aimBar {
     height: 30px;
@@ -112,6 +153,20 @@
     position: absolute;
     height: 100%;
 }
+
+.subsystem .weapon .filler {
+    flex-grow: 1;
+}
+
+.subsystem .weapon .actions{
+    display: flex;
+    gap: 5px;
+}
+
+.subsystem .weapon .actions .button{
+    flex: 1 0 0;
+}
+
 
 
 

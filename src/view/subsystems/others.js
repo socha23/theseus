@@ -50,7 +50,7 @@ export function SubStatus({subsystem}) {
 export function Cheatbox({subsystem, actionController}) {
     return <div className="cheatbox">
         {
-            subsystem.cheats.map(c => <ActionButton action={c} actionController={actionController}/>)
+            subsystem.cheats.map(c => <ActionButton key={c.id} action={c} actionController={actionController}/>)
         }
     </div>
 }

@@ -56,7 +56,11 @@ function StatusEffect({subsystem, effect, actionController}) {
     const tooltipCtx = useContext(TooltipContext)
     const tooltip = <div>{effect.description}</div>
 
-    return <div className={"effect " + effect.category + " "}>
+    return <div
+    className={"effect "
+    + effect.category + " "
+    + "damage" + effect.damageCategory + " "
+    }>
         <div className="body">
             <div className="name"
                 onMouseOver ={e => {tooltipCtx.tooltip = tooltip}}
@@ -92,20 +96,62 @@ function StatusTab({subsystem, actionController}) {
         </div>
 }
 
-function StatusTabIcon({subsystem, active, onClick}) {
-    return <span className={"statusTabIcon "
-        + (active ? "active " : "inactive ")
-        + ((subsystem.statusEffects.length > 0) ? "hasEffects " : "noEffects ")
-        }>
-        <span className="icon" onClick={onClick}>
-            <i className="fa-solid fa-screwdriver-wrench" />
-        </span>
-        {(subsystem.statusEffects.length > 0) &&
-            <span className="effectCount">
-                {subsystem.statusEffects.length}
-            </span>
+function StatusTabMark({effect}) {
+    const tooltipCtx = useContext(TooltipContext)
+    return <div
+        className={"tabMark "
+            + "damage" + effect.damageCategory + " "
         }
-    </span>
+        onMouseOver ={_ => {tooltipCtx.tooltip =
+            <div className="tabMarkTooltip">
+                <div className={"effect damage" + effect.damageCategory}>
+                    {effect.name}
+                </div>
+                <div>{effect.description}</div>
+            </div>}
+        }
+        onMouseOut ={_ => {tooltipCtx.tooltip = null}}
+    >
+    {
+        (effect.leak > 0) && <i className="leak fa-solid fa-droplet"/>
+    }
+    </div>
+}
+
+function StatusTabMarks({effects}) {
+
+    return <div className="statusTabMarks">
+        {
+            effects.map(e => <StatusTabMark
+                effect={e}
+                key={e.id}
+                />
+            )
+        }
+    </div>
+}
+
+function StatusTabIcon({subsystem, active, onClick}) {
+    return <div className={"statusTabIconContainer"}>
+           <span className={"statusTabIcon "
+                + (active ? "active " : "inactive ")
+                + ((subsystem.statusEffects.length > 0) ? "hasEffects " : "noEffects ")
+                }
+                onClick={onClick}
+                >
+                <span className="icon" >
+                    <i className="fa-solid fa-screwdriver-wrench" />
+                </span>
+                <StatusTabMarks effects={subsystem.statusEffects} />
+
+                {/*(subsystem.statusEffects.length > 0) &&
+                    <span className="effectCount">
+                        {subsystem.statusEffects.length}
+                    </span>
+                */}
+            </span>
+    </div>
+
 }
 
 

@@ -6,6 +6,9 @@ export const EFFECT_TYPES = {
     SHOOT_MISS: "shootMiss",
     SHOOT_HIT: "shootHit",
     ENTITY_HIT: "entityHit",
+    LIGHT_DAMAGE: "lightDamage",
+    MEDIUM_DAMAGE: "mediumDamage",
+    HEAVY_DAMAGE: "heavyDamage",
 }
 
 export const EFFECT_CATEGORIES = {
@@ -20,6 +23,30 @@ const DEFAULT_EFFECT_PARAMS = {
     type: EFFECT_TYPES.DEFAULT,
     category: EFFECT_CATEGORIES.DEFAULT,
     onCompleted: (m) => {},
+}
+
+export function lightDamage(params = {}) {
+    return new TimedEffect({
+        type: EFFECT_TYPES.LIGHT_DAMAGE,
+        durationMs: 300,
+        ...params
+    })
+}
+
+export function mediumDamage(params = {}) {
+    return new TimedEffect({
+        type: EFFECT_TYPES.MEDIUM_DAMAGE,
+        durationMs: 300,
+        ...params
+    })
+}
+
+export function heavyDamage(params = {}) {
+    return new TimedEffect({
+        type: EFFECT_TYPES.HEAVY_DAMAGE,
+        durationMs: 300,
+        ...params
+    })
 }
 
 export function poweringUp(params = {}) {

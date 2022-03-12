@@ -18,7 +18,6 @@ class Game {
         }
         this.gameModel.updateState(delta, this.actionController)
         this.lastStateUpate = time
-        this.actionController.reset()
         return this.gameModel.toViewState()
     }
 }

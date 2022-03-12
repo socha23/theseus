@@ -1,6 +1,6 @@
 import { randomElem } from '../../utils'
 import { ACTION_CATEGORY, ToggleAction, action } from '../action'
-import { Effect, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects } from '../effects'
+import { Effect, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects, lightDamage, mediumDamage, heavyDamage } from '../effects'
 import { Point } from '../physics.js'
 
 export const SUBSYSTEM_CATEGORIES = {
@@ -169,7 +169,11 @@ export class Subsystem extends HasEffects {
     }
 
     get statusEffects() {
-        return this.effects.filter(e => e.statusEffect)
+        return this.effects
+            .filter(e => e.statusEffect)
+            .sort((a, b) =>
+                (b.damageCategory * 100 + b.leak)
+              - (a.damageCategory * 100 + a.leak))
     }
 
     get waterResistant() {
@@ -186,14 +190,17 @@ export class Subsystem extends HasEffects {
 
     addLightDamage() {
         this._addDamage(this.getAvailableLightDamageTypes(), new SubsystemDamage(this, GENERIC_LIGHT_DAMAGE))
+        this.addEffect(lightDamage())
     }
 
     addMediumDamage() {
         this._addDamage(this.getAvailableMediumDamageTypes(), new SubsystemDamage(this, GENERIC_MEDIUM_DAMAGE))
+        this.addEffect(mediumDamage())
     }
 
     addHeavyDamage() {
         this._addDamage(this.getAvailableHeavyDamageTypes(), new SubsystemDamage(this, GENERIC_HEAVY_DAMAGE))
+        this.addEffect(heavyDamage())
     }
 
     _addDamage(types, defaultDamage) {

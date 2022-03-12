@@ -50,16 +50,58 @@
     cursor: pointer;
 }
 
-.subsystem .statusTabIcon.inactive {
-    cursor: pointer;
+.subsystem .titleBar .statusTabIconContainer {
+    position: relative;
 }
-
 
 .subsystem .titleBar .statusTabIcon {
     font-size: 12pt;
     text-shadow: none;
     position: relative;
 }
+
+.subsystem .statusTabIcon.inactive {
+    cursor: pointer;
+}
+
+.subsystem .statusTabMarks {
+    position: absolute;
+    bottom: -2px;
+    right: 0px;
+    display: flex;
+}
+
+.subsystem .statusTabMarks .tabMark {
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    box-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+    position: relative;
+}
+
+.tabMark.damage1 {
+    background-color: #a5d000;
+    border: 1px solid #469528;
+}
+
+.tabMark.damage2 {
+    background-color: #dba800;
+    border: 1px solid #7e6000;
+}
+
+.tabMark.damage3 {
+    background-color: rgb(194, 0, 0);
+    border: 1px solid #580000;
+}
+
+.tabMark .leak {
+    font-size: 12px;
+    position: absolute;
+    color: black;
+    top: 4px;
+    left: 2px;
+}
+
 
 .subsystem.unpowered .titleBar .statusTabIcon {
     _color: #ebf100;
@@ -86,9 +128,13 @@
 }
 
 
+
+
 .subsystem.powered .titleBar .statusTabIcon.active {
     text-shadow: 0 0 8px black;
 }
+
+
 
 .subsystem.powered .titleBar .name.active {
     text-shadow: 0 0 8px black;

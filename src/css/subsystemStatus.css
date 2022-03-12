@@ -1,3 +1,5 @@
+
+
 .subsystem .statusEffects {
     display: flex;
     flex-direction: column;
@@ -9,6 +11,19 @@
     align-items: center;
     min-height: 50px;
 }
+
+.effect.damage1 {
+    color: #a5d000;
+}
+
+.effect.damage2 {
+    color: #dba800;
+}
+
+.effect.damage3 {
+    color: rgb(255, 40, 40);
+}
+
 
 .subsystem .statusEffects .effect .name {
     flex-grow: 1;
@@ -31,5 +46,4 @@
 .subsystem .statusEffects .effect .body {
     display: flex;
     flex-direction: column;
-    color: #a5d000;
 }

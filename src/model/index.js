@@ -23,6 +23,7 @@ class GameModel {
         if (actionController.targetEntityId && !this.world.entitiesById[actionController.targetEntityId]) {
             actionController.targetEntityId = null
         }
+        actionController.reset()
     }
 
     toViewState() {

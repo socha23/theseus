@@ -384,3 +384,204 @@
     background-color: red !important;
 
 }
+
+
+/*
+ * boat shake front
+ */
+ @keyframes smallShakeFront {
+    0% {
+        top: 0px;
+    }
+    20% {
+        top: 5px;
+    }
+    100% {
+        top: 0px;
+    }
+}
+
+.sub.smallShake_front {
+    animation-name: smallShakeFront;
+    animation-duration: 0.2s;
+}
+
+@keyframes mediumShakeFront {
+    0% {
+        top: 0px;
+    }
+    15% {
+        top: 20px;
+    }
+    40% {
+        top: -10px;
+    }
+    60% {
+        top: 5px;
+    }
+    100% {
+        top: 0px;
+    }
+}
+
+.sub.mediumShake_front {
+    animation-name: mediumShakeFront;
+    animation-duration: 0.6s;
+}
+
+@keyframes heavyShakeFront {
+    0% {
+        top: 0px;
+    }
+    15% {
+        top: 40px;
+    }
+    40% {
+        top: -20px;
+    }
+    60% {
+        top: 20px;
+    }
+    100% {
+        top: 0px;
+    }
+}
+
+.sub.heavyShake_front {
+    animation-name: heavyShakeFront;
+    animation-duration: 0.8s;
+}
+
+/*
+ * boat shake back
+ */
+ @keyframes smallShakeBack {
+    0% {
+        top: 0px;
+    }
+    20% {
+        top: -5px;
+    }
+    100% {
+        top: 0px;
+    }
+}
+
+.sub.smallShake_back {
+    animation-name: smallShakeBack;
+    animation-duration: 0.2s;
+}
+
+@keyframes mediumShakeBack {
+    0% {
+        top: 0px;
+    }
+    15% {
+        top: -20px;
+    }
+    40% {
+        top: 10px;
+    }
+    60% {
+        top: -5px;
+    }
+    100% {
+        top: 0px;
+    }
+}
+
+.sub.mediumShake_back {
+    animation-name: mediumShakeBack;
+    animation-duration: 0.6s;
+}
+
+@keyframes heavyShakeBack {
+    0% {
+        top: 0px;
+    }
+    15% {
+        top: -40px;
+    }
+    40% {
+        top: 20px;
+    }
+    60% {
+        top: -20px;
+    }
+    100% {
+        top: 0px;
+    }
+}
+
+.sub.heavyShake_back {
+    animation-name: heavyShakeBack;
+    animation-duration: 0.8s;
+}
+
+/*
+ * boat shake left
+ */
+ @keyframes smallShakeLeft {
+    0% {
+        left: 0px;
+    }
+    20% {
+        left: 5px;
+    }
+    100% {
+        left: 0px;
+    }
+}
+
+.sub.smallShake_left {
+    animation-name: smallShakeLeft;
+    animation-duration: 0.2s;
+}
+
+@keyframes mediumShakeLeft {
+    0% {
+        left: 0px;
+    }
+    15% {
+        left: 20px;
+    }
+    40% {
+        left: -10px;
+    }
+    60% {
+        left: 5px;
+    }
+    100% {
+        left: 0px;
+    }
+}
+
+.sub.mediumShake_left {
+    animation-name: mediumShakeLeft;
+    animation-duration: 0.6s;
+}
+
+@keyframes heavyShakeLeft {
+    0% {
+        left: 0px;
+    }
+    15% {
+        left: 40px;
+    }
+    40% {
+        left: -20px;
+    }
+    60% {
+        left: 20px;
+    }
+    100% {
+        left: 0px;
+    }
+}
+
+.sub.heavyShake_Left {
+    animation-name: heavyShakeLeft;
+    animation-duration: 0.8s;
+}
+
+

@@ -14,8 +14,12 @@ function Water({waterLevel}) {
 
 
 function Sub({sub, actionController}) {
+    var subClass = ""
+    sub.effects.forEach(e => {
+        subClass += e.type + " "
+    })
     return  <div className="subContainer" style={{width: (sub.gridWidth + 1) * GRID_CELL_WIDTH, height: sub.gridHeight * GRID_CELL_HEIGHT}}>
-        <div className='sub' >
+        <div className={'sub ' + subClass}>
             <div className='subsystems' >
             {
                 sub.subsystems

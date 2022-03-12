@@ -25,6 +25,16 @@ const DEFAULT_EFFECT_PARAMS = {
     onCompleted: (m) => {},
 }
 
+
+export function shake(size, direction, params = {}) {
+    return new TimedEffect({
+        type: size + "Shake_" + direction,
+        durationMs: 1000,
+        ...params
+    })
+}
+
+
 export function lightDamage(params = {}) {
     return new TimedEffect({
         type: EFFECT_TYPES.LIGHT_DAMAGE,
@@ -151,10 +161,9 @@ class TimedEffect extends Effect {
     }
 
     toViewState() {
-        return {
-            ...super.toViewState(),
-            durationMs: this.durationMs
-        }
+        const res = super.toViewState()
+        res.durationMs = this.durationMs
+        return res
 
     }
 
@@ -167,8 +176,14 @@ export class HasEffects {
     }
 
     updateState(deltaMs, model, actionController) {
-        this._effects = this._effects.filter(e => e.active)
-        this._effects.forEach(e => e.updateState(deltaMs, model, actionController))
+        const newE = []
+        this._effects.forEach(e => {
+            if (e.active) {
+                e.updateState(deltaMs, model, actionController)
+                newE.push(e)
+            }
+        })
+        this._effects = newE
     }
 
     addEffect(effect) {

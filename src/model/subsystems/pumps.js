@@ -11,7 +11,7 @@ export class Pumps extends Subsystem {
         this.waterLevel = 0
         this.waterFlow = 0
         this._engagesAt = 0.4
-        this._disengagesAt = 0.1
+        this._disengagesAt = 0
     }
 
     get engagesAt() {

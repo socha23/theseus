@@ -238,11 +238,10 @@ export class StatusEffect extends Effect {
     }
 
     toViewState() {
-        return {
-            ...super.toViewState(),
-            name: this.name,
-            actions: this._actions.map(a => a.toViewState()),
-        }
+        const res = super.toViewState()
+        res.name = this.name
+        res.actions = this._actions.map(a => a.toViewState())
+        return res
     }
 
     updateState(deltaMs, model, actionController) {
@@ -312,7 +311,7 @@ export class SubsystemDamage extends StatusEffect {
             name: "Repair",
             longName: "Repair",
             icon: "fa-solid fa-wrench",
-            addErrorConditions: c => this._addRepairErrors(c),
+            addErrorConditions: (c, m) => {this._addRepairErrors(c)},
             progressTime: this.params.repairTime,
             requiresOperator: true,
             onCompleted: m => {this.onCompleted()},

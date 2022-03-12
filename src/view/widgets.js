@@ -65,12 +65,9 @@ export function ActionButton({action, actionController}) {
 
     return <div
         className={'button '
-            + (recentlyCompleted ? "recentlyCompleted " : ' ')
-            + (recentlyCompleted ? "recentlyCompleted " : ' ')
             + (action.enabled ? "enabled " : 'disabled ')
             + (action.selected ? "selected " : "deselected ")
             + (action.active ? "active " : " ")
-            + action.state + " "
         }
         onClick={e => actionController.onClick(action)}
         onMouseDown={e => actionController.onMouseDown(action)}

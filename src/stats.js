@@ -45,5 +45,4 @@ export const STATISTICS = {
         name: "Render time",
         unit: "ms"
     })
-
 }

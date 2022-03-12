@@ -72,6 +72,7 @@ export class BaseAction {
     }
 
     addErrorConditions(conditions, model) {
+        this.params.addErrorConditions(conditions, model)
     }
 
     execute(model) {
@@ -131,7 +132,6 @@ export class BaseAction {
     _updateErrorConditions(deltaMs, model) {
         this.errorConditions = []
         this.addErrorConditions(this.errorConditions, model)
-        this.params.addErrorConditions(this.errorConditions, model)
     }
 
     updateState(deltaMs, model, actionController) {
@@ -186,6 +186,7 @@ export class WrapperAction {
     }
 
     addErrorConditions(c, m) {
+        super.addErrorConditions(c, m)
         this._innerAction.addErrorConditions(c, m)
     }
 
@@ -366,7 +367,7 @@ export class ProgressAction extends BaseAction {
     }
 
     addErrorConditions(c, m) {
-        this._inner.addErrorConditions(c, m)
+        super.addErrorConditions(c, m)
     }
 
 
@@ -376,13 +377,14 @@ export class ProgressAction extends BaseAction {
     }
 
     toViewState() {
-        return {
+        const res = {
             ...this._inner.toViewState(),
             ...super.toViewState(),
-            usesProgress: true,
-            progress: this._progress,
-            progressMax: this._progressMax,
         }
+        res.usesProgress = true
+        res.progress = this._progress
+        res.progressMax = this._progressMax
+        return res
     }
 
     updateState(deltaMs, model, actionController) {

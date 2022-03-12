@@ -4,6 +4,7 @@ import { Entity } from './entities.js'
 
 import { Engine, Steering } from './subsystems/others'
 import { randomElem } from '../utils.js'
+import { shake } from './effects.js'
 
 export class Sub extends Entity {
     constructor(volume, subsystems = []) {
@@ -159,6 +160,7 @@ export class Sub extends Entity {
 
     toViewState() {
         return {
+            ...super.toViewState(),
             subsystems: this.subsystems.map(s => s.toViewState()),
             position: this.body.position,
             gridWidth: this.gridWidth,
@@ -196,12 +198,18 @@ export class Sub extends Entity {
 
     _allocateImpactDamage(collision) {
         const speed = collision.impactSpeed
-        console.log("allocating damage for speed ", speed)
         if (speed < 1) {
             return
         }
-
         const direction = this._getDirection(collision)
+        if (speed < 3) {
+            this.addEffect(shake("small", direction))
+        } else if (speed < 5) {
+            this.addEffect(shake("medium", direction))
+        } else {
+            this.addEffect(shake("heavy", direction))
+        }
+
         for (var i = 0; i < Math.random() * speed * 2; i++) {
             this._randomSubsystemFromSide(direction).addLightDamage()
         }

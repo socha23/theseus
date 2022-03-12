@@ -51,6 +51,9 @@ function StatusEffect({subsystem, effect, actionController}) {
     return <div className={"effect " + effect.category + " "}>
         <div className="body">
             <div className="name">
+                {
+                    (effect.leak > 0) && <i className="icon fa-solid fa-droplet"/>
+                }
                 {effect.name}
             </div>
         </div>

@@ -20,6 +20,8 @@ export class Sub extends Entity {
         this._gridBusyCache = this._getGridBusy()
 
         this._operatorController = new OperatorController()
+
+        this._waterLevel = 0
     }
 
     updateState(deltaMs, model, actionController) {
@@ -37,8 +39,13 @@ export class Sub extends Entity {
             this._emergencyShutdown()
         }
         this._updatePosition()
+        this._updateWaterLevel(deltaMs)
         super.updateState(deltaMs, model)
 
+    }
+
+    _updateWaterLevel(deltaMs) {
+        this._waterLevel = Math.max(0, Math.min(this._waterLevel + (this.leak * deltaMs / 1000), this.gridHeight))
     }
 
     _moveSubsystems(actionController) {
@@ -156,12 +163,25 @@ export class Sub extends Entity {
             gridWidth: this.gridWidth,
             gridHeight: this.gridHeight,
             gridBusy: this._gridBusyCache,
+            waterLevel: this.waterLevel,
         }
     }
 
     onCollision(collision) {
         super.onCollision(collision)
         console.log("COLISION", collision)
+    }
+
+    get leak() {
+        var res = 0
+        this.subsystems.forEach(s => {
+            res += s.leak
+        })
+        return res
+    }
+
+    get waterLevel() {
+        return this._waterLevel
     }
 
 

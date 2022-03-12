@@ -1,0 +1,33 @@
+@keyframes waterRoll {
+    0% {
+        transform: rotate(-0.5deg);
+    }
+    50% {
+        transform: rotate(0.5deg);
+    }
+    100% {
+        transform: rotate(-0.5deg);
+    }
+}
+
+
+.water {
+    position: absolute;
+    width: 150%;
+    left: -10%;
+    bottom: 0;
+    z-index: 3000;
+    pointer-events: none;
+
+/* From https://css.glass */
+background: rgba(0, 59, 53, 0.47);
+box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+backdrop-filter: blur(1.5px);
+-webkit-backdrop-filter: blur(1.5px);
+border: 1px solid #003b35;
+
+
+    animation-name: waterRoll;
+    animation-duration: 4s;
+    animation-iteration-count: infinite;
+}

@@ -117,11 +117,19 @@ export class CheatBox extends Subsystem {
                 },
             }),
             action({
-                id: "cheat_addstatus",
-                name: "Add random status",
+                id: "cheat_add_light_damage",
+                name: "Add light damage",
                 onCompleted: (model) => {
                     const s = random(model.sub.subsystems.filter(s => s.takesDamage))
-                    s.addSampleStatus()
+                    s.addLightDamage()
+                },
+            }),
+            action({
+                id: "cheat_add_heavy_damage",
+                name: "Add heavy damage",
+                onCompleted: (model) => {
+                    const s = random(model.sub.subsystems.filter(s => s.takesDamage))
+                    s.addHeavyDamage()
                 },
             }),
         ]

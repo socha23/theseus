@@ -3,6 +3,7 @@ import { Effect, EffectsMixin, poweringUp, poweringDown, shutdown, EFFECT_CATEGO
 import { Point } from '../physics.js'
 
 export const SUBSYSTEM_CATEGORIES = {
+    DEFAULT: "DEFAULT",
     WEAPON: "WEAPON",
     STATUS: "STATUS",
     NAVIGATION: "NAVIGATION",
@@ -14,6 +15,7 @@ const DEFAULT_TEMPLATE = {
     powerConsumption: 0,
     gridSize: new Point(1, 1),
     takesDamage: true,
+    waterResistant: false,
 }
 
 
@@ -36,7 +38,9 @@ class TogglePowerAction extends ToggleAction {
 
     addErrorConditions(conditions, model) {
         super.addErrorConditions(conditions, model)
-        if (!this._subsystem.on && (model.sub.powerBalance < this._subsystem.nominalPowerConsumption)) {
+        if (!this._subsystem.on && !this._subsystem.waterResistant && this._subsystem.underWater) {
+            conditions.push("Under water")
+        } else if (!this._subsystem.on && (model.sub.powerBalance < this._subsystem.nominalPowerConsumption)) {
             conditions.push("Insufficient power")
         }
     }
@@ -57,6 +61,7 @@ export class Subsystem extends HasEffects {
 
         this.gridPosition = gridPosition
         this.gridSize = this.template.gridSize
+        this.underWater = false
     }
 
 
@@ -64,6 +69,18 @@ export class Subsystem extends HasEffects {
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
+
+        this._updateUnderWater(deltaMs, model)
+
+    }
+
+    _updateUnderWater(deltaMs, model) {
+        const myLevel = (model.sub.gridHeight - this.gridPosition.y) -  this.gridSize.y / 2
+        this.underWater = myLevel < model.sub.waterLevel
+        if (this.on && this.underWater && !this.waterResistant) {
+            this.shutdown()
+        }
+
     }
 
     toViewState() {
@@ -78,6 +95,7 @@ export class Subsystem extends HasEffects {
             gridPosition: this.gridPosition,
             gridSize: this.gridSize,
             statusEffects: this.statusEffects.map(e => e.toViewState()),
+            powerConsumption: this.powerConsumption,
 
         }
     }
@@ -131,9 +149,30 @@ export class Subsystem extends HasEffects {
         return this.effects.filter(e => e.statusEffect)
     }
 
-    addSampleStatus() {
+    get waterResistant() {
+        return this.template.waterResistant
+    }
+
+    get leak() {
+        var res = 0
+        this.statusEffects.forEach(e => {
+            res += e.leak
+        })
+        return res
+    }
+
+    addLightDamage() {
         this.addEffect(new SubsystemDamage(this, {
-            name: "Generic damage",
+            name: "Light damage",
+        }))
+    }
+
+    addHeavyDamage() {
+        this.addEffect(new SubsystemDamage(this, {
+            name: "Heavy damage",
+            type: DAMAGE_TYPES.HEAVY,
+            leak: 0.1,
+            repairTime: 5000,
         }))
     }
 
@@ -168,13 +207,15 @@ export class StatusEffect extends Effect {
 }
 
 export const DAMAGE_TYPES = {
-    DEFAULT: "damageDefault",
+    LIGHT: "damageLight",
+    HEAVY: "damageHeavy",
 }
 
 export const DEFAULT_DAMAGE_PARAMS = {
     category: EFFECT_CATEGORIES.DAMAGE,
-    type: DAMAGE_TYPES.DEFAULT,
+    type: DAMAGE_TYPES.LIGHT,
     repairTime: 3000,
+    leak: 0,
 }
 
 
@@ -198,6 +239,22 @@ export class SubsystemDamage extends StatusEffect {
     _addRepairErrors(errors) {
         if (this.subsystem.on) {
             errors.push("Must be powered off")
+        }
+    }
+
+    get type() {
+        return this.params.type
+    }
+
+    get leak() {
+        return this.params.leak || 0
+    }
+
+    toViewState() {
+        return {
+            ...super.toViewState(),
+            type: this.type,
+            leak: this.leak,
         }
     }
 

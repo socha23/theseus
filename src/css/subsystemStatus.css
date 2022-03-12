@@ -14,6 +14,11 @@
     flex-grow: 1;
 }
 
+.subsystem .statusEffects .effect .name .icon {
+    margin-right: 4px;
+}
+
+
 .subsystem .statusEffects .effect .button {
     _border: none;
 }

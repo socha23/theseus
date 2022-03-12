@@ -8,6 +8,7 @@ import {Weapon} from "./subsystems/weapons"
 import {Tracking } from "./subsystems/tracking"
 import {Sonar } from "./subsystems/sonar"
 import { Map } from "./map"
+import { Pumps } from "./subsystems/pumps"
 
 const WEAPON_TEMPLATES = {
     COILGUN: {
@@ -42,6 +43,15 @@ const SONAR_TEMPLATES = {
     }
 }
 
+const PUMP_TEMPLATES = {
+    BASIC_PUMP: {
+        pumpPower: 0.05,
+        powerConsumption: 10,
+        waterResistant: true,
+    }
+}
+
+
 const TRACKING_TEMPLATES = {
     BASIC_TRACKING: {
         range: 80,
@@ -53,6 +63,7 @@ const REACTOR_TEMPLATES = {
     BASIC_REACTOR: {
         maxOutput: 100,
         gridSize: new Point(1, 2),
+        waterResistant: true,
     }
 }
 
@@ -96,7 +107,9 @@ export function getStartingSub() {
 
             new Reactor(new Point(4, 0), "reactor", "Reactor", REACTOR_TEMPLATES.BASIC_REACTOR),
             new Engine(new Point(4, 2), "engine_2", "Engine", ENGINE_TEMPLATES.BASIC_ENGINE),
-            new Steering(new Point(4, 3), "steering_1", "Steering"),
+            new Steering(new Point(2, 3), "steering_1", "Steering"),
+
+            new Pumps(new Point(3, 2), "pumps0", "Pumps", PUMP_TEMPLATES.BASIC_PUMP),
     ])
 }
 

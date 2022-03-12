@@ -45,6 +45,7 @@ export class Pumps extends Subsystem {
             pumpPower: this.pumpPower,
             activePumpPower: this.activePumpPower,
             pumping: this.pumping,
+            isPumps: true,
         }
     }
 

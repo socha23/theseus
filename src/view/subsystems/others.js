@@ -7,7 +7,7 @@ import { STATISTICS } from "../../stats.js";
 ///////////////////////////////////
 
 export function SubStatus({subsystem}) {
-    return <div className='subStatus boxWithScroll'>
+    return <div className='subStatus'>
         {subsystem.on && <div>
             {
                 Object.values(STATISTICS).map(s =>
@@ -59,7 +59,7 @@ export function Cheatbox({subsystem, actionController}) {
 
 export function Tracking({subsystem}) {
     const tracking = subsystem.tracking
-    return <div className='tracking boxWithScroll'>
+    return <div className='tracking'>
 
         {subsystem.on && <div className="trackedEntity">
             { tracking ? <div>

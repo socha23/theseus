@@ -6,6 +6,7 @@ import { SubStatus, Tracking, Reactor, Steering, Cheatbox } from "./others";
 
 import '../../css/subsystemBox.css';
 import '../../css/subsystemStatus.css';
+import { Pumps } from "./pumps.js";
 
 
 ///////////////////////////////////
@@ -42,6 +43,9 @@ function SubsystemMainTab({subsystem, actionController}) {
             }
             {
                 subsystem.isSteering && <Steering subsystem={subsystem} actionController={actionController}/>
+            }
+            {
+                subsystem.isPumps && <Pumps subsystem={subsystem} actionController={actionController}/>
             }
         </div>
     </div>

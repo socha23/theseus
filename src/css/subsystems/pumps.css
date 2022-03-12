@@ -1,0 +1,42 @@
+.subsystem .pumps {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.subsystem .pumps .mainPane {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.subsystem .pumps .mainPane .topRow {
+    display: flex;
+    gap: 5px;
+}
+
+.subsystem .pumps .mainPane .pumpIcon {
+    font-size: 40pt;
+    padding: 4px;
+}
+
+.subsystem .pumps .mainPane .powerBox {
+    font-size: 20pt;
+    padding: 4px;
+    padding-left: 12px;
+    flex-grow: 1;
+}
+
+.subsystem .pumps.inactive .mainPane .pumpIcon {
+    color: #469528;
+}
+
+.subsystem .pumps.inactive .mainPane .powerBox {
+    color: #469528;
+}
+
+
+.subsystem .pumps .mainPane .infoBox {
+    display: flex;
+    flex-direction: column;
+}

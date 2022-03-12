@@ -9,8 +9,6 @@ export function SubsystemPowerInfo({subsystem}) {
 
     var tooltip = null;
 
-    console.log(subsystem)
-
     if (!subsystem.on) {
         tooltip = <div>
             Req power: {subsystem.nominalPowerConsumption} kW

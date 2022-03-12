@@ -7,6 +7,8 @@ export class Pumps extends Subsystem {
     constructor(gridPosition, id, name, template) {
         super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.DEFAULT, template)
         this.pumping = true
+        this.waterLevel = 0
+        this.waterFlow = 0
     }
 
     get pumpPower() {
@@ -33,6 +35,8 @@ export class Pumps extends Subsystem {
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
         this.pumping = (model.sub.waterLevel > 0)
+        this.waterLevel = model.sub.waterLevel
+        this.waterFlow = model.sub.leak
     }
 
     get leak() {
@@ -46,6 +50,8 @@ export class Pumps extends Subsystem {
             activePumpPower: this.activePumpPower,
             pumping: this.pumping,
             isPumps: true,
+            waterLevel: this.waterLevel,
+            waterFlow: this.waterFlow,
         }
     }
 

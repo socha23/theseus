@@ -82,25 +82,19 @@
 }
 
 
-.subsystem.shutdown {
-    animation-name: subsystemShutdown;
-    animation-duration: 0.5s;
-    border-color: #469528;
-    color: #469528
+.subsystem.poweringUp {
+    animation-name: subsystemPowerCycleOn;
+    animation-duration: 0.2s;
 }
 
 .subsystem.poweringDown {
     animation-name: subsystemPowerCycleOff;
     animation-duration: 0.2s;
-    border-color: #469528;
-    color: #469528
 }
 
-.subsystem.poweringUp {
-    animation-name: subsystemPowerCycleOn;
-    animation-duration: 0.2s;
-    border-color: #a5d000;
-    color: #ebf100;
+.subsystem.shutdown {
+    animation-name: subsystemShutdown;
+    animation-duration: 0.5s;
 }
 
 .subsystem.poweringUp .titleBar {

@@ -50,7 +50,6 @@ export class Sonar extends Subsystem {
         this.position = Point.ZERO
         this.range = template.range
         this.orientation = 0
-        this.template = template
         this.subVolume = new Volume(1, 1, 1)
         this.blips = []
         this.features = []

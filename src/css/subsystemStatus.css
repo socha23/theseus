@@ -1,7 +1,6 @@
 .subsystem .statusEffects {
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
 }
 
 .subsystem .statusEffects .effect {
@@ -9,4 +8,23 @@
     display: flex;
     align-items: center;
     min-height: 50px;
+}
+
+.subsystem .statusEffects .effect .name {
+    flex-grow: 1;
+}
+
+.subsystem .statusEffects .effect .button {
+    _border: none;
+}
+
+.subsystem .statusEffects .effect .button .icon {
+    display: none;
+}
+
+
+.subsystem .statusEffects .effect .body {
+    display: flex;
+    flex-direction: column;
+    color: #a5d000;
 }

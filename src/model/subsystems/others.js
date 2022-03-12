@@ -15,7 +15,6 @@ export class Reactor extends Subsystem {
     constructor(gridPosition, id, name, template) {
         super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, template)
 
-        this.template = template
         this.maxOutput = template.maxOutput
 
         this.fuel = 1
@@ -102,7 +101,7 @@ function random(list) {
 
 export class CheatBox extends Subsystem {
     constructor(gridPosition) {
-        super(gridPosition, "cheatbox", "Cheatbox", SUBSYSTEM_CATEGORIES.WEAPON)
+        super(gridPosition, "cheatbox", "Cheatbox", SUBSYSTEM_CATEGORIES.WEAPON, {takesDamage: false})
 
         this.cheats = [
             action({
@@ -121,7 +120,7 @@ export class CheatBox extends Subsystem {
                 id: "cheat_addstatus",
                 name: "Add random status",
                 onCompleted: (model) => {
-                    const s = random(model.sub.subsystems)
+                    const s = random(model.sub.subsystems.filter(s => s.takesDamage))
                     s.addSampleStatus()
                 },
             }),
@@ -146,7 +145,6 @@ export class CheatBox extends Subsystem {
 export class Engine extends Subsystem {
     constructor(gridPosition, id, name, template) {
         super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, template)
-        this.template = template
         this.force = template.force
         this.rotationalForce = template.rotationalForce
         this._subThrottle = 0
@@ -201,7 +199,7 @@ class DirectionAction extends PressAction {
 
 export class Steering extends Subsystem {
     constructor(gridPosition, id, name) {
-        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, {powerConsumption: 5})
+        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, {powerConsumption: 5, takesDamage: false})
 
         this._left = new DirectionAction(id + "_left", "Left", this, "fa-solid fa-angle-left", "a")
         this._right = new DirectionAction(id + "_right", "Right", this, "fa-solid fa-angle-right", "d")
@@ -265,7 +263,7 @@ export class Steering extends Subsystem {
 
 export class SubStatusScreen extends Subsystem {
     constructor(gridPosition, id, name) {
-        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.STATUS, {powerConsumption: 5})
+        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.STATUS, {powerConsumption: 5, takesDamage: false})
         this.position = {x: 0, y: 0}
         this.speed = 0
         this.orientation = 0

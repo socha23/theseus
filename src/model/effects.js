@@ -12,6 +12,7 @@ export const EFFECT_CATEGORIES = {
     DEFAULT: "default",
     VISUAL: "visual",
     STATUS: "status",
+    DAMAGE: "damage",
 }
 
 
@@ -79,7 +80,7 @@ export class Effect {
     }
 
     get category() {
-        return this._params.category
+        return this.params.category
     }
 
     get active() {
@@ -95,13 +96,14 @@ export class Effect {
         this.params.onCompleted(m)
     }
 
-    updateState(deltaMs, model) {
+    updateState(deltaMs, model, actionController) {
     }
 
     toViewState() {
         return {
             id: this.id,
             type: this.type,
+            category: this.category,
         }
     }
 
@@ -113,7 +115,8 @@ class TimedEffect extends Effect {
         this.durationMs = this.params.durationMs
     }
 
-    updateState(deltaMs, model) {
+    updateState(deltaMs, model, actionController) {
+        super.updateState(deltaMs, model, actionController)
         this.durationMs -= deltaMs
         if (this.durationMs <= 0) {
             this.onCompleted(model)
@@ -136,9 +139,9 @@ export class HasEffects {
         this._effects = []
     }
 
-    updateState(deltaMs, model) {
+    updateState(deltaMs, model, actionController) {
         this._effects = this._effects.filter(e => e.active)
-        this._effects.forEach(e => e.updateState(deltaMs, model))
+        this._effects.forEach(e => e.updateState(deltaMs, model, actionController))
     }
 
     addEffect(effect) {

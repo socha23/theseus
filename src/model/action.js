@@ -395,7 +395,7 @@ export class ProgressAction extends BaseAction {
         }
         if (!this.enabled) {
             this._deactivate(model)
-            this._complete(model)
+//            this._complete(model)
             this._resetProgress()
             return
         }

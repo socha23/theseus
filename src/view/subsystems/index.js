@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { ACTION_CATEGORY } from "../../model/action.js";
 import Sonar from "./sonar.js";
 import { ActionButton} from "../widgets"
 import { Weapon } from "./weapons"
@@ -19,7 +18,7 @@ const TABS = {
 
 
 function SubsystemMainTab({subsystem, actionController}) {
-    return <div className="tab">
+    return <div className="tab" onDragStart={e => false}>
         <div className='body'
             onMouseDown={e => {e.preventDefault(); return false}} /* disable drag & drop */
         >
@@ -48,22 +47,29 @@ function SubsystemMainTab({subsystem, actionController}) {
     </div>
 }
 
-function StatusEffect({subsystem, effect}) {
-    return <div className="effect">
-        <div className="name">
-            {effect.name}
+function StatusEffect({subsystem, effect, actionController}) {
+    return <div className={"effect " + effect.category + " "}>
+        <div className="body">
+            <div className="name">
+                {effect.name}
+            </div>
+        </div>
+        <div className="actions">
+            { effect.actions.map(a =>
+                <ActionButton action={a} actionController={actionController} key={a.id}/>
+            )}
         </div>
     </div>
 }
 
-function StatusTab({subsystem}) {
+function StatusTab({subsystem, actionController}) {
     const effects = subsystem.statusEffects
 
-    return <div className="tab">
+    return <div className="tab" onDragStart={e => false}>
             {(effects.length > 0 ?
                 <div className="statusEffects">
                     {
-                        effects.map(e => <StatusEffect key={e.id} effect={e} subsystem={subsystem}/>)
+                        effects.map(e => <StatusEffect key={e.id} effect={e} subsystem={subsystem} actionController={actionController}/>)
                     }
                 </div> : <div>
                     No active effects
@@ -123,13 +129,5 @@ export function Subsystem({subsystem, actionController}) {
         }
 
 
-    </div>
-}
-
-function ThrottleActions({actions, actionController}) {
-    return <div className='throttleActions'>
-        {
-            actions.map(a => <ActionButton key={a.id} action={a} actionController={actionController}/>)
-        }
     </div>
 }

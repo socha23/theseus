@@ -1,4 +1,4 @@
-import { ACTION_CATEGORY, ToggleAction  } from '../action'
+import { ACTION_CATEGORY, ToggleAction, action } from '../action'
 import { Effect, EffectsMixin, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects } from '../effects'
 import { Point } from '../physics.js'
 
@@ -13,6 +13,7 @@ export const SUBSYSTEM_CATEGORIES = {
 const DEFAULT_TEMPLATE = {
     powerConsumption: 0,
     gridSize: new Point(1, 1),
+    takesDamage: true,
 }
 
 
@@ -56,13 +57,12 @@ export class Subsystem extends HasEffects {
 
         this.gridPosition = gridPosition
         this.gridSize = this.template.gridSize
-
     }
 
 
 
     updateState(deltaMs, model, actionController) {
-        super.updateState(deltaMs, model)
+        super.updateState(deltaMs, model, actionController)
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
     }
 
@@ -123,14 +123,17 @@ export class Subsystem extends HasEffects {
         return []
     }
 
+    get takesDamage() {
+        return this.template.takesDamage
+    }
+
     get statusEffects() {
         return this.effects.filter(e => e.statusEffect)
     }
 
     addSampleStatus() {
-        this.addEffect(new StatusEffect({
-            name: "Sample effect",
-            type: "sample"
+        this.addEffect(new SubsystemDamage(this, {
+            name: "Generic damage",
         }))
     }
 
@@ -139,23 +142,64 @@ export class Subsystem extends HasEffects {
 
 export class StatusEffect extends Effect {
     constructor(params) {
-        super({...params, category: EFFECT_CATEGORIES.STATUS})
+        super(params)
         this.statusEffect = true
+        this._actions = []
     }
 
     toViewState() {
         return {
             ...super.toViewState(),
             name: this.name,
+            actions: this._actions.map(a => a.toViewState()),
         }
+    }
+
+    updateState(deltaMs, model, actionController) {
+        super.updateState(deltaMs. model, actionController)
+        this._actions.forEach(a => {
+            a.updateState(deltaMs, model, actionController)
+        })
     }
 
     get name() {
         return this.params.name
     }
+}
 
+export const DAMAGE_TYPES = {
+    DEFAULT: "damageDefault",
+}
 
+export const DEFAULT_DAMAGE_PARAMS = {
+    category: EFFECT_CATEGORIES.DAMAGE,
+    type: DAMAGE_TYPES.DEFAULT,
+    repairTime: 3000,
 }
 
 
+export class SubsystemDamage extends StatusEffect {
+    constructor(subsystem, params) {
+        super({...DEFAULT_DAMAGE_PARAMS, ...params})
+        this.subsystem = subsystem
+        this.repairAction = action({
+            id: this.id + "_repair",
+            name: "Repair",
+            longName: "Repair",
+            icon: "fa-solid fa-wrench",
+            addErrorConditions: c => this._addRepairErrors(c),
+            progressTime: this.params.repairTime,
+            requiresOperator: true,
+            onCompleted: m => {this.onCompleted()},
+        });
+        this._actions.push(this.repairAction)
+    }
 
+    _addRepairErrors(errors) {
+        if (this.subsystem.on) {
+            errors.push("Must be powered off")
+        }
+    }
+
+
+}

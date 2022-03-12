@@ -52,7 +52,7 @@ export class Weapon extends Subsystem {
             icon: "fa-solid fa-repeat",
             progressTime: template.reloadTime,
             addErrorConditions: c => this._addReloadErrors(c),
-            onCompleted: m => {this.ammo = this.template.ammoMax},
+            onCompleted: m => {console.log("C"); this.ammo = this.template.ammoMax},
             requiresOperator: true,
         });
 

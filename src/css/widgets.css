@@ -10,7 +10,7 @@ hr {
 .button {
     border: 2px solid #a5d000;
     border-radius: 8px;
-    padding: 4px 7px 4px 7px;
+    padding: 4px;
     color: #a5d000;
     position: relative;
     background-color: transparent;
@@ -37,6 +37,7 @@ hr {
 
 .button .progress {
     background-color: #ebf100;
+    border-radius: 3px;
     height: 100%;
 }
 
@@ -46,7 +47,7 @@ hr {
     align-items: center;
 }
 
-.button .name {
+.button .nameAndProgress {
     flex-grow: 1;
 }
 
@@ -120,17 +121,6 @@ hr {
 }
 
 
-
-.subsystem.powered .boxWithScroll {
-    overflow-x: auto;
-    overflow-y: scroll;
-}
-
-.subsystem.unpowered .boxWithScroll {
-    overflow-x: hidden;
-    overflow-y: hidden;
-}
-
 ::-webkit-scrollbar {
     background: #469528;
     width: 8px;
@@ -181,6 +171,26 @@ hr {
     min-width: 200px;
     position: absolute;
 }
+
+.tooltip .topRow {
+    display: flex;
+}
+
+.tooltip .topRow .longName {
+    flex-grow: 1;
+}
+
+.tooltip .topRow .progressNeeded {
+    color: #ebf100;
+}
+
+.tooltip .topRow .progressNeeded .icon {
+    font-size: 8pt;
+    margin-right: 2px;
+    position: relative;
+    top: -1px;
+}
+
 
 .tooltip .errorConditions {
     display: flex;

@@ -130,6 +130,8 @@
     overflow: hidden;
     position: relative;
     padding: 5px;
+    overflow-y: auto;
+
 }
 
 .subsystem .body {

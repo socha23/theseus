@@ -91,64 +91,6 @@ export class Reactor extends Subsystem {
 }
 
 ////////////////////////////////////////
-// CHEATBOX
-////////////////////////////////////////
-
-
-function random(list) {
-    return list[Math.floor(Math.random()*list.length)];
-}
-
-export class CheatBox extends Subsystem {
-    constructor(gridPosition) {
-        super(gridPosition, "cheatbox", "Cheatbox", SUBSYSTEM_CATEGORIES.WEAPON, {takesDamage: false})
-
-        this.cheats = [
-            action({
-                id: "cheat_startSub",
-                name: "Start Sub",
-                onCompleted: (model) => {
-                    model.sub.subsystems.forEach(s => {
-                        s.on = true
-                        if (s instanceof Reactor) {
-                            s.externalSetControl(1)
-                        }
-                    })
-                },
-            }),
-            action({
-                id: "cheat_add_light_damage",
-                name: "Add light damage",
-                onCompleted: (model) => {
-                    const s = random(model.sub.subsystems.filter(s => s.takesDamage))
-                    s.addLightDamage()
-                },
-            }),
-            action({
-                id: "cheat_add_heavy_damage",
-                name: "Add heavy damage",
-                onCompleted: (model) => {
-                    const s = random(model.sub.subsystems.filter(s => s.takesDamage))
-                    s.addHeavyDamage()
-                },
-            }),
-        ]
-
-        this.actions.push(...this.cheats)
-        this.on = true
-    }
-
-    toViewState() {
-        return {
-            ...super.toViewState(),
-            cheats: this.cheats.map(c => c.toViewState()),
-            isCheatbox: true,
-
-        }
-    }
-}
-
-////////////////////////////////////////
 
 export class Engine extends Subsystem {
     constructor(gridPosition, id, name, template) {

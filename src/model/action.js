@@ -51,7 +51,7 @@ export class BaseAction {
     }
 
 
-    usesPressToActivate() {
+    get usesPressToActivate() {
         return false
     }
 
@@ -117,7 +117,7 @@ export class BaseAction {
             name: this.name,
             iconClass: this.params.icon,
             recentlyCompleted: false,
-            usesPressToActivate: this.usesPressToActivate(),
+            usesPressToActivate: this.usesPressToActivate,
             enabled: this.enabled,
             active: this._active,
             category: this.params.category,
@@ -153,8 +153,8 @@ export class WrapperAction {
         this._innerAction = innerAction
     }
 
-    usesPressToActivate() {
-        return this._innerAction.usesPressToActivate()
+    get usesPressToActivate() {
+        return this._innerAction.usesPressToActivate
     }
 
     get id() {
@@ -228,7 +228,7 @@ export class WrapperAction {
 ///////////////
 
 export class PressAction extends BaseAction {
-    usesPressToActivate() {
+    get usesPressToActivate() {
         return true
     }
 

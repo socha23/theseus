@@ -100,7 +100,6 @@ class ActionController {
         Object.values(this._activeActions)
             .filter(a => !a.usesPressToActivate)
             .forEach(a => {delete this._activeActions[a.id]})
-
     }
 
     onSubsystemMoved(id, position) {

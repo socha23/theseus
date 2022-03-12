@@ -1,5 +1,6 @@
+import { randomElem } from '../../utils'
 import { ACTION_CATEGORY, ToggleAction, action } from '../action'
-import { Effect, EffectsMixin, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects } from '../effects'
+import { Effect, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects } from '../effects'
 import { Point } from '../physics.js'
 
 export const SUBSYSTEM_CATEGORIES = {
@@ -26,7 +27,9 @@ class TogglePowerAction extends ToggleAction {
             name: "Toggle power",
             icon: "fa-solid fa-power-off",
             category: ACTION_CATEGORY.SPECIAL,
-            onChange: (val) => {subsystem.addEffect(val ? poweringUp() : poweringDown())},
+            onChange: (val) => {
+                subsystem.addEffect(val ? poweringUp() : poweringDown())
+            },
         })
 
         this._subsystem = subsystem
@@ -69,6 +72,7 @@ export class Subsystem extends HasEffects {
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
+
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
 
         this._updateUnderWater(deltaMs, model)
@@ -119,11 +123,19 @@ export class Subsystem extends HasEffects {
     }
 
     get nominalPowerConsumption() {
-        return this._powerConsumption
+        var effectsMultiplier = 1
+        this.statusEffects.forEach(e => {
+            effectsMultiplier *= (e.powerConsumptionMultiplier || 1)
+        })
+        return this._powerConsumption * effectsMultiplier
     }
 
     get powerConsumption() {
-        return this.on ? this._powerConsumption : 0
+        var effectsMultiplier = 1
+        this.statusEffects.forEach(e => {
+            effectsMultiplier *= (e.powerConsumptionMultiplier || 1)
+        })
+        return this.on ? this._powerConsumption * effectsMultiplier : 0
     }
 
     get powerGeneration() {
@@ -167,18 +179,33 @@ export class Subsystem extends HasEffects {
     }
 
     addLightDamage() {
-        this.addEffect(new SubsystemDamage(this, {
-            name: "Light damage",
-        }))
+        const availableDamageTypes = this.getAvailableLightDamageTypes().filter(d => !this.hasEffectOfType(d))
+        const damage =  (availableDamageTypes.length > 0)
+            ? this.createDamageOfType(randomElem(availableDamageTypes))
+            : new SubsystemDamage(this, GENERIC_LIGHT_DAMAGE)
+
+        this.addEffect(damage)
     }
 
     addHeavyDamage() {
-        this.addEffect(new SubsystemDamage(this, {
-            name: "Heavy damage",
-            type: DAMAGE_TYPES.HEAVY,
-            leak: 0.1,
-            repairTime: 5000,
-        }))
+        const availableDamageTypes = this.getAvailableHeavyDamageTypes().filter(d => !this.hasEffectOfType(d))
+        const damage =  (availableDamageTypes.length > 0)
+            ? this.createDamageOfType(randomElem(availableDamageTypes))
+            : new SubsystemDamage(this, GENERIC_HEAVY_DAMAGE)
+
+        this.addEffect(damage)
+    }
+
+    getAvailableLightDamageTypes() {
+        return []
+    }
+
+    getAvailableHeavyDamageTypes() {
+        return []
+    }
+
+    createDamageOfType(type) {
+        throw "Can't create damage"
     }
 
 }
@@ -211,18 +238,27 @@ export class StatusEffect extends Effect {
     }
 }
 
-export const DAMAGE_TYPES = {
-    LIGHT: "damageLight",
-    HEAVY: "damageHeavy",
+export const GENERIC_LIGHT_DAMAGE = {
+    name: "Light damage",
+    type: "damageLight",
+    repairTime: 1000,
 }
+
+export const GENERIC_HEAVY_DAMAGE = {
+    name: "Heavy damage",
+    type: "damageHeavy",
+    repairTime: 5000,
+    leak: 0.1,
+}
+
 
 export const DEFAULT_DAMAGE_PARAMS = {
     category: EFFECT_CATEGORIES.DAMAGE,
-    type: DAMAGE_TYPES.LIGHT,
-    repairTime: 3000,
+    type: "damage",
+    repairTime: 1000,
     leak: 0,
+    powerConsumptionMultiplier: 1,
 }
-
 
 export class SubsystemDamage extends StatusEffect {
     constructor(subsystem, params) {
@@ -247,6 +283,10 @@ export class SubsystemDamage extends StatusEffect {
         }
     }
 
+    get powerConsumptionMultiplier() {
+        return this.params.powerConsumptionMultiplier
+    }
+
     get type() {
         return this.params.type
     }
@@ -262,6 +302,4 @@ export class SubsystemDamage extends StatusEffect {
             leak: this.leak,
         }
     }
-
-
 }

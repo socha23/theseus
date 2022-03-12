@@ -55,6 +55,7 @@ export class Subsystem extends HasEffects {
         this.category = category
         this.actions = []
         this._powerConsumption = this.template.powerConsumption
+        this._subPowerBalance = 0
 
         this._actionOn = new TogglePowerAction(this)
         this.actions.push(this._actionOn)
@@ -71,6 +72,7 @@ export class Subsystem extends HasEffects {
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
 
         this._updateUnderWater(deltaMs, model)
+        this._subPowerBalance = model.sub.powerBalance
 
     }
 
@@ -96,6 +98,9 @@ export class Subsystem extends HasEffects {
             gridSize: this.gridSize,
             statusEffects: this.statusEffects.map(e => e.toViewState()),
             powerConsumption: this.powerConsumption,
+            nominalPowerConsumption: this.nominalPowerConsumption,
+            subPowerBalance: this._subPowerBalance,
+
 
         }
     }

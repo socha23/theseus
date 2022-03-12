@@ -14,6 +14,7 @@ export class RandomShutdown extends SubsystemDamage {
             type: RandomShutdown.TYPE,
             name: "Torn cables",
             repairTime: 5000,
+            description: "Shuts down sometimes"
         })
         this.everyS = everyS
     }
@@ -35,7 +36,26 @@ export class IncreasedPowerConsumption extends SubsystemDamage {
             name: "Damaged transformer",
             repairTime: 5000,
             powerConsumptionMultiplier: 2,
+            description: "Increased power consumption",
             ...params,
         })
+    }
+}
+
+export class BrokenDown extends SubsystemDamage {
+    static TYPE = "damageBrokenDown"
+
+    constructor(subsystem, params) {
+        super(subsystem, {
+            type: BrokenDown.TYPE,
+            name: "Broken down",
+            description: "Can't be turned on",
+            repairTime: 5000,
+            ...params,
+        })
+    }
+
+    addPowerErrorConditions(c, model) {
+        c.push(this.name)
     }
 }

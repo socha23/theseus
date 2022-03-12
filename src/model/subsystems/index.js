@@ -46,6 +46,7 @@ class TogglePowerAction extends ToggleAction {
         } else if (!this._subsystem.on && (model.sub.powerBalance < this._subsystem.nominalPowerConsumption)) {
             conditions.push("Insufficient power")
         }
+        this._subsystem.addStatusPowerErrorConditions(conditions, model)
     }
 }
 
@@ -68,7 +69,12 @@ export class Subsystem extends HasEffects {
         this.underWater = false
     }
 
-
+    addStatusPowerErrorConditions(c, model) {
+        const result = []
+        this.statusEffects.forEach(e => {
+            e.addPowerErrorConditions(c, model)
+        })
+    }
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
@@ -179,24 +185,30 @@ export class Subsystem extends HasEffects {
     }
 
     addLightDamage() {
-        const availableDamageTypes = this.getAvailableLightDamageTypes().filter(d => !this.hasEffectOfType(d))
-        const damage =  (availableDamageTypes.length > 0)
-            ? this.createDamageOfType(randomElem(availableDamageTypes))
-            : new SubsystemDamage(this, GENERIC_LIGHT_DAMAGE)
+        this._addDamage(this.getAvailableLightDamageTypes(), new SubsystemDamage(this, GENERIC_LIGHT_DAMAGE))
+    }
 
-        this.addEffect(damage)
+    addMediumDamage() {
+        this._addDamage(this.getAvailableMediumDamageTypes(), new SubsystemDamage(this, GENERIC_MEDIUM_DAMAGE))
     }
 
     addHeavyDamage() {
-        const availableDamageTypes = this.getAvailableHeavyDamageTypes().filter(d => !this.hasEffectOfType(d))
+        this._addDamage(this.getAvailableHeavyDamageTypes(), new SubsystemDamage(this, GENERIC_HEAVY_DAMAGE))
+    }
+
+    _addDamage(types, defaultDamage) {
+        const availableDamageTypes = types.filter(d => !this.hasEffectOfType(d))
         const damage =  (availableDamageTypes.length > 0)
             ? this.createDamageOfType(randomElem(availableDamageTypes))
-            : new SubsystemDamage(this, GENERIC_HEAVY_DAMAGE)
-
+            : defaultDamage
         this.addEffect(damage)
     }
 
     getAvailableLightDamageTypes() {
+        return []
+    }
+
+    getAvailableMediumDamageTypes() {
         return []
     }
 
@@ -233,19 +245,41 @@ export class StatusEffect extends Effect {
         })
     }
 
+    addPowerErrorConditions(c, model) {
+
+    }
+
     get name() {
         return this.params.name
     }
 }
 
+export const DAMAGE_CATEGORY = {
+    LIGHT: 1,
+    MEDIUM: 2,
+    HEAVY: 3
+}
+
 export const GENERIC_LIGHT_DAMAGE = {
+    damageCategory: DAMAGE_CATEGORY.LIGHT,
     name: "Light damage",
+    description: "Generic light damage",
     type: "damageLight",
     repairTime: 1000,
 }
 
+export const GENERIC_MEDIUM_DAMAGE = {
+    damageCategory: DAMAGE_CATEGORY.MEDIUM,
+    name: "Medium damage",
+    description: "Generic medium damage",
+    type: "damageMedium",
+    repairTime: 3000,
+}
+
 export const GENERIC_HEAVY_DAMAGE = {
+    damageCategory: DAMAGE_CATEGORY.HEAVY,
     name: "Heavy damage",
+    description: "Generic heavy damage",
     type: "damageHeavy",
     repairTime: 5000,
     leak: 0.1,
@@ -254,6 +288,8 @@ export const GENERIC_HEAVY_DAMAGE = {
 
 export const DEFAULT_DAMAGE_PARAMS = {
     category: EFFECT_CATEGORIES.DAMAGE,
+    description: "Damage",
+    damageCategory: DAMAGE_CATEGORY.MEDIUM,
     type: "damage",
     repairTime: 1000,
     leak: 0,
@@ -283,6 +319,10 @@ export class SubsystemDamage extends StatusEffect {
         }
     }
 
+    get damageCategory() {
+        return this.params.damageCategory
+    }
+
     get powerConsumptionMultiplier() {
         return this.params.powerConsumptionMultiplier
     }
@@ -295,11 +335,17 @@ export class SubsystemDamage extends StatusEffect {
         return this.params.leak || 0
     }
 
+    get description() {
+        return this.params.description
+    }
+
     toViewState() {
         return {
             ...super.toViewState(),
             type: this.type,
             leak: this.leak,
+            description: this.description,
+            damageCategory: this.damageCategory,
         }
     }
 }

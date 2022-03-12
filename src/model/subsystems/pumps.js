@@ -1,5 +1,5 @@
-import { IncreasedPowerConsumption, RandomShutdown } from './damage'
-import { Subsystem, SUBSYSTEM_CATEGORIES, SubsystemDamage } from './index'
+import { BrokenDown, IncreasedPowerConsumption, RandomShutdown } from './damage'
+import { Subsystem, SUBSYSTEM_CATEGORIES, SubsystemDamage, DAMAGE_CATEGORY } from './index'
 
 
 const STANDBY_CONSUMPTION = 0.05
@@ -10,8 +10,18 @@ export class Pumps extends Subsystem {
         this.pumping = true
         this.waterLevel = 0
         this.waterFlow = 0
-        this.engagesAt = 0.4
-        this.disengagesAt = 0.1
+        this._engagesAt = 0.4
+        this._disengagesAt = 0.1
+    }
+
+    get engagesAt() {
+        const effect = this.statusEffects.find(e => e instanceof HigherEngage)
+        return this._engagesAt + (effect ? effect.engage : 0)
+    }
+
+    get disengagesAt() {
+        const effect = this.statusEffects.find(e => e instanceof HigherEngage)
+        return this._disengagesAt + (effect ? effect.disengage : 0)
     }
 
     get pumpPower() {
@@ -22,6 +32,11 @@ export class Pumps extends Subsystem {
         })
 
         return this.template.pumpPower * multiplier
+    }
+
+
+    get waterResistant() {
+        return super.waterResistant && (!this.statusEffects.some(e => e instanceof TankBreach))
     }
 
     get activePumpPower() {
@@ -75,12 +90,25 @@ export class Pumps extends Subsystem {
             RandomShutdown.TYPE,
             IncreasedPowerConsumption.TYPE,
             LeakySeal.TYPE,
+        ]
+    }
+
+
+    getAvailableMediumDamageTypes() {
+        return [
+            ...super.getAvailableMediumDamageTypes(),
             ReducedPumpPower.TYPE,
+            HigherEngage.TYPE,
         ]
     }
 
     getAvailableHeavyDamageTypes() {
-        return []
+        return [
+            ...super.getAvailableHeavyDamageTypes(),
+            TankBreach.TYPE,
+            BrokenDown.TYPE,
+            RupturedBearing.TYPE,
+        ]
     }
 
     createDamageOfType(type) {
@@ -96,10 +124,29 @@ export class Pumps extends Subsystem {
         if (type === ReducedPumpPower.TYPE) {
             return new ReducedPumpPower(0.5, this)
         }
+        if (type === HigherEngage.TYPE) {
+            return new HigherEngage(this, {})
+        }
+        if (type === TankBreach.TYPE) {
+            return new TankBreach(this, {})
+        }
+        if (type === BrokenDown.TYPE) {
+            return motorBroken(this)
+        }
+        if (type === RupturedBearing.TYPE) {
+            return new RupturedBearing(this)
+        }
         return super.createDamageOfType(type)
     }
 
 }
+
+//////////
+// LIGHT DAMAGE
+//////////
+
+// RandomShutdown
+// IncPowerConsumption
 
 export class LeakySeal extends SubsystemDamage {
     static TYPE = "damageLeakySeal"
@@ -107,7 +154,9 @@ export class LeakySeal extends SubsystemDamage {
     constructor(subsystem, params) {
         super(subsystem, {
             type: LeakySeal.TYPE,
+            damageCategory: DAMAGE_CATEGORY.LIGHT,
             name: "Leaky seal",
+            description: "Slowly leaks water",
             repairTime: 5000,
             leak: 0.02,
             ...params,
@@ -115,13 +164,19 @@ export class LeakySeal extends SubsystemDamage {
     }
 }
 
+//////////
+// MEDIUM DAMAGE
+//////////
+
 export class ReducedPumpPower extends SubsystemDamage {
     static TYPE = "damageReducedPumpPower"
 
     constructor(multiplier, subsystem, params) {
         super(subsystem, {
             type: ReducedPumpPower.TYPE,
+            damageCategory: DAMAGE_CATEGORY.MEDIUM,
             name: "Bent plunger",
+            description: "Reduced pumping power",
             repairTime: 5000,
             ...params,
         })
@@ -129,9 +184,67 @@ export class ReducedPumpPower extends SubsystemDamage {
     }
 }
 
-// engage and disengage at higher water level
+export class HigherEngage extends SubsystemDamage {
+    static TYPE = "damageHigherEngage"
+
+    constructor(subsystem, params, engage = 2, disengage = 1) {
+        super(subsystem, {
+            type: HigherEngage.TYPE,
+            damageCategory: DAMAGE_CATEGORY.MEDIUM,
+            name: "Sensor broken",
+            description: "Engages only at high water level",
+            repairTime: 5000,
+            ...params,
+        })
+        this.engage = engage
+        this.disengage = disengage
+    }
+}
+
+
+
+//////////
+// HEAVY DAMAGE
+//////////
 
 // tank breach, can't operate underwater
+export class TankBreach extends SubsystemDamage {
+    static TYPE = "damageTankBreach"
+
+    constructor(subsystem, params) {
+        super(subsystem, {
+            type: TankBreach.TYPE,
+            damageCategory: DAMAGE_CATEGORY.HEAVY,
+            name: "Pipes ruptured",
+            description: "Can't operate underwater",
+            repairTime: 5000,
+            ...params,
+        })
+    }
+}
 
 // motor broken, no use
+function motorBroken(subsystem, params = {}) {
+    return new BrokenDown(subsystem, {
+        name: "Motor busted",
+        damageCategory: DAMAGE_CATEGORY.HEAVY,
+        ...params,
+    })
+}
+
 // ruptured bearing , leak
+export class RupturedBearing extends SubsystemDamage {
+    static TYPE = "damageRupturedBearing"
+
+    constructor(subsystem, params) {
+        super(subsystem, {
+            type: RupturedBearing.TYPE,
+            damageCategory: DAMAGE_CATEGORY.HEAVY,
+            name: "Broken bearing",
+            description: "Strong water leak",
+            repairTime: 5000,
+            leak: 0.1,
+            ...params,
+        })
+    }
+}

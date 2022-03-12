@@ -169,7 +169,6 @@ export class Sub extends Entity {
 
     onCollision(collision) {
         super.onCollision(collision)
-        console.log("COLISION", collision)
     }
 
     get leak() {

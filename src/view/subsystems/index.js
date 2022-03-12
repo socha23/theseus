@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Sonar from "./sonar.js";
 import { ActionButton} from "../widgets"
 import { Weapon } from "./weapons"
 import { SubStatus, Tracking, Reactor, Steering, Cheatbox } from "./others";
+import { TooltipContext } from "../tooltip.js";
 
 import '../../css/subsystemBox.css';
 import '../../css/subsystemStatus.css';
@@ -52,9 +53,15 @@ function SubsystemMainTab({subsystem, actionController}) {
 }
 
 function StatusEffect({subsystem, effect, actionController}) {
+    const tooltipCtx = useContext(TooltipContext)
+    const tooltip = <div>{effect.description}</div>
+
     return <div className={"effect " + effect.category + " "}>
         <div className="body">
-            <div className="name">
+            <div className="name"
+                onMouseOver ={e => {tooltipCtx.tooltip = tooltip}}
+                onMouseOut ={e => {tooltipCtx.tooltip = null}}
+            >
                 {
                     (effect.leak > 0) && <i className="icon fa-solid fa-droplet"/>
                 }

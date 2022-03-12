@@ -23,10 +23,17 @@ export class CheatBox extends Subsystem {
             }),
             action({
                 id: "cheat_add_pump_light_damage",
-                name: "Pump light damage",
+                name: "Pump damage",
                 onCompleted: (model) => {
                     const s = model.sub.subsystems.find(s => s instanceof Pumps)
-                    s.addLightDamage()
+                    const r = Math.random()
+                    if (r < 0.33) {
+                        s.addLightDamage()
+                    } else if (r < 0.66) {
+                        s.addMediumDamage()
+                    } else {
+                        s.addHeavyDamage()
+                    }
                 },
             }),
             action({
@@ -35,6 +42,14 @@ export class CheatBox extends Subsystem {
                 onCompleted: (model) => {
                     const s = randomElem(model.sub.subsystems.filter(s => s.takesDamage))
                     s.addLightDamage()
+                },
+            }),
+            action({
+                id: "cheat_add_medium_damage",
+                name: "Add medium damage",
+                onCompleted: (model) => {
+                    const s = randomElem(model.sub.subsystems.filter(s => s.takesDamage))
+                    s.addMediumDamage()
                 },
             }),
             action({

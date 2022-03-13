@@ -1,0 +1,28 @@
+.button.slim .materials {
+    position: absolute;
+    z-index: 100;
+    top: -5px;
+    left: 2px;
+}
+
+.materials {
+    display: flex;
+    gap: 4px;
+}
+
+.materials .materialIcon {
+    font-size: 10pt;
+}
+
+.materials .material {
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.materials .material.unavailable {
+    color: red;
+}
+
+
+

@@ -3,7 +3,10 @@ export const MATERIALS = {
     LEAK_SEALS: "leakSeals",
 }
 
-
+export const MATERIALS_IN_ORDER = [
+    MATERIALS.SPARE_PARTS,
+    MATERIALS.LEAK_SEALS,
+]
 
 export const MATERIAL_TYPES = {
     AMMO: "ammo",

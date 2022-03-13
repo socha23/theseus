@@ -115,7 +115,7 @@ export function getStartingSub() {
             new Pumps(new Point(3, 2), "pumps0", "Pumps", PUMP_TEMPLATES.BASIC_PUMP),
             new Storage(new Point(3, 3), "storage0", "Storage", {
                 [MATERIALS.SPARE_PARTS]: 30,
-                [MATERIALS.LEAK_SEALS]: 20,
+                [MATERIALS.LEAK_SEALS]: 0,
             }),
     ])
 }

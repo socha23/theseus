@@ -2,6 +2,7 @@ import { randomElem } from '../../utils'
 import { ACTION_CATEGORY, ToggleAction, action } from '../action'
 import { Effect, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects, lightDamage, mediumDamage, heavyDamage } from '../effects'
 import { Point } from '../physics.js'
+import { MATERIALS } from '../materials'
 
 export const SUBSYSTEM_CATEGORIES = {
     DEFAULT: "DEFAULT",
@@ -251,7 +252,7 @@ export class StatusEffect extends Effect {
     }
 
     updateState(deltaMs, model, actionController) {
-        super.updateState(deltaMs. model, actionController)
+        super.updateState(deltaMs.model, actionController)
         this._actions.forEach(a => {
             a.updateState(deltaMs, model, actionController)
         })
@@ -278,6 +279,9 @@ export const GENERIC_LIGHT_DAMAGE = {
     description: "Generic light damage",
     type: "damageLight",
     repairTime: 1000,
+    requiredMaterials: {
+        [MATERIALS.SPARE_PARTS]: 1,
+    }
 }
 
 export const GENERIC_MEDIUM_DAMAGE = {
@@ -286,6 +290,9 @@ export const GENERIC_MEDIUM_DAMAGE = {
     description: "Generic medium damage",
     type: "damageMedium",
     repairTime: 3000,
+    requiredMaterials: {
+        [MATERIALS.SPARE_PARTS]: 2,
+    }
 }
 
 export const GENERIC_HEAVY_DAMAGE = {
@@ -295,6 +302,9 @@ export const GENERIC_HEAVY_DAMAGE = {
     type: "damageHeavy",
     repairTime: 5000,
     leak: 0.1,
+    requiredMaterials: {
+        [MATERIALS.LEAK_SEALS]: 1,
+    }
 }
 
 
@@ -306,6 +316,7 @@ export const DEFAULT_DAMAGE_PARAMS = {
     repairTime: 1000,
     leak: 0,
     powerConsumptionMultiplier: 1,
+    requiredMaterials: {},
 }
 
 export class SubsystemDamage extends StatusEffect {
@@ -321,8 +332,10 @@ export class SubsystemDamage extends StatusEffect {
             requiresOperator: true,
             onEnterActive: m => {this.subsystem.on = false},
             onCompleted: m => {this.onCompleted()},
+            requiredMaterials: this.params.requiredMaterials,
         });
         this._actions.push(this.repairAction)
+        this.materialsMissing = false
     }
 
     get damageCategory() {

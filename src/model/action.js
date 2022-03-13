@@ -25,6 +25,7 @@ const BASE_ACTION_PARAMS = {
     onChange: (newVal, oldVal) => {},
     activeUntilCancel: false,
     requiresOperator: false,
+    requiredMaterials: {},
 }
 
 
@@ -71,19 +72,41 @@ export class BaseAction {
         return this.params.isVisible()
     }
 
-    addErrorConditions(conditions, model) {
-        this.params.addErrorConditions(conditions, model)
+    get requiredMaterials() {
+        return this.params.requiredMaterials
     }
 
-    execute(model) {
-        this._activate(model)
+    addErrorConditions(conditions, model) {
+        this.params.addErrorConditions(conditions, model)
+        if (this._requiresMaterials) {
+            const store = model.sub.getStorage()
+            const missingMats = Object.keys(this.requiredMaterials)
+                .filter(matId =>  store.getCount(matId) < this.requiredMaterials[matId])
+                .length
+
+
+            if (missingMats) {
+                conditions.push("Missing materials")
+            }
+        }
+    }
+
+    execute(model, payMaterials = true) {
+        this._activate(model, payMaterials)
         if (!this.params.activeUntilCancel) {
             this._deactivate(model)
             this._complete(model)
         }
     }
 
-    _activate(model) {
+    _activate(model, payMaterials) {
+        if (payMaterials && this._requiresMaterials()) {
+            const storage = model.sub.getStorage()
+            Object.keys(this.requiredMaterials).forEach(matId => {
+                storage.take(matId, this.requiredMaterials[matId])
+            })
+        }
+
         this._active = true
         this.onEnterActive(model)
         this.params.onEnterActive(model)
@@ -100,6 +123,10 @@ export class BaseAction {
         this.params.onCompleted(model)
     }
 
+    _requiresMaterials() {
+        return Object.keys(this.requiredMaterials).length > 0
+    }
+
     onEnterActive(model) {
     }
 
@@ -111,6 +138,7 @@ export class BaseAction {
 
     onCancelled(model) {
     }
+
 
     toViewState() {
         return {
@@ -126,6 +154,7 @@ export class BaseAction {
             longName: this.longName,
             showTooltip: true,
             errorConditions: this.errorConditions,
+            requiredMaterials: this.requiredMaterials,
         }
     }
 
@@ -147,82 +176,6 @@ export class BaseAction {
     }
 }
 
-
-export class WrapperAction {
-    constructor(innerAction) {
-        this._innerAction = innerAction
-    }
-
-    get usesPressToActivate() {
-        return this._innerAction.usesPressToActivate
-    }
-
-    get id() {
-        return this._innerAction.id
-    }
-
-    get name() {
-        return this._innerAction.name
-    }
-
-    get longName() {
-        return this._innerAction.longName
-    }
-
-    get visible() {
-        return this._innerAction.visible
-    }
-
-    get key() {
-        return this._innerAction.key
-    }
-
-    get active() {
-        return this._innerAction.active
-    }
-
-    get enabled() {
-        return this._innerAction.enabled
-    }
-
-    addErrorConditions(c, m) {
-        super.addErrorConditions(c, m)
-        this._innerAction.addErrorConditions(c, m)
-    }
-
-
-    execute(model) {
-        this._innerAction.execute(model)
-    }
-
-    onEnterActive(model) {
-        this._innerAction.onEnterActive(model)
-    }
-
-    onExitActive(model) {
-        this._innerAction.onExitActive(model)
-    }
-
-    onCompleted(model) {
-        this._innerAction.onCompleted(model)
-    }
-
-    cancel(model) {
-        this._innerAction.cancel(model)
-    }
-
-    onCancelled(model) {
-        this._innerAction.onCancelled(model)
-    }
-
-    toViewState() {
-        return this._innerAction.toViewState()
-    }
-
-    updateState(deltaMs, model, actionController) {
-        this._innerAction.updateState(deltaMs, model, actionController)
-    }
-}
 
 ///////////////
 // PRESS AND CLICK
@@ -343,8 +296,8 @@ export class ProgressAction extends BaseAction {
         this._progressing = false
     }
 
-    execute(model) {
-        this._activate(model)
+    execute(model, payMaterials=true) {
+        this._activate(model, payMaterials)
         this._progressing = true
     }
 
@@ -405,7 +358,7 @@ export class ProgressAction extends BaseAction {
         this._progress += deltaMs
         if (this._progress > this._progressMax) {
             this._resetProgress()
-            this._inner.execute(model)
+            this._inner.execute(model, false)
             this._deactivate(model)
             this._complete(model)
         }
@@ -440,9 +393,9 @@ export class OperatorAction extends ProgressAction {
         this._operator = null
     }
 
-    _activate(model) {
+    _activate(model, payMaterials) {
         this._operator = model.sub.assignOperator(this)
-        super._activate(model)
+        super._activate(model, payMaterials)
     }
 
     _deactivate(model) {

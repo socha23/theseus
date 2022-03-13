@@ -103,6 +103,8 @@ hr {
     background-color: #469528;
     height: 8px;
     width: 50px;
+    position: relative;
+    z-index: 1;
 }
 
 .button.slim .progress {
@@ -118,15 +120,12 @@ hr {
 }
 
 .button.slim .nameAndProgress {
-    display: flex;
-    flex-grow: 1;
+    position: relative;
 }
 
 .button.slim .name {
     display: none;
 }
-
-
 
 
 

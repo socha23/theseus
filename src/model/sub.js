@@ -2,6 +2,7 @@ import { OperatorController } from './action.js'
 import {Point, Body } from './physics.js'
 import { Entity } from './entities.js'
 
+import { Storage } from './subsystems/storage'
 import { Engine, Steering } from './subsystems/others'
 import { randomElem } from '../utils.js'
 import { shake } from './effects.js'
@@ -16,6 +17,7 @@ export class Sub extends Entity {
 
         this._engine = this._findSubsystem(Engine)
         this._steering = this._findSubsystem(Steering)
+        this._storage = this._findSubsystem(Storage)
 
         this.gridWidth = 5
         this.gridHeight = 5
@@ -168,6 +170,7 @@ export class Sub extends Entity {
             gridHeight: this.gridHeight,
             gridBusy: this._gridBusyCache,
             waterLevel: this.waterLevel,
+            inventory: this._storage.inventory,
         }
     }
 
@@ -260,6 +263,14 @@ export class Sub extends Entity {
         }
         this.subsystems.forEach(s => s.addInterestingMaterialsIds(res))
         return res
+    }
+
+    getStorage() {
+        return this._storage
+    }
+
+    get inventoryCounts() {
+        return this._storage.inventory
     }
 
 }

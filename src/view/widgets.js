@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import ReactSlider from "react-slider";
-import { TooltipContext } from "./tooltip";
-
+import { MATERIALS, MATERIALS_IN_ORDER, MATERIAL_DEFINITIONS } from "../model/materials";
+import { Tooltip, TooltipContext } from "./tooltip";
+import { Materials, RequiredInventory } from "./materials";
 
 
 export function VertSlider({id, actionController, children, enabled=true}) {
@@ -21,6 +22,28 @@ export function VertSlider({id, actionController, children, enabled=true}) {
     </div>
 }
 
+function ActionTooltip({action}) {
+    return <div>
+    <div className="topRow">
+        <div className="longName">{action.longName}</div>
+        {(action.progressMax > 0) &&
+            <div className="progressNeeded">
+                <i className="icon fa-solid fa-clock"/>
+                {(action.progressMax / 1000).toFixed(0)}s
+            </div>
+        }
+    </div>
+    {
+        (Object.keys(action.requiredMaterials).length > 0) &&
+        <Materials materials={action.requiredMaterials} filterOnes={false}/>
+    }
+    <div className="errorConditions">
+    {
+        action.errorConditions.map(c => <div className="condition" key={c}>{c}</div>)
+    }
+    </div>
+</div>
+}
 
 
 export function ActionButton({action, actionController, className="default"}) {
@@ -42,25 +65,11 @@ export function ActionButton({action, actionController, className="default"}) {
     }
 
     const tooltipCtx = useContext(TooltipContext)
+    const requiredInventory = useContext(RequiredInventory)
 
     var tooltip = null
     if (action.showTooltip) {
-        tooltip = <div>
-            <div className="topRow">
-                <div className="longName">{action.longName}</div>
-                {(action.progressMax > 0) &&
-                    <div className="progressNeeded">
-                        <i className="icon fa-solid fa-clock"/>
-                        {(action.progressMax / 1000).toFixed(0)}s
-                    </div>
-                }
-            </div>
-            <div className="errorConditions">
-            {
-                action.errorConditions.map(c => <div className="condition" key={c}>{c}</div>)
-            }
-            </div>
-        </div>
+        tooltip = <ActionTooltip action={action}/>
     }
 
     return <div
@@ -73,8 +82,14 @@ export function ActionButton({action, actionController, className="default"}) {
         onClick={e => actionController.onClick(action)}
         onMouseDown={e => actionController.onMouseDown(action)}
 
-        onMouseOver ={e => {tooltipCtx.tooltip = tooltip}}
-        onMouseOut ={e => {tooltipCtx.tooltip = null}}
+        onMouseOver = {e => {
+            tooltipCtx.tooltip = tooltip
+            requiredInventory.values = action.requiredMaterials
+        }}
+        onMouseOut = {e => {
+            tooltipCtx.tooltip = null
+            requiredInventory.values = {}
+        }}
     >
         <div className='container'>
             <i className={'icon ' + action.iconClass}/>
@@ -87,6 +102,7 @@ export function ActionButton({action, actionController, className="default"}) {
                         <div className='progress' style={{width: getProgressWidth(action) + "%"}}/>
                     </div>
                 }
+                <Materials materials={action.requiredMaterials}/>
             </div>
         </div>
     </div>

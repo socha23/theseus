@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
 import {SubsystemCell, DropTargets, GRID_CELL_HEIGHT, GRID_CELL_WIDTH} from "./grid"
 import {Subsystem} from "./subsystems"
 import { TooltipArea } from "./tooltip";
 import '../css/water.css';
+import { AvailableInventory, InventoryContext, RequiredInventory } from "./materials";
 
 
 function Water({waterLevel}) {
@@ -18,30 +19,36 @@ function Sub({sub, actionController}) {
     sub.effects.forEach(e => {
         subClass += e.type + " "
     })
-    return  <div className="subContainer" style={{width: (sub.gridWidth + 1) * GRID_CELL_WIDTH, height: sub.gridHeight * GRID_CELL_HEIGHT}}>
-        <div className={'sub ' + subClass}>
-            <div className='subsystems' >
-            {
-                sub.subsystems
-                        .map(s =>
-                        <SubsystemCell key={s.id + "_cell"} subsystem={s}>
-                            <Subsystem key={s.id} subsystem={s} actionController={actionController}/>
-                        </SubsystemCell>
-                        )}
-            </div>
-            <DropTargets sub={sub} actionController={actionController}/>
+    return <div className="subContainer" style={{width: (sub.gridWidth + 1) * GRID_CELL_WIDTH, height: sub.gridHeight * GRID_CELL_HEIGHT}}>
+            <div className={'sub ' + subClass}>
+                    <div className='subsystems' >
+                    {
+                        sub.subsystems
+                                .map(s =>
+                                <SubsystemCell key={s.id + "_cell"} subsystem={s}>
+                                    <Subsystem key={s.id} subsystem={s} actionController={actionController}/>
+                                </SubsystemCell>
+                                )}
+                    </div>
+                    <DropTargets sub={sub} actionController={actionController}/>
+                            </div>
+            {(sub.waterLevel > 0) && <Water waterLevel={sub.waterLevel}/>}
         </div>
-        {(sub.waterLevel > 0) && <Water waterLevel={sub.waterLevel}/>}
-
-    </div>
 }
 
 
 function GameView({model, actionController}) {
+    const availableInventory = useContext(AvailableInventory)
+    const requiredInventory = useContext(RequiredInventory)
+    availableInventory.values = model.sub.inventory
     return <div className="gameView">
-        <TooltipArea>
-            <Sub sub={model.sub} actionController={actionController}/>
-        </TooltipArea>
+        <AvailableInventory.Provider value={availableInventory}>
+            <RequiredInventory.Provider value={requiredInventory}>
+            <TooltipArea>
+                <Sub sub={model.sub} actionController={actionController}/>
+            </TooltipArea>
+            </RequiredInventory.Provider>
+        </AvailableInventory.Provider>
     </div>
 }
 

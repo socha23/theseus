@@ -80,17 +80,20 @@ function StatusEffect({subsystem, effect, actionController}) {
     </div>
 }
 
-function StatusTab({subsystem, actionController}) {
+function StatusTab({subsystem, actionController, toggleActiveTab}) {
     const effects = subsystem.statusEffects
 
-    return <div className="tab" onDragStart={e => false}>
+    return <div className="tab statusTab" onDragStart={e => false}>
             {(effects.length > 0 ?
                 <div className="statusEffects">
                     {
                         effects.map(e => <StatusEffect key={e.id} effect={e} subsystem={subsystem} actionController={actionController}/>)
                     }
-                </div> : <div>
-                    No active effects
+                </div> : <div className="noStatusEffects">
+                    <div>No active effects</div>
+                    <div><a onClick={() => {toggleActiveTab()}}>Back to main view</a></div>
+
+
                 </div>
             )}
         </div>
@@ -143,12 +146,6 @@ function StatusTabIcon({subsystem, active, onClick}) {
                     <i className="fa-solid fa-screwdriver-wrench" />
                 </span>
                 <StatusTabMarks effects={subsystem.statusEffects} />
-
-                {/*(subsystem.statusEffects.length > 0) &&
-                    <span className="effectCount">
-                        {subsystem.statusEffects.length}
-                    </span>
-                */}
             </span>
     </div>
 
@@ -158,6 +155,15 @@ function StatusTabIcon({subsystem, active, onClick}) {
 export function Subsystem({subsystem, actionController}) {
 
     var [activeTab, setActiveTab] = useState(TABS.MAIN)
+
+
+    function toggleActiveTab() {
+        if (activeTab === TABS.MAIN) {
+            setActiveTab(TABS.STATUS)
+        } else {
+            setActiveTab(TABS.MAIN)
+        }
+    }
 
     let effectsClassName = ""
     subsystem.effects.forEach(e => {effectsClassName += (e.type + " ")})
@@ -172,12 +178,11 @@ export function Subsystem({subsystem, actionController}) {
             onMouseOut={()=>{actionController.onMouseOutSubsystem(subsystem)}}
             >
         <div className="titleBar">
-            <span className={'name ' + (activeTab === TABS.MAIN ? "active " : "inactive ") }
-                onClick={e => {setActiveTab(TABS.MAIN)}}
+            <span className={'name '}
             ><span className="label">
                     {subsystem.name}
             </span></span>
-            <StatusTabIcon subsystem={subsystem} active={activeTab === TABS.STATUS} onClick={e=> {setActiveTab(TABS.STATUS)}}/>
+            <StatusTabIcon subsystem={subsystem} active={activeTab === TABS.STATUS} onClick={e=> {toggleActiveTab()}}/>
             <div className='powerButton'>
                 <ActionButton action={subsystem.actionOn} actionController={actionController}/>
             </div>
@@ -186,7 +191,7 @@ export function Subsystem({subsystem, actionController}) {
             (activeTab === TABS.MAIN) && <SubsystemMainTab subsystem={subsystem} actionController={actionController}/>
         }
         {
-            (activeTab === TABS.STATUS) && <StatusTab subsystem={subsystem} actionController={actionController}/>
+            (activeTab === TABS.STATUS) && <StatusTab subsystem={subsystem} actionController={actionController} toggleActiveTab={toggleActiveTab}/>
         }
 
 

@@ -1,4 +1,17 @@
+.statusTab {
+    color: #a5d000;
+}
 
+.statusTab a {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.statusTab .noStatusEffects {
+    display: flex;
+    flex-direction: column;
+    gap: 5px
+}
 
 .subsystem .statusEffects {
     display: flex;

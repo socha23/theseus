@@ -317,18 +317,12 @@ export class SubsystemDamage extends StatusEffect {
             name: "Repair",
             longName: "Repair",
             icon: "fa-solid fa-wrench",
-            addErrorConditions: (c, m) => {this._addRepairErrors(c)},
             progressTime: this.params.repairTime,
             requiresOperator: true,
+            onEnterActive: m => {this.subsystem.on = false},
             onCompleted: m => {this.onCompleted()},
         });
         this._actions.push(this.repairAction)
-    }
-
-    _addRepairErrors(errors) {
-        if (this.subsystem.on) {
-            errors.push("Must be powered off")
-        }
     }
 
     get damageCategory() {

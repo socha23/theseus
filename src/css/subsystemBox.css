@@ -27,7 +27,7 @@
     font-size: 14pt;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 2px;
 }
 
 .subsystem.unpowered .titleBar {
@@ -58,10 +58,15 @@
     font-size: 12pt;
     text-shadow: none;
     position: relative;
+    cursor: pointer;
+    padding: 2px 2px 1px 2px;
+    border: 2px solid transparent;
+    border-radius: 5px;
 }
 
-.subsystem .statusTabIcon.inactive {
-    cursor: pointer;
+.subsystem .statusTabIcon.active {
+    border: 2px solid #ebf100;
+    border-radius: 5px;
 }
 
 .subsystem .statusTabMarks {
@@ -130,13 +135,7 @@
 
 
 
-.subsystem.powered .titleBar .statusTabIcon.active {
-    text-shadow: 0 0 8px black;
-}
-
-
-
-.subsystem.powered .titleBar .name.active {
+.subsystem.powered .titleBar .name {
     text-shadow: 0 0 8px black;
 }
 

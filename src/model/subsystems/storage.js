@@ -6,7 +6,6 @@ export class Storage extends Subsystem {
     constructor(gridPosition, id, name, startingInventory = {}) {
         super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.DEFAULT, {powerConsumption: 0})
         this.inventory = startingInventory
-        this._interestingMaterials = {}
 
     }
 
@@ -33,7 +32,6 @@ export class Storage extends Subsystem {
     getCounts() {
         const result = []
         Object.values(MATERIALS)
-            .filter(id => id in this._interestingMaterials)
             .forEach(id => {
                 result.push({
                     materialId: id,
@@ -45,12 +43,12 @@ export class Storage extends Subsystem {
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
-        this._interestingMaterials = model.sub.getInterestingMaterials()
     }
 
     toViewState() {
         const res = super.toViewState()
         res.inventoryCounts = this.getCounts()
+        res.isStorage = true
         return res
     }
 }

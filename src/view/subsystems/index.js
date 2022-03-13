@@ -3,11 +3,12 @@ import Sonar from "./sonar.js";
 import { ActionButton} from "../widgets"
 import { Weapon } from "./weapons"
 import { SubStatus, Tracking, Reactor, Steering, Cheatbox } from "./others";
-import { TooltipContext } from "../tooltip.js";
+import { TooltipContext } from "../tooltip";
+import { Pumps } from "./pumps";
+import { Storage } from "./storage";
 
 import '../../css/subsystemBox.css';
 import '../../css/subsystemStatus.css';
-import { Pumps } from "./pumps.js";
 
 
 ///////////////////////////////////
@@ -48,6 +49,9 @@ function SubsystemMainTab({subsystem, actionController}) {
             {
                 subsystem.isPumps && <Pumps subsystem={subsystem} actionController={actionController}/>
             }
+            {
+                subsystem.isStorage && <Storage subsystem={subsystem} actionController={actionController}/>
+            }
         </div>
     </div>
 }
@@ -74,7 +78,7 @@ function StatusEffect({subsystem, effect, actionController}) {
         </div>
         <div className="actions">
             { effect.actions.map(a =>
-                <ActionButton action={a} actionController={actionController} key={a.id}/>
+                <ActionButton className="slim" action={a} actionController={actionController} key={a.id}/>
             )}
         </div>
     </div>

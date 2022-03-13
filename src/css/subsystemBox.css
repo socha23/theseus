@@ -140,7 +140,7 @@
 }
 
 
-.subsystem .powerButton .button {
+.subsystem .powerButton .button.default {
     color: rgba(0,59,53,0.7);
     border: none;
     padding: 0;
@@ -165,6 +165,8 @@
 .subsystem .powerButton .button .name{
     display: none;
 }
+
+
 
 .subsystem .tab {
     flex-grow: 1;

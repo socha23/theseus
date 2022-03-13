@@ -7,7 +7,7 @@ hr {
 
 
 
-.button {
+.button.default {
     border: 2px solid #a5d000;
     border-radius: 8px;
     padding: 4px;
@@ -17,45 +17,115 @@ hr {
     font-weight: bold;
 }
 
-.button.enabled:hover {
+.button.enabled.default:hover {
     cursor: pointer;
     color: #ebf100;
     border: 2px solid #ebf100;
 }
 
-.button.disabled {
+.button.disabled.default {
     color: #469528;
     border-color: #469528;
 }
 
-.button .progressContainer {
+.button.default .progressContainer {
     margin-top: 3px;
     border-radius: 3px;
     background-color: #469528;
     height: 5px;
 }
 
-.button .progress {
+.button.default .progress {
     background-color: #ebf100;
     border-radius: 3px;
     height: 100%;
 }
 
-.button .container {
+.button.default .container {
     display: flex;
     gap: 4px;
     align-items: center;
 }
 
-.button .nameAndProgress {
+.button.default .nameAndProgress {
     flex-grow: 1;
 }
 
-.standardActions .button.recentlyCompleted {
-    background-color: #ebf100;
-    border-color: #ebf100;
-    color: rgba(0,59,53,1);
+
+
+
+.button.slim {
+    border: none;
+    border-radius: 8px;
+    padding: 0;
+    color: #a5d000;
+    position: relative;
+    background-color: transparent;
+    font-weight: bold;
 }
+
+.button.slim .icon {
+    border: 2px solid #a5d000;
+    border-radius: 6px;
+    padding: 3px;
+    font-size: 10pt;
+}
+
+.button.slim.enabled {
+    cursor: pointer;
+}
+
+.button.slim.enabled:hover .icon {
+    color: #ebf100;
+    border: 2px solid #ebf100;
+}
+
+
+.button.slim.disabled {
+    color: #469528;
+}
+
+.button.slim.active .icon {
+    background-color: #a5d000;
+    color: #003b35;
+}
+
+.button.slim.active:hover .icon {
+    color: #003b35;
+}
+
+.button.slim.disabled .icon {
+    border-color: #469528;
+}
+
+.button.slim .progressContainer {
+    border-radius: 3px;
+    background-color: #469528;
+    height: 8px;
+    width: 50px;
+}
+
+.button.slim .progress {
+    background-color: #ebf100;
+    border-radius: 3px;
+    height: 100%;
+}
+
+.button.slim .container {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.button.slim .nameAndProgress {
+    display: flex;
+    flex-grow: 1;
+}
+
+.button.slim .name {
+    display: none;
+}
+
 
 
 

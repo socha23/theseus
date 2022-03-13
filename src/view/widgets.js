@@ -23,7 +23,7 @@ export function VertSlider({id, actionController, children, enabled=true}) {
 
 
 
-export function ActionButton({action, actionController}) {
+export function ActionButton({action, actionController, className="default"}) {
     const [recentlyCompleted, setRecentlyCompleted] = useState(false)
 
     useEffect(()=> {
@@ -68,6 +68,7 @@ export function ActionButton({action, actionController}) {
             + (action.enabled ? "enabled " : 'disabled ')
             + (action.selected ? "selected " : "deselected ")
             + (action.active ? "active " : " ")
+            + className
         }
         onClick={e => actionController.onClick(action)}
         onMouseDown={e => actionController.onMouseDown(action)}

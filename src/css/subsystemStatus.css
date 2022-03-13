@@ -22,7 +22,7 @@
     border-bottom: 1px solid #a5d000;
     display: flex;
     align-items: center;
-    min-height: 50px;
+    min-height: 32px;
 }
 
 .effect.damage1 {
@@ -45,16 +45,6 @@
 .subsystem .statusEffects .effect .name .icon {
     margin-right: 4px;
 }
-
-
-.subsystem .statusEffects .effect .button {
-    _border: none;
-}
-
-.subsystem .statusEffects .effect .button .icon {
-    display: none;
-}
-
 
 .subsystem .statusEffects .effect .body {
     display: flex;

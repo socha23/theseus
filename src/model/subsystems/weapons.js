@@ -2,6 +2,7 @@ import {action } from '../action'
 import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
 import { AimLine, AIM_LINE_TYPE, RangeCircle, RANGE_CIRCLE_TYPE } from './sonar'
 import { EFFECT_TYPES, shootHit, shootMiss } from '../effects'
+import { MATERIALS, MATERIAL_DEFINITIONS, MATERIAL_TYPES } from '../materials'
 
 
 const DEFAULT_WEAPON_PARAMS = {
@@ -49,11 +50,14 @@ export class Weapon extends Subsystem {
         this.reloadAction = action({
             id: id + "_reload",
             name: "Reload",
-            icon: "fa-solid fa-repeat",
+            icon: MATERIAL_DEFINITIONS[MATERIALS.KINETIC_AMMO].icon,
             progressTime: template.reloadTime,
             addErrorConditions: c => this._addReloadErrors(c),
             onCompleted: m => {this.ammo = this.template.ammoMax},
             requiresOperator: true,
+            requiredMaterials: {
+                [MATERIALS.KINETIC_AMMO]: 1
+            },
         });
 
         this.weaponActions = [this.aimAction, this.shootAction, this.reloadAction]

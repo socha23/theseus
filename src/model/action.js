@@ -78,7 +78,7 @@ export class BaseAction {
 
     addErrorConditions(conditions, model) {
         this.params.addErrorConditions(conditions, model)
-        if (this._requiresMaterials) {
+        if (this._requiresMaterials && !this.active) {
             const store = model.sub.getStorage()
             const missingMats = Object.keys(this.requiredMaterials)
                 .filter(matId =>  store.getCount(matId) < this.requiredMaterials[matId])

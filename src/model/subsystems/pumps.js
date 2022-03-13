@@ -1,3 +1,4 @@
+import { MATERIALS } from '../materials'
 import { BrokenDown, IncreasedPowerConsumption, RandomShutdown } from './damage'
 import { Subsystem, SUBSYSTEM_CATEGORIES, SubsystemDamage, DAMAGE_CATEGORY } from './index'
 
@@ -159,6 +160,9 @@ export class LeakySeal extends SubsystemDamage {
             description: "Slowly leaks water",
             repairTime: 5000,
             leak: 0.02,
+            requiredMaterials: {
+                [MATERIALS.LEAK_SEALS]: 1,
+            },
             ...params,
         })
     }
@@ -178,6 +182,9 @@ export class ReducedPumpPower extends SubsystemDamage {
             name: "Bent plunger",
             description: "Reduced pumping power",
             repairTime: 5000,
+            requiredMaterials: {
+                [MATERIALS.SPARE_PARTS]: 1,
+            },
             ...params,
         })
         this.multiplier = multiplier
@@ -194,6 +201,9 @@ export class HigherEngage extends SubsystemDamage {
             name: "Sensor broken",
             description: "Engages only at high water level",
             repairTime: 5000,
+            requiredMaterials: {
+                [MATERIALS.SPARE_PARTS]: 3,
+            },
             ...params,
         })
         this.engage = engage
@@ -217,6 +227,9 @@ export class TankBreach extends SubsystemDamage {
             damageCategory: DAMAGE_CATEGORY.HEAVY,
             name: "Pipes ruptured",
             description: "Can't operate underwater",
+            requiredMaterials: {
+                [MATERIALS.SPARE_PARTS]: 3,
+            },
             repairTime: 5000,
             ...params,
         })
@@ -244,6 +257,10 @@ export class RupturedBearing extends SubsystemDamage {
             description: "Strong water leak",
             repairTime: 5000,
             leak: 0.1,
+            requiredMaterials: {
+                [MATERIALS.SPARE_PARTS]: 1,
+                [MATERIALS.LEAK_SEALS]: 1,
+            },
             ...params,
         })
     }

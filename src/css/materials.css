@@ -5,6 +5,10 @@
     left: 2px;
 }
 
+.button.default .materials {
+    display: none;
+}
+
 .materials {
     display: flex;
     gap: 4px;

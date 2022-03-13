@@ -1,6 +1,6 @@
 import { SubsystemDamage } from '.'
 import { randomEventOccured } from '../../utils'
-
+import { MATERIALS } from '../materials'
 
 
 
@@ -14,7 +14,10 @@ export class RandomShutdown extends SubsystemDamage {
             type: RandomShutdown.TYPE,
             name: "Torn cables",
             repairTime: 5000,
-            description: "Shuts down sometimes"
+            description: "Shuts down sometimes",
+            requiredMaterials: {
+                [MATERIALS.SPARE_PARTS]: 1,
+            }
         })
         this.everyS = everyS
     }
@@ -37,6 +40,9 @@ export class IncreasedPowerConsumption extends SubsystemDamage {
             repairTime: 5000,
             powerConsumptionMultiplier: 2,
             description: "Increased power consumption",
+            requiredMaterials: {
+                [MATERIALS.SPARE_PARTS]: 2,
+            },
             ...params,
         })
     }
@@ -51,6 +57,9 @@ export class BrokenDown extends SubsystemDamage {
             name: "Broken down",
             description: "Can't be turned on",
             repairTime: 5000,
+            requiredMaterials: {
+                [MATERIALS.SPARE_PARTS]: 5,
+            },
             ...params,
         })
     }

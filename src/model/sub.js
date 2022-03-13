@@ -5,6 +5,7 @@ import { Entity } from './entities.js'
 import { Engine, Steering } from './subsystems/others'
 import { randomElem } from '../utils.js'
 import { shake } from './effects.js'
+import { MATERIALS } from './materials.js'
 
 export class Sub extends Entity {
     constructor(volume, subsystems = []) {
@@ -252,5 +253,13 @@ export class Sub extends Entity {
         return this._waterLevel
     }
 
+    getInterestingMaterials() {
+        const res = {
+            [MATERIALS.SPARE_PARTS]: MATERIALS.SPARE_PARTS,
+            [MATERIALS.LEAK_SEALS]: MATERIALS.LEAK_SEALS,
+        }
+        this.subsystems.forEach(s => s.addInterestingMaterialsIds(res))
+        return res
+    }
 
 }

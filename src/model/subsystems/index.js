@@ -97,6 +97,10 @@ export class Subsystem extends HasEffects {
 
     }
 
+    addInterestingMaterialsIds(map) {
+
+    }
+
     toViewState() {
         return {
             ...super.toViewState(),

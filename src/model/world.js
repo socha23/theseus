@@ -10,6 +10,8 @@ import {Sonar } from "./subsystems/sonar"
 import { Map } from "./map"
 import { Pumps } from "./subsystems/pumps"
 import { CheatBox } from "./subsystems/cheatbox"
+import { Storage } from "./subsystems/storage"
+import { MATERIALS } from "./materials"
 
 const WEAPON_TEMPLATES = {
     COILGUN: {
@@ -111,6 +113,10 @@ export function getStartingSub() {
             new Steering(new Point(2, 3), "steering_1", "Steering"),
 
             new Pumps(new Point(3, 2), "pumps0", "Pumps", PUMP_TEMPLATES.BASIC_PUMP),
+            new Storage(new Point(3, 3), "storage0", "Storage", {
+                [MATERIALS.SPARE_PARTS]: 30,
+                [MATERIALS.LEAK_SEALS]: 20,
+            }),
     ])
 }
 

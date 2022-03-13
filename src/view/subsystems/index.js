@@ -168,8 +168,8 @@ export function Subsystem({subsystem, actionController}) {
                 + (subsystem.on ? 'powered ' : 'unpowered ')
                 + effectsClassName
                 }
-            onMouseOver={()=>{actionController.onMouseOver(subsystem)}}
-            onMouseOut={()=>{actionController.onMouseOut(subsystem)}}
+            onMouseOver={()=>{actionController.onMouseOverSubsystem(subsystem)}}
+            onMouseOut={()=>{actionController.onMouseOutSubsystem(subsystem)}}
             >
         <div className="titleBar">
             <span className={'name ' + (activeTab === TABS.MAIN ? "active " : "inactive ") }

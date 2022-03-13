@@ -26,6 +26,7 @@ class ActionController {
 
     constructor() {
         this._mouseOverSubsystems = {}
+        this._mouseOverAction = null
         this._activeActions = {}
         this.keysDown = {}
         this.keysPressed = {}
@@ -47,16 +48,28 @@ class ActionController {
         }
     }
 
-    onMouseOver(subsystem) {
+    onMouseOverSubsystem(subsystem) {
         this._mouseOverSubsystems[subsystem.id] = subsystem
     }
 
-    onMouseOut(subsystem) {
+    onMouseOutSubsystem(subsystem) {
         delete this._mouseOverSubsystems[subsystem.id]
     }
 
-    isMouseOver(subsystem) {
+    isMouseOverSubsystem(subsystem) {
         return (this._mouseOverSubsystems[subsystem.id] ?? null) != null
+    }
+
+    onMouseOverAction(action) {
+        this._mouseOverAction = action
+    }
+
+    get mouseOverAction() {
+        return this._mouseOverAction
+    }
+
+    onMouseOutAction(action) {
+        this._mouseOverAction = null
     }
 
     onMouseUp() {

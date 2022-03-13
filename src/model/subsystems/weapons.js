@@ -142,7 +142,7 @@ export class Weapon extends Subsystem {
             this.aimAction.cancel(model)
         }
         super.updateState(deltaMs, model, actionController)
-        this._mouseOver = actionController.isMouseOver(this)
+        this._mouseOver = actionController.isMouseOverSubsystem(this)
         this._target = model.sub.trackedEntity
 
         if (this._target) {

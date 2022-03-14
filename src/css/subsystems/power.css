@@ -3,18 +3,52 @@
     padding: 4px;;
 }
 
-.subsystem.powered .powerInfo.extraConsumption .icon {
+.spowerButtonTooltip {
+    margin-top: 5px;
+    padding-top: 5px;
+}
+
+.powerButtonTooltip .extraPowerConsumption {
     color: #dba800;
 }
 
-
-.subsystemPowerInfoTooltip .extraPowerConsumption {
-    color: #dba800;
+.powerButtonTooltip .insufficientPower {
+    color: red;
 }
 
 
 
-.subsystem.powered.powerFlicker .powerInfo .icon {
+.subsystem .powerButton .button.default {
+    color: rgba(0,59,53,0.7);
+    border: none;
+    padding: 0;
+    background-color: transparent;
+    font-size: 12pt;
+}
+
+.subsystem.unpowered .powerButton .button.enabled {
+    color: #ebf100;
+}
+
+.subsystem.unpowered.damageBrokenDown .powerButton .button {
+    color: red;
+}
+
+.subsystem.powered.powerFlicker .powerButton .button {
     color: #469528 !important;
+}
+
+.subsystem.powered .powerButton .button {
+    color: white;
+    text-shadow: none;
+}
+
+
+.subsystem .powerButton .button .container {
+    gap: 0;
+}
+
+.subsystem .powerButton .button .name{
+    display: none;
 }
 

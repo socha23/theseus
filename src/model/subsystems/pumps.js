@@ -63,9 +63,9 @@ export class Pumps extends Subsystem {
             this._pumpPowerMultiplier *= s.multiplier
         })
 
-        if (!this.pumping && this.on && (this.engagesAt < model.sub.waterLevel)) {
+        if (!this.pumping && this.on && (this.engagesAt <= model.sub.waterLevel)) {
             this.pumping = true
-        } else if (this.pumping && (model.sub.waterLevel < this.disengagesAt)) {
+        } else if (this.pumping && (model.sub.waterLevel <= this.disengagesAt)) {
             this.pumping = false
         }
         this.waterLevel = model.sub.waterLevel
@@ -91,35 +91,28 @@ export class Pumps extends Subsystem {
 
     getAvailableLightDamageTypes() {
         return [
-            RandomShutdown.TYPE,
-            /*
             ...super.getAvailableLightDamageTypes(),
             RandomShutdown.TYPE,
             IncreasedPowerConsumption.TYPE,
             LeakySeal.TYPE,
-            */
         ]
     }
 
 
     getAvailableMediumDamageTypes() {
         return [
-            RandomShutdown.TYPE,
-            /*
             ...super.getAvailableMediumDamageTypes(),
             ReducedPumpPower.TYPE,
-            HigherEngage.TYPE,*/
+            HigherEngage.TYPE,
         ]
     }
 
     getAvailableHeavyDamageTypes() {
         return [
-            RandomShutdown.TYPE,
-            /*
             ...super.getAvailableHeavyDamageTypes(),
             TankBreach.TYPE,
             BrokenDown.TYPE,
-            RupturedBearing.TYPE,*/
+            RupturedBearing.TYPE,
         ]
     }
 

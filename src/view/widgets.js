@@ -22,7 +22,7 @@ export function VertSlider({id, actionController, children, enabled=true}) {
     </div>
 }
 
-function ActionTooltip({action}) {
+function ActionTooltip({action, additionalContent=null}) {
     return <div>
     <div className="topRow">
         <div className="longName">{action.longName}</div>
@@ -42,11 +42,14 @@ function ActionTooltip({action}) {
         action.errorConditions.map(c => <div className="condition" key={c}>{c}</div>)
     }
     </div>
+    {
+        (additionalContent) && <div className="additionalContent">{additionalContent}</div>
+    }
 </div>
 }
 
 
-export function ActionButton({action, actionController, className="default"}) {
+export function ActionButton({action, actionController, className="default", additionalTooltip=null}) {
     const [recentlyCompleted, setRecentlyCompleted] = useState(false)
 
     useEffect(()=> {
@@ -69,7 +72,7 @@ export function ActionButton({action, actionController, className="default"}) {
 
     var tooltip = null
     if (action.showTooltip) {
-        tooltip = <ActionTooltip action={action}/>
+        tooltip = <ActionTooltip action={action} additionalContent={additionalTooltip}/>
     }
 
     return <div

@@ -1,42 +1,44 @@
-import { useContext } from "react"
-import { TooltipContext } from "../tooltip"
+import { ActionButton } from "../widgets"
 
 import "../../css/subsystems/power.css"
 
-
-
-function SubsystemPowerInfoTooltip({subsystem}) {
-    var tooltipText = null;
+export function SubsystemPowerButton({subsystem, actionController}) {
+    const availablePower = subsystem.subPowerBalance
+    const nominalConsumption = subsystem.nominalPowerConsumption
+    const extraPowerConsumption = (subsystem.powerConsumptionMultiplier > 1)
+    var tooltip = null
     if (!subsystem.on) {
-        tooltipText = `Req power: ${subsystem.nominalPowerConsumption} kW`
-    } else if (subsystem.powerConsumption !== subsystem.nominalPowerConsumption) {
-        tooltipText = `Power use: ${subsystem.powerConsumption} / ${subsystem.nominalPowerConsumption} kW`
+        tooltip = <div className={(nominalConsumption > availablePower) ? "insufficientPower " : "sufficientPower"}>
+            Req power: {subsystem.nominalPowerConsumption} kW
+        </div>
     } else {
-        tooltipText = `Power use: ${subsystem.powerConsumption} kW`
+        const currentUse = subsystem.powerConsumption
+        const usageText = (currentUse === nominalConsumption)
+            ? `Power use: ${currentUse} kW`
+            : `Power use: ${currentUse} / ${nominalConsumption} kW`
+
+        tooltip = <div className={extraPowerConsumption ? "extraPowerConsumption" : " "}>
+            {usageText}
+        </div>
     }
-    return <div className="subsystemPowerInfoTooltip">
-        <div>{tooltipText}</div>
-        {
-        (subsystem.powerConsumptionMultiplier > 1) && <div className="extraPowerConsumption">
-            Extra power consumption
+
+
+    tooltip = <div className="powerButtonTooltip">
+        <hr/>
+        {tooltip}
+        {extraPowerConsumption &&
+            <div className="extraPowerConsumption">
+                Extra power consumption
             </div>
         }
     </div>
-}
 
-export function SubsystemPowerInfo({subsystem}) {
 
-    const tooltipCtx = useContext(TooltipContext)
-
-    const tooltip = <SubsystemPowerInfoTooltip subsystem={subsystem}/>
-    const powerUsageClass = (subsystem.powerConsumptionMultiplier > 1)
-        ? "extraConsumption " : " "
-
-    return <div className={"powerInfo " + powerUsageClass}
-        onMouseOver ={e => {tooltipCtx.tooltip = tooltip}}
-        onMouseOut ={e => {tooltipCtx.tooltip = null}}
-    >
-        <i className="icon fa-solid fa-bolt"/>
+    return <div className='powerButton'>
+        <ActionButton
+            action={subsystem.actionOn}
+            actionController={actionController}
+            additionalTooltip={tooltip}
+        />
     </div>
 }
-

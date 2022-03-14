@@ -1,5 +1,3 @@
-import { SubsystemPowerInfo } from "./power";
-
 import "../../css/subsystems/pumps.css"
 import { useContext } from "react";
 import { TooltipContext } from "../tooltip";
@@ -41,7 +39,6 @@ export function Pumps({subsystem, actionController}) {
                 >
                     {(subsystem.pumpPower * 100)} q/s
                 </div>
-                <SubsystemPowerInfo subsystem={subsystem}/>
             </div>
         </div>
         {(subsystem.waterLevel > 0) && <div className="infoBox">

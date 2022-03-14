@@ -6,6 +6,7 @@ import { SubStatus, Tracking, Reactor, Steering, Cheatbox } from "./others";
 import { TooltipContext } from "../tooltip";
 import { Pumps } from "./pumps";
 import { Storage } from "./storage";
+import { SubsystemPowerButton } from "./power.js";
 
 import '../../css/subsystemBox.css';
 import '../../css/subsystemStatus.css';
@@ -188,9 +189,7 @@ export function Subsystem({subsystem, actionController}) {
                     {subsystem.name}
             </span></span>
             <StatusTabIcon subsystem={subsystem} active={activeTab === TABS.STATUS} onClick={e=> {toggleActiveTab()}}/>
-            <div className='powerButton'>
-                <ActionButton action={subsystem.actionOn} actionController={actionController}/>
-            </div>
+            <SubsystemPowerButton subsystem={subsystem} actionController={actionController}/>
         </div>
         {
             (activeTab === TABS.MAIN) && <SubsystemMainTab subsystem={subsystem} actionController={actionController}/>

@@ -4,14 +4,6 @@ import { TooltipContext } from "../tooltip";
 
 
 function PumpPowerBoxTooltip({subsystem}) {
-    var tooltipText = null;
-    if (!subsystem.on) {
-        tooltipText = `Req power: ${subsystem.nominalPowerConsumption} kW`
-    } else if (subsystem.powerConsumption !== subsystem.nominalPowerConsumption) {
-        tooltipText = `Power use: ${subsystem.powerConsumption} / ${subsystem.nominalPowerConsumption} kW`
-    } else {
-        tooltipText = `Power use: ${subsystem.powerConsumption} kW`
-    }
     return <div className="pumpPowerTooltip">
         <div>
             Pumping power: {subsystem.pumpPower * 100} q/s

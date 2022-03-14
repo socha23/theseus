@@ -21,9 +21,9 @@
 }
 
 .subsystem .pumps .mainPane .powerBox {
-    font-size: 20pt;
+    font-size: 16pt;
     padding: 4px;
-    padding-left: 12px;
+    padding-left: 6px;
     flex-grow: 1;
 }
 
@@ -39,4 +39,14 @@
 .subsystem .pumps .mainPane .infoBox {
     display: flex;
     flex-direction: column;
+}
+
+
+.subsystem.powered.damageReducedPumpPower .pumps .mainPane .powerBox {
+    color: #dba800;
+}
+
+
+.pumpPowerTooltip .reducedPumpPower {
+    color: #dba800;
 }

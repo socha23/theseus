@@ -1,6 +1,6 @@
 import { randomElem } from '../../utils'
 import { ACTION_CATEGORY, ToggleAction, action } from '../action'
-import { Effect, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects, lightDamage, mediumDamage, heavyDamage } from '../effects'
+import { Effect, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects, lightDamage, mediumDamage, heavyDamage, shootMiss } from '../effects'
 import { Point } from '../physics.js'
 import { MATERIALS } from '../materials'
 
@@ -70,6 +70,9 @@ export class Subsystem extends HasEffects {
         this.gridPosition = gridPosition
         this.gridSize = this.template.gridSize
         this.underWater = false
+
+        this._statusEffects = []
+        this._powerConsumptionMultiplier = 1
     }
 
     addStatusPowerErrorConditions(c, model) {
@@ -81,12 +84,27 @@ export class Subsystem extends HasEffects {
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
-
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
+
+        this._statusEffects = this.effects
+            .filter(e => e.statusEffect)
+            .sort((a, b) =>
+                (b.damageCategory * 100 + b.leak)
+            - (a.damageCategory * 100 + a.leak))
+
+
+        this._powerConsumptionMultiplier = 1
+        this._statusEffects.forEach(e => {
+            this._powerConsumptionMultiplier *= e.powerConsumptionMultiplier
+        })
 
         this._updateUnderWater(deltaMs, model)
         this._subPowerBalance = model.sub.powerBalance
 
+    }
+
+    get powerConsumptionMultiplier() {
+        return this._powerConsumptionMultiplier
     }
 
     _updateUnderWater(deltaMs, model) {
@@ -115,6 +133,7 @@ export class Subsystem extends HasEffects {
             gridSize: this.gridSize,
             statusEffects: this.statusEffects.map(e => e.toViewState()),
             powerConsumption: this.powerConsumption,
+            powerConsumptionMultiplier: this._powerConsumptionMultiplier,
             nominalPowerConsumption: this.nominalPowerConsumption,
             subPowerBalance: this._subPowerBalance,
 
@@ -136,19 +155,11 @@ export class Subsystem extends HasEffects {
     }
 
     get nominalPowerConsumption() {
-        var effectsMultiplier = 1
-        this.statusEffects.forEach(e => {
-            effectsMultiplier *= (e.powerConsumptionMultiplier || 1)
-        })
-        return this._powerConsumption * effectsMultiplier
+        return this._powerConsumption * this._powerConsumptionMultiplier
     }
 
     get powerConsumption() {
-        var effectsMultiplier = 1
-        this.statusEffects.forEach(e => {
-            effectsMultiplier *= (e.powerConsumptionMultiplier || 1)
-        })
-        return this.on ? this._powerConsumption * effectsMultiplier : 0
+        return this.on ? this._powerConsumption * this._powerConsumptionMultiplier : 0
     }
 
     get powerGeneration() {
@@ -176,11 +187,7 @@ export class Subsystem extends HasEffects {
     }
 
     get statusEffects() {
-        return this.effects
-            .filter(e => e.statusEffect)
-            .sort((a, b) =>
-                (b.damageCategory * 100 + b.leak)
-              - (a.damageCategory * 100 + a.leak))
+        return this._statusEffects
     }
 
     get waterResistant() {
@@ -216,6 +223,13 @@ export class Subsystem extends HasEffects {
             ? this.createDamageOfType(randomElem(availableDamageTypes))
             : defaultDamage
         this.addEffect(damage)
+    }
+
+    addEffect(effect) {
+        super.addEffect(effect)
+        if (this.on && effect.shutdown) {
+            this.shutdown()
+        }
     }
 
     getAvailableLightDamageTypes() {
@@ -259,7 +273,13 @@ export class StatusEffect extends Effect {
     }
 
     addPowerErrorConditions(c, model) {
+        if (this.shutdown) {
+            c.push(this.name)
+        }
+    }
 
+    get shutdown() {
+        return this.params.shutdown
     }
 
     get name() {
@@ -317,6 +337,7 @@ export const DEFAULT_DAMAGE_PARAMS = {
     leak: 0,
     powerConsumptionMultiplier: 1,
     requiredMaterials: {},
+    shutdown: false,
 }
 
 export class SubsystemDamage extends StatusEffect {

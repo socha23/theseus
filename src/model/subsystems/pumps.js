@@ -13,6 +13,11 @@ export class Pumps extends Subsystem {
         this.waterFlow = 0
         this._engagesAt = 0.4
         this._disengagesAt = 0
+        this._pumpPowerMultiplier = 1
+    }
+
+    get pumpPowerMultiplier() {
+        return this._pumpPowerMultiplier
     }
 
     get engagesAt() {
@@ -26,15 +31,8 @@ export class Pumps extends Subsystem {
     }
 
     get pumpPower() {
-
-        var multiplier = 1
-        this.statusEffects.filter(e => e instanceof ReducedPumpPower).forEach(e => {
-            multiplier = multiplier * e.multiplier
-        })
-
-        return this.template.pumpPower * multiplier
+        return this.template.pumpPower * this.pumpPowerMultiplier
     }
-
 
     get waterResistant() {
         return super.waterResistant && (!this.statusEffects.some(e => e instanceof TankBreach))
@@ -60,6 +58,11 @@ export class Pumps extends Subsystem {
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
 
+        this._pumpPowerMultiplier = 1
+        this.statusEffects.filter(s => s instanceof ReducedPumpPower).forEach(s => {
+            this._pumpPowerMultiplier *= s.multiplier
+        })
+
         if (!this.pumping && this.on && (this.engagesAt < model.sub.waterLevel)) {
             this.pumping = true
         } else if (this.pumping && (model.sub.waterLevel < this.disengagesAt)) {
@@ -78,6 +81,7 @@ export class Pumps extends Subsystem {
             ...super.toViewState(),
             pumpPower: this.pumpPower,
             activePumpPower: this.activePumpPower,
+            pumpPowerMultiplier: this.pumpPowerMultiplier,
             pumping: this.pumping,
             isPumps: true,
             waterLevel: this.waterLevel,
@@ -87,28 +91,35 @@ export class Pumps extends Subsystem {
 
     getAvailableLightDamageTypes() {
         return [
+            RandomShutdown.TYPE,
+            /*
             ...super.getAvailableLightDamageTypes(),
             RandomShutdown.TYPE,
             IncreasedPowerConsumption.TYPE,
             LeakySeal.TYPE,
+            */
         ]
     }
 
 
     getAvailableMediumDamageTypes() {
         return [
+            RandomShutdown.TYPE,
+            /*
             ...super.getAvailableMediumDamageTypes(),
             ReducedPumpPower.TYPE,
-            HigherEngage.TYPE,
+            HigherEngage.TYPE,*/
         ]
     }
 
     getAvailableHeavyDamageTypes() {
         return [
+            RandomShutdown.TYPE,
+            /*
             ...super.getAvailableHeavyDamageTypes(),
             TankBreach.TYPE,
             BrokenDown.TYPE,
-            RupturedBearing.TYPE,
+            RupturedBearing.TYPE,*/
         ]
     }
 

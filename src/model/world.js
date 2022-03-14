@@ -116,7 +116,7 @@ export function getStartingSub() {
             new Storage(new Point(3, 3), "storage0", "Storage", {
                 [MATERIALS.SPARE_PARTS]: 20,
                 [MATERIALS.LEAK_SEALS]: 5,
-                [MATERIALS.KINETIC_AMMO]: 1,
+                [MATERIALS.KINETIC_AMMO]: 5,
             }),
     ])
 }

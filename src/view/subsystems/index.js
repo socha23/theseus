@@ -170,6 +170,7 @@ export function Subsystem({subsystem, actionController}) {
     }
 
     let effectsClassName = ""
+
     subsystem.effects.forEach(e => {effectsClassName += (e.type + " ")})
 
     return <div draggable

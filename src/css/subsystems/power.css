@@ -2,3 +2,19 @@
     font-size: 16pt;
     padding: 4px;;
 }
+
+.subsystem.powered .powerInfo.extraConsumption .icon {
+    color: #dba800;
+}
+
+
+.subsystemPowerInfoTooltip .extraPowerConsumption {
+    color: #dba800;
+}
+
+
+
+.subsystem.powered.powerFlicker .powerInfo .icon {
+    color: #469528 !important;
+}
+

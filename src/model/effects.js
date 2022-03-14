@@ -9,6 +9,7 @@ export const EFFECT_TYPES = {
     LIGHT_DAMAGE: "lightDamage",
     MEDIUM_DAMAGE: "mediumDamage",
     HEAVY_DAMAGE: "heavyDamage",
+    POWER_FLICKER: "powerFlicker",
 }
 
 export const EFFECT_CATEGORIES = {
@@ -24,7 +25,6 @@ const DEFAULT_EFFECT_PARAMS = {
     category: EFFECT_CATEGORIES.DEFAULT,
     onCompleted: (m) => {},
 }
-
 
 export function shake(size, direction, params = {}) {
     return new TimedEffect({
@@ -55,6 +55,14 @@ export function heavyDamage(params = {}) {
     return new TimedEffect({
         type: EFFECT_TYPES.HEAVY_DAMAGE,
         durationMs: 300,
+        ...params
+    })
+}
+
+export function powerFlicker(params = {}) {
+    return new TimedEffect({
+        type: EFFECT_TYPES.POWER_FLICKER,
+        durationMs: 50,
         ...params
     })
 }
@@ -173,21 +181,24 @@ export class HasEffects {
 
     constructor() {
         this._effects = []
+        this._effectsQueue = []
     }
 
     updateState(deltaMs, model, actionController) {
-        const newE = []
+        const newE = this._effectsQueue
+        this._effectsQueue = []
         this._effects.forEach(e => {
             if (e.active) {
                 e.updateState(deltaMs, model, actionController)
                 newE.push(e)
+            } else {
             }
         })
         this._effects = newE
     }
 
     addEffect(effect) {
-        this._effects.push(effect)
+        this._effectsQueue.push(effect)
     }
 
     get effects() {

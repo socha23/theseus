@@ -1,5 +1,6 @@
 import { SubsystemDamage } from '.'
 import { randomEventOccured } from '../../utils'
+import { powerFlicker } from '../effects'
 import { MATERIALS } from '../materials'
 
 
@@ -10,20 +11,24 @@ export class RandomShutdown extends SubsystemDamage {
 
     constructor(subsystem, everyS, params) {
         super(subsystem, {
-            ...params,
             type: RandomShutdown.TYPE,
             name: "Torn cables",
             repairTime: 5000,
             description: "Shuts down sometimes",
             requiredMaterials: {
                 [MATERIALS.SPARE_PARTS]: 1,
-            }
+            },
+            ...params,
         })
         this.everyS = everyS
+        this._flickerEveryS = 1
     }
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
+        if (this.subsystem.on && randomEventOccured(deltaMs, this._flickerEveryS)) {
+            this.subsystem.addEffect(powerFlicker())
+        }
         if (this.subsystem.on && randomEventOccured(deltaMs, this.everyS)) {
             this.subsystem.shutdown()
         }
@@ -60,11 +65,8 @@ export class BrokenDown extends SubsystemDamage {
             requiredMaterials: {
                 [MATERIALS.SPARE_PARTS]: 5,
             },
+            shutdown: true,
             ...params,
         })
-    }
-
-    addPowerErrorConditions(c, model) {
-        c.push(this.name)
     }
 }

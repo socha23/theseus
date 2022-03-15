@@ -96,12 +96,12 @@ export class Engine extends Subsystem {
 
             isEngine: true,
 
-            thrustThrottlePercent: (Math.floor(this._activeThrustThrottle * 100)),
+            thrustThrottlePercent: (Math.floor(this._activeThrustThrottle * this._thrustForceMultiplier * 100)),
             nominalThrust: this.nominalThrust,
             activeThrust: this.activeThrustForce,
             thrustMultiplier: this._thrustForceMultiplier,
 
-            rotationThrottlePercent: (Math.floor(this._activeRotThrottle * 100)),
+            rotationThrottlePercent: (Math.floor(this._activeRotThrottle * this._rotForceMultiplier * 100)),
             nominalRotation: this._nominalRotation,
             activeRotation: this.activeRotationForce,
             rotationMultiplier: this._rotForceMultiplier,
@@ -142,28 +142,28 @@ export class Engine extends Subsystem {
         if (type === DAMAGE_TORN_CABLES) {
             return tornCables(this)
         }
-        if (type == DAMAGE_DIRTY_COMMUTATOR) {
+        if (type === DAMAGE_DIRTY_COMMUTATOR) {
             return dirtyCommutator(this)
         }
-        if (type == DAMAGE_BENT_PROPELLER) {
+        if (type === DAMAGE_BENT_PROPELLER) {
             return bentPropeller(this)
         }
-        if (type == DAMAGE_LEAKY_SEAL) {
+        if (type === DAMAGE_LEAKY_SEAL) {
             return leakySeal(this)
         }
-        if (type == DAMAGE_DAMAGED_TRANSFORMER) {
+        if (type === DAMAGE_DAMAGED_TRANSFORMER) {
             return damagedTransformer(this)
         }
-        if (type == DAMAGE_JAMMED_BEARINGS) {
+        if (type === DAMAGE_JAMMED_BEARINGS) {
             return jammedPowertrain(this)
         }
-        if (type == DAMAGE_DAMAGED_HOUSING) {
+        if (type === DAMAGE_DAMAGED_HOUSING) {
             return rupturedHousing(this)
         }
-        if (type == DAMAGE_MOTOR_BUSTED) {
+        if (type === DAMAGE_MOTOR_BUSTED) {
             return motorBroken(this)
         }
-        if (type == DAMAGE_RUPTURED_SHELL) {
+        if (type === DAMAGE_RUPTURED_SHELL) {
             return rupturedShell(this)
         }
         return super.createDamageOfType(type)
@@ -179,7 +179,7 @@ const DEFAULT_REDUCED_POWER = {
 
 class ReducedPower extends SubsystemDamage {
     constructor(subsystem, params) {
-        super(subsystem, {...params, ...DEFAULT_REDUCED_POWER})
+        super(subsystem, {...DEFAULT_REDUCED_POWER, ...params})
     }
 
     get rotationMultiplier() {

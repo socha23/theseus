@@ -6,25 +6,38 @@ import { ActionControllerCtx } from "../actionController";
 import { jsonCompare, transpose } from "../utils";
 
 
-export function VertSlider({id, actionController, children, enabled=true}) {
+export function VertSlider({
+        id,
+        enabled=true,
+        renderThumb = (props, state) => <div {...props}/>
+    }) {
+    const ac = useContext(ActionControllerCtx)
+
     return <div className="vertSliderContainer">
     <ReactSlider
-    className={"vertSlider " + (enabled ? "enabled " : "disabled ")}
-    thumbClassName="sliderThumb"
-    trackClassName="sliderTrack"
-    min={0}
-    max={100}
-    disabled={!enabled}
-    orientation="vertical"
-    onChange={(v, i) => actionController.setValue(id, 1-(v / 100))}
-    value={100 - (100 * actionController.getValue(id, 0))}
+        className={"vertSlider " + (enabled ? "enabled " : "disabled ")}
+        renderThumb={renderThumb}
+        thumbClassName="sliderThumb"
+        trackClassName="sliderTrack"
+        min={0}
+        max={100}
+        disabled={!enabled}
+        orientation="vertical"
+        onChange={(v, i) => ac.setValue(id, 1-(v / 100))}
+        value={100 - (100 * ac.getValue(id, 0))}
     />
-    <div>{children}</div>
     </div>
 }
 
 
-export function _SegmentProgress({from = 0, to = 100, value = 0, segments = 10, reverse=false}) {
+export function _SegmentProgress({
+    from = 0,
+    to = 100,
+    value = 0,
+    segments = 10,
+    vertical=false,
+    reverse=false,
+    className=""}) {
     const segmentElems = []
 
     var filledI = transpose(value, from, to, 0, segments)
@@ -38,10 +51,10 @@ export function _SegmentProgress({from = 0, to = 100, value = 0, segments = 10, 
 
         segmentElems.push({
             key: "seg" + i,
-            className: "segment " + (filled ? "filled " : "unfilled ")
+            className: "segment " + (filled ? "filled " : "unfilled ") + "seg" + i
         })
     }
-    return <div className="segmentProgress">
+    return <div className={`segmentProgress ${className} ${vertical ? "vertical" : "horizontal"}`}>
         {
             segmentElems.map(s => <div {...s}/>)
         }

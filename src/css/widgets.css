@@ -182,7 +182,8 @@ hr {
     width: 30px;
     height: 15px;
     border-radius: 5px;
-    background-color: #ebf100;
+    background-color: #a5d000;
+    border: 1px solid #003b35;
 }
 
 .vertSlider.disabled .sliderThumb {
@@ -281,10 +282,26 @@ hr {
     padding: 2px;
 }
 
+.segmentProgress.horizontal {
+    flex-direction: row;
+}
+
+.segmentProgress.vertical {
+    flex-direction: column;
+}
+
 .segmentProgress .segment {
-    height: 10px;
     flex-grow: 1;
 }
+
+.segmentProgress.horizontal .segment {
+    height: 10px;
+}
+
+.segmentProgress.vertical .segment {
+    width: 10px;
+}
+
 
 .segmentProgress .segment.filled {
     background-color: #a5d000;

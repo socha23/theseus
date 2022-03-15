@@ -4,6 +4,28 @@ import { Engine } from "./engine"
 import { action } from "../action"
 import { Reactor } from "./reactor"
 import { Pumps } from "./pumps"
+import { Effect } from "../effects"
+
+
+class Autostart extends Effect {
+    constructor(subsystems) {
+        super({
+            type: "cheat_autostart"
+        })
+        this.subsystems = subsystems
+    }
+
+    updateState(deltaMs, model) {
+        const s = this.subsystems.find(s => !s.on)
+        if (s && model.sub.power.balance >= s.nominalPowerConsumption) {
+            s.on = true
+        }
+        if (!s) {
+            this.onCompleted()
+        }
+    }
+}
+
 
 export class CheatBox extends Subsystem {
     constructor(gridPosition) {
@@ -13,13 +35,14 @@ export class CheatBox extends Subsystem {
             action({
                 id: "cheat_startSub",
                 name: "Start Sub",
-                onCompleted: (model) => {
-                    model.sub.subsystems.forEach(s => {
-                        s.on = true
-                        if (s instanceof Reactor) {
+                onCompleted: (model) =>  {
+                    model.sub.subsystems
+                        .filter(s => s instanceof Reactor)
+                        .forEach(s => {
+                            s.on = true
                             s.externalSetControl(1)
-                        }
                     })
+                    this.addEffect(new Autostart(model.sub.subsystems))
                 },
             }),
             action({

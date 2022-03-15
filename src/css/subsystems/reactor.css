@@ -1,18 +1,90 @@
 .subsystem .reactor {
     display: flex;
+    flex-direction: column;
     gap: 8px;
 }
 
+.subsystem .reactor {
+    display: flex;
+    flex-direction: column;
+}
+
+.subsystem .reactor .topRow {
+    display: flex;
+    gap: 5px;
+}
 .subsystem .reactor .history {
+    border: 1px solid #469528;
+    flex-grow: 1;
+}
+
+.subsystem.powered .reactor .history {
     border: 1px solid #a5d000;
 }
 
 .subsystem .reactor .vertSlider {
-    height: 200px;
+    height: 180px;
     flex-grow: 0;
 }
+
+.subsystem .reactor .sliderThumb {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+
+.subsystem.unpowered .reactor .icon {
+    color: #00592f;
+}
+
+.subsystem.powered .reactor .icon {
+    color: #469528;
+}
+
 
 .subsystem .reactor .history .chart {
     opacity: 0.7;
     background-color: rgba(0,22,19,1)
+}
+
+.reactor .segmentProgress.heat .seg0.filled {
+    background-color: #FFF75D;
+}
+
+.reactor .segmentProgress.heat .seg1.filled {
+    background-color: #FFF75D;
+}
+
+.reactor .segmentProgress.heat .seg2.filled {
+    background-color: #FFC11F;
+}
+
+.reactor .segmentProgress.heat .seg3.filled {
+    background-color: #FFC11F;
+}
+
+.reactor .segmentProgress.heat .seg4.filled {
+    background-color: #FE650D;
+}
+
+.reactor .segmentProgress.heat .seg5.filled {
+    background-color: #F33C04;
+}
+
+.reactor .segmentProgress.heat .seg6.filled {
+    background-color: #DA1F05;
+}
+
+.reactor .segmentProgress.heat .seg7.filled {
+    background-color: #DA1F05;
+}
+
+.reactor .segmentProgress.heat .seg8.filled {
+    background-color: #A10100;
+}
+
+.reactor .segmentProgress.heat .seg9.filled {
+    background-color: #A10100;
 }

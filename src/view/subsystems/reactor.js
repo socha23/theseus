@@ -1,5 +1,5 @@
-import React from "react";
-import {VertSlider, ActionButton} from "../widgets"
+import React, { useEffect, useRef, useState } from "react";
+import {VertSlider, ActionButton, SegmentProgress} from "../widgets"
 import {Stage, Layer, Line, Group, Rect, } from 'react-konva'
 
 
@@ -66,7 +66,6 @@ function HorizLines({everyPx=20, width=100, height=100}) {
 }
 
 function ReactorHistory({subsystem, height}) {
-    const WIDTH = 184
     const MS_MARGIN = 200
 
     const histPowerProd = subsystem.historyPowerProduction
@@ -76,15 +75,26 @@ function ReactorHistory({subsystem, height}) {
     const timeTo = subsystem.historyTo
     const timeLength = timeTo - timeFrom
 
-    const msToX = (WIDTH + 2) / (timeLength + MS_MARGIN )
     const valToY = height / subsystem.maxOutput
 
-    return <div className='history' style={{width: WIDTH + 2, height: height + 2}}>
+    const myRef = useRef(null)
+    const [mySize, setMySize] = useState({width: 0, height: 0})
+    useEffect(() => {
+        if (myRef.current) {
+            setMySize({width: myRef.current.offsetWidth, height: myRef.current.offsetHeight})
+        }
+
+    }, [myRef, setMySize])
+
+    const msToX = (mySize.width + 2) / (timeLength + MS_MARGIN )
+
+    return <div className='history' ref={myRef}
+        style={{height: height}}>
         {subsystem.on &&
-            <Stage width={WIDTH} height={height} opacity={0.7}>
+            <Stage width={mySize.width - 4} height={height - 2} opacity={0.7}>
                 <Layer>
-                    <Rect x={0} y={0} width={WIDTH} height={height} fill="black"/>
-                    <HorizLines width={WIDTH} height={height} everyPx={50}/>
+                    <Rect x={0} y={0} width={mySize.width} height={height} fill="black"/>
+                    <HorizLines width={mySize.width} height={height} everyPx={50}/>
                     <VertLines timeFrom={timeFrom} timeTo={timeTo} scaleX={msToX} height={height}/>
                     <StatLine
                         values={histPowerProd}
@@ -104,28 +114,40 @@ function ReactorHistory({subsystem, height}) {
                         stroke="red"
                         fill="rgba(255,0,0,0.5)"
                     />
-
-
+                    <Rect x={0} y={0} width={mySize.width} height={height} stroke="#a5d000"/>
                 </Layer>
             </Stage>
         }
     </div>
 }
 
+function ReactorHeat({heatPercent}) {
+    console.log(heatPercent)
+    return <SegmentProgress className="heat" reverse={true} segments={10} value={heatPercent} vertical={true}/>
+}
+
 
 export function Reactor({subsystem, actionController}) {
-    const HEIGHT = 200
+    const HIST_HEIGHT = 180
 
     return <div className='reactor'>
-        <div className='controls'>
-            <VertSlider id={subsystem.id + "_control"} actionController={actionController} enabled={subsystem.on} height={HEIGHT}>
-                <i className="fa-solid fa-atom"></i>
-            </VertSlider>
-        </div>
-        <div>
-            <ReactorHistory subsystem={subsystem} height={HEIGHT}/>
-            <div className='fuel'>
+        <div className="topRow">
+            <div className='controls'>
+                <VertSlider
+                    id={subsystem.id + "_control"}
+                    actionController={actionController}
+                    enabled={subsystem.on}
+                    height={HIST_HEIGHT}
+                    renderThumb={(props) => <div {...props}>
+                            <i className="icon fa-solid fa-atom"/>
+                        </div>}
+                />
             </div>
+            <ReactorHistory subsystem={subsystem} height={HIST_HEIGHT}/>
+            <ReactorHeat heatPercent={subsystem.heatPercent}/>
         </div>
-</div>
+        <div className="bottomRow">
+
+        </div>
+    </div>
 }

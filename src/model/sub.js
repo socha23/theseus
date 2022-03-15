@@ -79,6 +79,10 @@ class PowerManagement {
         return this._consumption
     }
 
+    get totalConsumption() {
+        return this.consumption
+    }
+
     get generation() {
         return this._generation
     }

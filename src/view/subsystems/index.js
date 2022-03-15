@@ -2,8 +2,8 @@ import React, { useState, useContext } from "react";
 import Sonar from "./sonar.js";
 import { ActionButton} from "../widgets"
 import { Weapon } from "./weapons"
-import { SubStatus, Tracking, Reactor, Steering, Cheatbox } from "./others";
-import { TooltipContext } from "../tooltip";
+import { SubStatus, Tracking, Reactor, Cheatbox } from "./others";
+import { WithTooltip } from "../tooltip";
 import { Pumps } from "./pumps";
 import { Storage } from "./storage";
 import { SubsystemPowerButton } from "./power.js";
@@ -27,7 +27,7 @@ function SubsystemMainTab({subsystem, actionController}) {
             onMouseDown={e => {e.preventDefault(); return false}} /* disable drag & drop */
         >
             {
-                subsystem.isWeapon && <Weapon subsystem={subsystem} actionController={actionController}/>
+                subsystem.isWeapon && <Weapon subsystem={subsystem}/>
             }
             {
                 subsystem.showsSubStatus && <SubStatus subsystem={subsystem}/>
@@ -39,60 +39,53 @@ function SubsystemMainTab({subsystem, actionController}) {
                 subsystem.showsSonar && <Sonar subsystem={subsystem} actionController={actionController}/>
             }
             {
-                subsystem.isCheatbox && <Cheatbox subsystem={subsystem} actionController={actionController}/>
+                subsystem.isCheatbox && <Cheatbox subsystem={subsystem}/>
             }
             {
                 subsystem.isReactor && <Reactor subsystem={subsystem} actionController={actionController}/>
             }
             {
-                subsystem.isSteering && <Steering subsystem={subsystem} actionController={actionController}/>
+                subsystem.isPumps && <Pumps subsystem={subsystem}/>
             }
             {
-                subsystem.isPumps && <Pumps subsystem={subsystem} actionController={actionController}/>
-            }
-            {
-                subsystem.isStorage && <Storage subsystem={subsystem} actionController={actionController}/>
+                subsystem.isStorage && <Storage subsystem={subsystem}/>
             }
         </div>
     </div>
 }
 
-function StatusEffect({subsystem, effect, actionController}) {
-    const tooltipCtx = useContext(TooltipContext)
-    const tooltip = <div>{effect.description}</div>
-
+function StatusEffect({effect}) {
     return <div
-    className={"effect "
-    + effect.category + " "
-    + "damage" + effect.damageCategory + " "
+        className={"effect "
+            + effect.category + " "
+            + "damage" + effect.damageCategory + " "
     }>
         <div className="body">
-            <div className="name"
-                onMouseOver ={e => {tooltipCtx.tooltip = tooltip}}
-                onMouseOut ={e => {tooltipCtx.tooltip = null}}
-            >
+            <div className="name">
+                <WithTooltip tooltip={<div>{effect.description}</div>}>
                 {
                     (effect.leak > 0) && <i className="icon fa-solid fa-droplet"/>
                 }
                 {effect.name}
+                </WithTooltip>
             </div>
         </div>
         <div className="actions">
             { effect.actions.map(a =>
-                <ActionButton className="slim" action={a} actionController={actionController} key={a.id}/>
+                <ActionButton className="slim" action={a} key={a.id}/>
             )}
         </div>
     </div>
 }
 
-function StatusTab({subsystem, actionController, toggleActiveTab}) {
+function StatusTab({subsystem, toggleActiveTab}) {
     const effects = subsystem.statusEffects
 
     return <div className="tab statusTab" onDragStart={e => false}>
             {(effects.length > 0 ?
                 <div className="statusEffects">
                     {
-                        effects.map(e => <StatusEffect key={e.id} effect={e} subsystem={subsystem} actionController={actionController}/>)
+                        effects.map(e => <StatusEffect key={e.id} effect={e}/>)
                     }
                 </div> : <div className="noStatusEffects">
                     <div>No active effects</div>
@@ -105,24 +98,18 @@ function StatusTab({subsystem, actionController, toggleActiveTab}) {
 }
 
 function StatusTabMark({effect}) {
-    const tooltipCtx = useContext(TooltipContext)
-    return <div
-        className={"tabMark "
-            + "damage" + effect.damageCategory + " "
+    const tooltip = <div className="tabMarkTooltip">
+        <div className={"effect damage" + effect.damageCategory}>
+            {effect.name}
+        </div>
+        <div>{effect.description}</div>
+    </div>
+    return <div className={"tabMark damage" + effect.damageCategory}>
+        <WithTooltip tooltip={tooltip}>
+        {
+            (effect.leak > 0) && <i className="leak fa-solid fa-droplet"/>
         }
-        onMouseOver ={_ => {tooltipCtx.tooltip =
-            <div className="tabMarkTooltip">
-                <div className={"effect damage" + effect.damageCategory}>
-                    {effect.name}
-                </div>
-                <div>{effect.description}</div>
-            </div>}
-        }
-        onMouseOut ={_ => {tooltipCtx.tooltip = null}}
-    >
-    {
-        (effect.leak > 0) && <i className="leak fa-solid fa-droplet"/>
-    }
+        </WithTooltip>
     </div>
 }
 
@@ -195,7 +182,7 @@ export function Subsystem({subsystem, actionController}) {
             (activeTab === TABS.MAIN) && <SubsystemMainTab subsystem={subsystem} actionController={actionController}/>
         }
         {
-            (activeTab === TABS.STATUS) && <StatusTab subsystem={subsystem} actionController={actionController} toggleActiveTab={toggleActiveTab}/>
+            (activeTab === TABS.STATUS) && <StatusTab subsystem={subsystem} toggleActiveTab={toggleActiveTab}/>
         }
 
 

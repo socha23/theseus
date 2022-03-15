@@ -1,7 +1,9 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { memo, useContext, useEffect, useState } from "react";
 import ReactSlider from "react-slider";
-import { TooltipContext } from "./tooltip";
-import { Materials, RequiredInventory } from "./materials";
+import { WithTooltip } from "./tooltip";
+import { MarkRequiredMaterialsOnHover, Materials, RequiredInventory } from "./materials";
+import { ActionControllerCtx } from "../actionController";
+import { jsonCompare } from "../utils";
 
 
 export function VertSlider({id, actionController, children, enabled=true}) {
@@ -20,6 +22,7 @@ export function VertSlider({id, actionController, children, enabled=true}) {
     <div>{children}</div>
     </div>
 }
+
 
 function ActionTooltip({action, additionalContent=null}) {
     return <div>
@@ -42,32 +45,13 @@ function ActionTooltip({action, additionalContent=null}) {
     }
     </div>
     {
-        (additionalContent) && <div className="additionalContent">{additionalContent}</div>
+        (additionalContent) && <div className="additionalContent">{additionalContent()}</div>
     }
 </div>
 }
 
-
-export function ActionButton({action, actionController, className="default", additionalTooltip=null}) {
-    const [recentlyCompleted, setRecentlyCompleted] = useState(false)
-
-    useEffect(()=> {
-        if (action.recentlyCompleted && !recentlyCompleted) {
-            setRecentlyCompleted(true)
-            const timeout = setTimeout(() => {
-                setRecentlyCompleted(false)
-            }, 500)
-            return () => {clearTimeout(timeout)}
-        }
-    })
-
-
-    function getProgressWidth(action) {
-        return action.progress * 100 / action.progressMax
-    }
-
-    const tooltipCtx = useContext(TooltipContext)
-    const requiredInventory = useContext(RequiredInventory)
+function _ActionButton({action, className="default", additionalTooltip=null}) {
+    const actionController = useContext(ActionControllerCtx)
 
     var tooltip = null
     if (action.showTooltip) {
@@ -82,30 +66,29 @@ export function ActionButton({action, actionController, className="default", add
             + className
         }
         onClick={e => actionController.onClick(action)}
-
-        onMouseOver = {e => {
-            tooltipCtx.tooltip = tooltip
-            requiredInventory.values = action.requiredMaterials
-        }}
-        onMouseOut = {e => {
-            tooltipCtx.tooltip = null
-            requiredInventory.values = {}
-        }}
-    >
-        <div className='container'>
-            <i className={'icon ' + action.iconClass}/>
-            <div className={'nameAndProgress'}>
-                <div className={'name'}>
-                    {action.name}
-                </div>
-                {
-                    (action.progressMax > 0) && <div className='progressContainer'>
-                        <div className='progress' style={{width: getProgressWidth(action) + "%"}}/>
+        >
+            <WithTooltip tooltip={tooltip}>
+                <MarkRequiredMaterialsOnHover materials={action.requiredMaterials}>
+                    <div className='container'>
+                        <i className={'icon ' + action.iconClass}/>
+                        <div className={'nameAndProgress'}>
+                            <div className={'name'}>
+                                {action.name}
+                            </div>
+                            {
+                                (action.progressMax > 0) && <div className='progressContainer'>
+                                    <div className='progress' style={{
+                                        width: action.progressPercent + "%"
+                                    }}/>
+                                </div>
+                            }
+                            <Materials materials={action.requiredMaterials}/>
+                        </div>
                     </div>
-                }
-                <Materials materials={action.requiredMaterials}/>
-            </div>
+                </MarkRequiredMaterialsOnHover>
+            </WithTooltip>
         </div>
-    </div>
+
 }
 
+export const ActionButton = memo(_ActionButton, jsonCompare)

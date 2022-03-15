@@ -23,16 +23,6 @@ class Steering {
     }
 
     get throttle() {
-        if (this.forward && !this.backward) {
-            return 1
-        } else if (this.backward && !this.forward) {
-            return -0.5
-        } else {
-            return 0
-        }
-    }
-
-    get throttle() {
         if (this.forward && this.backward) {
             return 0
         }
@@ -65,6 +55,58 @@ class OperatorController {
     }
 }
 
+class PowerManagement {
+    constructor(subsystems) {
+        this.subsystems = subsystems
+
+        this._consumption = 0
+        this._generation = 0
+        this._balance = 0
+    }
+
+    _emergencyShutdown() {
+        const shutdownOrder = [...this.subsystems].sort(
+            (a, b) => b.powerConsumption - a.powerConsumption
+            )
+        while (this.powerBalance < 0 && shutdownOrder.length > 0) {
+            const s = shutdownOrder.shift()
+            s.shutdown()
+            this._updateCaches()
+        }
+    }
+
+    get consumption() {
+        return this._consumption
+    }
+
+    get generation() {
+        return this._generation
+    }
+
+    get balance() {
+        return this._balance
+    }
+
+    _updateCaches() {
+        this._consumption = 0
+        this._generation = 0
+        this.subsystems.forEach(s => {
+            this._consumption += s.powerConsumption
+            this._generation += s.powerGeneration
+        })
+        this._balance = this._generation - this._consumption
+    }
+
+    updateState() {
+        this._updateCaches()
+        if (this.powerBalance < 0) {
+            this._emergencyShutdown()
+        }
+
+    }
+
+}
+
 
 export class Sub extends Entity {
     constructor(volume, subsystems = []) {
@@ -81,9 +123,10 @@ export class Sub extends Entity {
 
         this._gridBusyCache = this._getGridBusy()
 
-        this._operatorController = new OperatorController()
-        this._steering = new Steering()
+        this.steering = new Steering()
         this.operators = new OperatorController()
+        this.power = new PowerManagement(this.subsystems)
+
 
         this._waterLevel = 0
 
@@ -92,7 +135,8 @@ export class Sub extends Entity {
     updateState(deltaMs, model, actionController) {
         this._moveSubsystems(actionController)
 
-        this._steering.updateState(deltaMs, model, actionController)
+        this.steering.updateState(deltaMs, model, actionController)
+        this.power.updateState()
 
         if (actionController.targetEntityId != null) {
             this.targetEntity = model.world.getEntity(actionController.targetEntityId)
@@ -102,9 +146,7 @@ export class Sub extends Entity {
         }
 
         this.subsystems.forEach(s => s.updateState(deltaMs, model, actionController))
-        if (this.powerBalance < 0) {
-            this._emergencyShutdown()
-        }
+
         this._updatePosition()
         this._updateWaterLevel(deltaMs)
         super.updateState(deltaMs, model)
@@ -122,32 +164,6 @@ export class Sub extends Entity {
                 .gridPosition = actionController.movedSubsystemPosition
             this._gridBusyCache = this._getGridBusy()
         }
-    }
-
-    _emergencyShutdown() {
-        const shutdownOrder = [...this.subsystems].sort(
-            (a, b) => b.powerConsumption - a.powerConsumption
-            )
-        while (this.powerBalance < 0 && shutdownOrder.length > 0) {
-            const s = shutdownOrder.shift()
-            s.shutdown()
-        }
-    }
-
-    get powerConsumption() {
-        var result = 0
-        this.subsystems.forEach(s => {result += s.powerConsumption})
-        return result
-    }
-
-    get powerGeneration() {
-        var result = 0
-        this.subsystems.forEach(s => {result += s.powerGeneration})
-        return result
-    }
-
-    get powerBalance() {
-        return this.powerGeneration - this.powerConsumption
     }
 
     get ranges() {
@@ -176,15 +192,14 @@ export class Sub extends Entity {
                 rotationalForce += e.rotationalThrust
             })
 
-        var dir = this._steering.direction
+        var dir = this.steering.direction
         if (
             (dir === 0)
-            && (this._steering.rotationControlOn)
             && (Math.abs(this.body.rotationSpeed) > 0.01)
          ) {
             dir = Math.sign(this.body.rotationSpeed) * -1
         }
-        this.body.addActingForce(this.body.dorsalThrustVector(force * this._steering.throttle))
+        this.body.addActingForce(this.body.dorsalThrustVector(force * this.steering.throttle))
         this.body.addActingRotation(rotationalForce * dir)
     }
 

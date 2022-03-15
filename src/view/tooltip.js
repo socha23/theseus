@@ -1,6 +1,5 @@
 import React, { useContext, useState, useLayoutEffect } from "react";
 
-
 function getWindowDimensions() {
     const { innerWidth: width, innerHeight: height } = window;
     return {
@@ -36,7 +35,7 @@ class TooltipController {
 }
 
 const controller = new TooltipController()
-export const TooltipContext = React.createContext(controller)
+const TooltipContext = React.createContext(controller)
 
 
 export function TooltipArea({children}) {
@@ -76,3 +75,24 @@ export function Tooltip() {
         </div>
 }
 
+export function WithTooltip({
+    tooltip,
+    children
+}) {
+    const tooltipCtx = useContext(TooltipContext)
+
+    if (!tooltip) {
+        return <div>{children}</div>
+    }
+
+    return <div className="mouseOverCtx"
+        onMouseOver = {e => {
+            tooltipCtx.tooltip = tooltip
+        }}
+        onMouseOut = {e => {
+            tooltipCtx.tooltip = null
+        }}
+    >
+        {children}
+    </div>
+}

@@ -165,7 +165,7 @@ export class BaseAction {
             errorConditions: this._errorConditions,
             requiredMaterials: this.requiredMaterials,
             usesProgress: this._progressMax > 0,
-            progress: this._progress,
+            progressPercent: Math.floor(this._progress * 100 / this._progressMax),
             progressMax: this._progressMax,
         }
     }

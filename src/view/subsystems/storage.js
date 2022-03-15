@@ -3,7 +3,7 @@ import "../../css/subsystems/storage.css"
 import { MATERIAL_DEFINITIONS } from "../../model/materials";
 import { RequiredInventory } from "../materials";
 
-function InventoryItem({item, actionController}) {
+function InventoryItem({item}) {
     const reqItems = useContext(RequiredInventory).values
     var className = "default "
     const requested = reqItems[item.materialId] || 0
@@ -27,11 +27,11 @@ function InventoryItem({item, actionController}) {
     </div>
 }
 
-export function Storage({subsystem, actionController}) {
+export function Storage({subsystem}) {
     return <div className={"storage "}>
         {
             subsystem.inventoryCounts.map(c =>
-                <InventoryItem key={c.materialId} item={c} actionController={actionController}/>
+                <InventoryItem key={c.materialId} item={c}/>
             )
         }
         </div>

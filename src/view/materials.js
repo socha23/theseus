@@ -1,8 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext } from "react";
 import { MATERIALS, MATERIALS_IN_ORDER, MATERIAL_DEFINITIONS } from "../model/materials";
-import { Tooltip, TooltipContext } from "./tooltip";
 
 import "../css/materials.css"
+import { jsonCompare } from "../utils";
 
 class InventoryContext {
     constructor() {
@@ -13,8 +13,7 @@ class InventoryContext {
 export const AvailableInventory = React.createContext(new InventoryContext())
 export const RequiredInventory = React.createContext(new InventoryContext())
 
-
-export function Materials({materials, filterOnes = true}) {
+function _Materials({materials, filterOnes = true}) {
     const inventory = useContext(AvailableInventory).values
     return <div className="materials">
         {
@@ -32,5 +31,20 @@ export function Materials({materials, filterOnes = true}) {
         }
     </div>
 }
+//export const Materials = _Materials
+export const Materials = React.memo(_Materials, jsonCompare)
 
+export function MarkRequiredMaterialsOnHover({materials, children}) {
+    const requiredInventory = useContext(RequiredInventory)
 
+    return <div
+        onMouseOver = {e => {
+            requiredInventory.values = materials
+        }}
+        onMouseOut = {e => {
+            requiredInventory.values = {}
+        }}
+    >
+        {children}
+    </div>
+}

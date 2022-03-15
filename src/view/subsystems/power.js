@@ -2,7 +2,7 @@ import { ActionButton } from "../widgets"
 
 import "../../css/subsystems/power.css"
 
-export function SubsystemPowerButton({subsystem, actionController}) {
+export function SubsystemPowerButton({subsystem}) {
     const availablePower = subsystem.subPowerBalance
     const nominalConsumption = subsystem.nominalPowerConsumption
     const extraPowerConsumption = (subsystem.powerConsumptionMultiplier > 1)
@@ -37,8 +37,7 @@ export function SubsystemPowerButton({subsystem, actionController}) {
     return <div className='powerButton'>
         <ActionButton
             action={subsystem.actionOn}
-            actionController={actionController}
-            additionalTooltip={tooltip}
+            additionalTooltip={() => {return tooltip}}
         />
     </div>
 }

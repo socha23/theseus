@@ -52,7 +52,7 @@ function AimBar({aim}) {
 }
 
 
-export function Weapon({subsystem, actionController}) {
+export function Weapon({subsystem}) {
     return <div className="weapon">
         <AmmoBar subsystem={subsystem}/>
         <div className="filler"/>
@@ -60,7 +60,7 @@ export function Weapon({subsystem, actionController}) {
         <div className="actions">
             {subsystem.weaponActions.map(a =>
             <ActionButton key={a.id}
-                action={a} actionController={actionController}/>)}
+                action={a} />)}
         </div>
     </div>
 }

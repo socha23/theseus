@@ -1,6 +1,5 @@
 import "../../css/subsystems/pumps.css"
-import { useContext } from "react";
-import { TooltipContext } from "../tooltip";
+import { WithTooltip } from "../tooltip";
 
 
 function PumpPowerBoxTooltip({subsystem}) {
@@ -17,19 +16,15 @@ function PumpPowerBoxTooltip({subsystem}) {
 }
 
 
-export function Pumps({subsystem, actionController}) {
-    const tooltipCtx = useContext(TooltipContext)
-    const powerBoxTooltip = <PumpPowerBoxTooltip subsystem={subsystem}/>
-
+export function Pumps({subsystem}) {
     return <div className={"pumps " +  (subsystem.pumping ? "active " : "inactive ") }>
         <div className="mainPane">
             <div className="topRow">
                 <i className={"pumpIcon fa-solid fa-water "}/>
-                <div className="powerBox"
-                    onMouseOver ={e => {tooltipCtx.tooltip = powerBoxTooltip}}
-                    onMouseOut ={e => {tooltipCtx.tooltip = null}}
-                >
-                    {(subsystem.pumpPower * 100)} q/s
+                <div className="powerBox">
+                    <WithTooltip tooltip={<PumpPowerBoxTooltip subsystem={subsystem}/>}>
+                        {(subsystem.pumpPower * 100)} q/s
+                    </WithTooltip>
                 </div>
             </div>
         </div>

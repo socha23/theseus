@@ -33,8 +33,6 @@ export class Weapon extends Subsystem {
             isVisible: () => this._aim == null,
             addErrorConditions: c => this._addAimErrors(c),
             onEnterActive: m => {this._startAim(m)},
-            onExitActive: m => {this._stopAim(m)},
-            activeUntilCancel: true,
         });
 
         this.shootAction = action({
@@ -93,17 +91,17 @@ export class Weapon extends Subsystem {
 
     _startAim(model) {
         this._aim = new Aiming({
-            onCompleted: (m) => {this.aimAction.cancel(m)}
+            onCompleted: (m) => {this._stopAim(model)}
         })
         this._aim.addTarget(this._target)
         this._aim.start()
-        this._operator = model.sub.assignOperator(this.aimAction)
+        this._operator = model.sub.operators.assignOperator(this.aimAction)
     }
 
     _stopAim(model) {
         this._aim = null
         this._operator = null
-        model.sub.unassignOperator(this.aimAction)
+        model.sub.operators.unassignOperator(this.aimAction)
     }
 
     _addReloadErrors(c) {
@@ -142,7 +140,7 @@ export class Weapon extends Subsystem {
     }
 
     updateState(deltaMs, model, actionController) {
-        if (this._aim && !model.sub.hasAssignedOperator(this.aimAction)) {
+        if (this._aim && !model.sub.operators.hasAssignedOperator(this.aimAction)) {
             this.aimAction.cancel(model)
         }
         super.updateState(deltaMs, model, actionController)

@@ -98,7 +98,7 @@ export class Subsystem extends HasEffects {
         })
 
         this._updateUnderWater(deltaMs, model)
-        this._subPowerBalance = model.sub.powerBalance
+        this._subPowerBalance = model.sub.power.balance
 
     }
 
@@ -135,8 +135,6 @@ export class Subsystem extends HasEffects {
             powerConsumptionMultiplier: this._powerConsumptionMultiplier,
             nominalPowerConsumption: this.nominalPowerConsumption,
             subPowerBalance: this._subPowerBalance,
-
-
         }
     }
 
@@ -158,7 +156,7 @@ export class Subsystem extends HasEffects {
     }
 
     get powerConsumption() {
-        return this.on ? this._powerConsumption * this._powerConsumptionMultiplier : 0
+        return this.on ? (this._powerConsumption * this._powerConsumptionMultiplier) : 0
     }
 
     get powerGeneration() {

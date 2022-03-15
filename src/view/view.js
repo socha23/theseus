@@ -4,6 +4,7 @@ import {Subsystem} from "./subsystems"
 import { TooltipArea } from "./tooltip";
 import '../css/water.css';
 import { AvailableInventory, InventoryContext, RequiredInventory } from "./materials";
+import { ActionControllerCtx } from "../actionController";
 
 
 function Water({waterLevel}) {
@@ -42,13 +43,15 @@ function GameView({model, actionController}) {
     const requiredInventory = useContext(RequiredInventory)
     availableInventory.values = model.sub.inventory
     return <div className="gameView">
-        <AvailableInventory.Provider value={availableInventory}>
-            <RequiredInventory.Provider value={requiredInventory}>
-            <TooltipArea>
-                <Sub sub={model.sub} actionController={actionController}/>
-            </TooltipArea>
-            </RequiredInventory.Provider>
-        </AvailableInventory.Provider>
+        <ActionControllerCtx.Provider value={actionController}>
+            <AvailableInventory.Provider value={availableInventory}>
+                <RequiredInventory.Provider value={requiredInventory}>
+                <TooltipArea>
+                    <Sub sub={model.sub} actionController={actionController}/>
+                </TooltipArea>
+                </RequiredInventory.Provider>
+            </AvailableInventory.Provider>
+        </ActionControllerCtx.Provider>
     </div>
 }
 

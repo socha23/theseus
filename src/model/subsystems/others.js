@@ -70,7 +70,7 @@ export class Reactor extends Subsystem {
         this._sinceUpdateHistory += deltaMs
         while (this._sinceUpdateHistory >= REACTOR_UPDATE_HISTORY_MS) {
             this._sinceUpdateHistory -= REACTOR_UPDATE_HISTORY_MS
-            this._addHistoryFrame(model.sub.powerConsumption)
+            this._addHistoryFrame(model.sub.power.consumption)
         }
     }
 
@@ -111,7 +111,7 @@ export class Engine extends Subsystem {
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
-        this._subThrottle = model.sub.throttle
+        this._subThrottle = model.sub.steering.throttle
     }
 
     get nominalPowerConsumption() {

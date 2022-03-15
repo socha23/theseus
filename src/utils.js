@@ -6,3 +6,7 @@ export function randomElem(list) {
 export function randomEventOccured(deltaMs, everyS) {
     return Math.random() <  (deltaMs / (everyS * 1000))
 }
+
+export function jsonCompare(obj1, obj2) {
+    return (JSON.stringify(obj1) === JSON.stringify(obj2))
+}

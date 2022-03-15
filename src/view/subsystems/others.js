@@ -47,10 +47,10 @@ export function SubStatus({subsystem}) {
 
 ///////////////////////////////////
 
-export function Cheatbox({subsystem, actionController}) {
+export function Cheatbox({subsystem}) {
     return <div className="cheatbox">
         {
-            subsystem.cheats.map(c => <ActionButton key={c.id} action={c} actionController={actionController}/>)
+            subsystem.cheats.map(c => <ActionButton key={c.id} action={c}/>)
         }
     </div>
 }
@@ -138,23 +138,4 @@ export function Reactor({subsystem, actionController}) {
             </div>
         </div>
 </div>
-}
-
-///////////////////////////////////
-
-export function Steering({subsystem, actionController}) {
-    return <div className="steering">
-        <div className="directions">
-            <div className="row topRow">
-                <div/>
-                <ActionButton action={subsystem.forward} actionController={actionController}/>
-                <div/>
-            </div>
-            <div className="row bottomRow">
-                <ActionButton action={subsystem.left} actionController={actionController}/>
-                <ActionButton action={subsystem.backward} actionController={actionController}/>
-                <ActionButton action={subsystem.right} actionController={actionController}/>
-            </div>
-        </div>
-    </div>
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import GameModel from './model'
 import { STATISTICS } from "./stats";
 import GameView from './view/view.js';
+import {ActionController} from "./actionController"
 
 class Game {
     constructor() {
@@ -22,97 +23,11 @@ class Game {
     }
 }
 
-class ActionController {
-
-    constructor() {
-        this._mouseOverSubsystems = {}
-        this._mouseOverAction = null
-        this._activeActions = {}
-        this.keysDown = {}
-        this.keysPressed = {}
-        this.targetEntityId = null
-        this.values = {}
-
-        this.movedSubsystemId = null
-        this.movedSubsystemPosition = null
-    }
-
-    isCurrent(action) {
-        return (this._activeActions[action.id] ?? null) != null
-    }
-
-    onClick(action) {
-        this._activeActions[action.id] = action
-    }
-
-    onMouseOverSubsystem(subsystem) {
-        this._mouseOverSubsystems[subsystem.id] = subsystem
-    }
-
-    onMouseOutSubsystem(subsystem) {
-        delete this._mouseOverSubsystems[subsystem.id]
-    }
-
-    isMouseOverSubsystem(subsystem) {
-        return (this._mouseOverSubsystems[subsystem.id] ?? null) != null
-    }
-
-    onMouseOverAction(action) {
-        this._mouseOverAction = action
-    }
-
-    get mouseOverAction() {
-        return this._mouseOverAction
-    }
-
-    onMouseOutAction(action) {
-        this._mouseOverAction = null
-    }
-
-    isKeyDown(key) {
-        return this.keysDown[key] === true
-    }
-
-    wasKeyPressed(key) {
-        return this.keysPressed[key] === true
-    }
-
-    onKeyDown(key) {
-        this.keysDown[key] = true
-    }
-
-    onKeyUp(key) {
-        this.keysDown[key] = false
-        this.keysPressed[key] = true
-    }
-
-    reset() {
-        this.keysPressed = {}
-        this.targetEntityId = null
-
-        this.movedSubsystemId = null
-        this.movedSubsystemPosition = null
-        this._activeActions = {}
-    }
-
-    onSubsystemMoved(id, position) {
-        this.movedSubsystemId = id
-        this.movedSubsystemPosition = position
-    }
-
-    setValue(key, val) {
-        this.values[key] = val
-    }
-
-    getValue(key, defVal) {
-        return this.values[key] ?? defVal
-    }
-}
 
 const TICK_DELAY_MS = 0
 const game = new Game()
 
-var lastUpdate = Date.now()
+var lastUpdate = window.performance.now()
 
 function App() {
     const [gameState, setGameState] = useState(game.gameModel.toViewState())
@@ -120,13 +35,13 @@ function App() {
 
     useEffect(() => {
         const interval = setInterval(_ => {
-            const updateStart = Date.now()
+            const updateStart = window.performance.now()
             STATISTICS.RENDER_TIME_MS.add(updateStart - lastUpdate)
             const newState = game.updateState(gameState)
-            STATISTICS.STATE_UPDATE_MS.add(Date.now() - updateStart)
+            STATISTICS.STATE_UPDATE_MS.add(window.performance.now() - updateStart)
             //console.log("Update took", Date.now() - updateStart)
             setGameState(newState)
-            lastUpdate = Date.now()
+            lastUpdate = window.performance.now()
         }, TICK_DELAY_MS)
         return () => clearInterval(interval)
     })

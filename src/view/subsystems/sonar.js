@@ -308,7 +308,6 @@ function Sonar({subsystem, actionController}) {
                 subsystem.toggleActions.map(a => <ActionButton
                     key={a.id}
                     action={a}
-                    actionController={actionController}
                     />)
             }
         </div>

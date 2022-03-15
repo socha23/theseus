@@ -3,6 +3,7 @@ const DEFAULT_PARAMS = {
     name: "Statistic",
     retentionTime: 1000,
     unit: "",
+    minFrameDistance: 0,
 }
 
 
@@ -33,7 +34,14 @@ class Statistic {
     }
 
     commit() {
-        this.values.push(this._frame)
+
+        const frameDistance = this.values.length === 0 ? Infinity
+            : this._frame.time - this.values[this.values.length - 1].time
+
+        if (frameDistance >= this.params.minFrameDistance) {
+            this.values.push(this._frame)
+        }
+
         this._frame = this._newFrame()
         const now = Date.now()
         while(this.values.length > 0 && this.values[0].time < now - this.params.retentionTime) {

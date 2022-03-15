@@ -2,7 +2,7 @@ import { Subsystem, SUBSYSTEM_CATEGORIES } from "."
 import { randomElem } from "../../utils"
 import { Engine } from "./engine"
 import { action } from "../action"
-import { Reactor } from "./others"
+import { Reactor } from "./reactor"
 import { Pumps } from "./pumps"
 
 export class CheatBox extends Subsystem {

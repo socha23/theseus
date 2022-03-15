@@ -1,10 +1,11 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import Sonar from "./sonar.js";
 import { ActionButton} from "../widgets"
 import { Weapon } from "./weapons"
-import { SubStatus, Tracking, Reactor, Cheatbox } from "./others";
+import { SubStatus, Tracking, Cheatbox } from "./others";
 import { WithTooltip } from "../tooltip";
 import { Engine } from "./engine";
+import { Reactor } from "./reactor";
 import { Pumps } from "./pumps";
 import { Storage } from "./storage";
 import { SubsystemPowerButton } from "./power.js";

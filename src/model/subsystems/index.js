@@ -1,5 +1,5 @@
 import { randomElem } from '../../utils'
-import { ACTION_CATEGORY, ToggleAction, action } from '../action'
+import { ToggleAction, action } from '../action'
 import { Effect, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects, lightDamage, mediumDamage, heavyDamage, shootMiss } from '../effects'
 import { Point } from '../physics.js'
 import { MATERIALS } from '../materials'
@@ -27,7 +27,6 @@ class TogglePowerAction extends ToggleAction {
             id: subsystem.id + "_on",
             name: "Toggle power",
             icon: "fa-solid fa-power-off",
-            category: ACTION_CATEGORY.SPECIAL,
             onChange: (val) => {
                 subsystem.addEffect(val ? poweringUp() : poweringDown())
             },

@@ -1,4 +1,3 @@
-import { OperatorController } from './action.js'
 import {Point, Body } from './physics.js'
 import { Entity } from './entities.js'
 
@@ -45,6 +44,28 @@ class Steering {
     }
 }
 
+class OperatorController {
+    constructor() {
+        this._currentAction = null
+    }
+
+    assignOperator(a) {
+        this._currentAction = a
+        return {id: "operator"}
+    }
+
+    unassignOperator(a) {
+        if (this._currentAction === a) {
+            this._currentAction = null
+        }
+    }
+
+    hasAssignedOperator(a) {
+        return this._currentAction === a
+    }
+}
+
+
 export class Sub extends Entity {
     constructor(volume, subsystems = []) {
         super("sub", new Body(new Point(0, 0), volume, Math.PI / 2))
@@ -62,6 +83,7 @@ export class Sub extends Entity {
 
         this._operatorController = new OperatorController()
         this._steering = new Steering()
+        this.operators = new OperatorController()
 
         this._waterLevel = 0
 
@@ -183,18 +205,6 @@ export class Sub extends Entity {
             }
         })
         return grid
-    }
-
-    assignOperator(a) {
-        return this._operatorController.assignOperator(a)
-    }
-
-    unassignOperator(a) {
-        this._operatorController.unassignOperator(a)
-    }
-
-    hasAssignedOperator(a) {
-        return this._operatorController.hasAssignedOperator(a)
     }
 
     toViewState() {

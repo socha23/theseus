@@ -1,10 +1,3 @@
-export const ACTION_CATEGORY = {
-    STANDARD: "standard",
-    DIRECTION: "direction",
-    THROTTLE: "throttle",
-    SPECIAL: "special",
-}
-
 ///////////////
 // BASE ACTIONS
 ///////////////
@@ -21,7 +14,6 @@ const BASE_ACTION_PARAMS = {
     name: "",
     longName: "",
     icon: "fa-solid fa-angle-right",
-    category: ACTION_CATEGORY.STANDARD,
     getLongName: null,
     onCompleted: m => {},
     onEnterActive: m => {},
@@ -31,6 +23,7 @@ const BASE_ACTION_PARAMS = {
     onChange: (newVal, oldVal) => {},
     requiresOperator: false,
     requiredMaterials: {},
+    progressTime: 0,
 }
 
 
@@ -39,8 +32,9 @@ export class BaseAction {
         this.params = {...BASE_ACTION_PARAMS, ...params}
         this._state = STATE.INACTIVE
         this._errorConditions = []
-        this._progressMax = this.params.progressMax || 0
+        this._progressMax = this.params.progressTime
         this._progress = 0
+        this._operator = null
     }
 
     get id() {
@@ -75,6 +69,10 @@ export class BaseAction {
         return this.params.requiredMaterials
     }
 
+    get requiresOperator() {
+        return this.params.requiresOperator
+    }
+
     addErrorConditions(conditions, model) {
         this.params.addErrorConditions(conditions, model)
         if (this._requiresMaterials) {
@@ -98,19 +96,27 @@ export class BaseAction {
     }
 
     _activate(model) {
+        if (this.requiresOperator) {
+            const operator = model.sub.operators.assignOperator(this)
+            if (operator == null) {
+                return
+            }
+            this._operator = operator
+        }
+
         this._state = STATE.PROGRESSING
         this._progress = 0
+
         this.onEnterActive(model)
         this.params.onEnterActive(model)
     }
 
-    _progress(model, deltaMs) {
-        if (this._state === STATE.PROGRESSING) {
-            this._progress += deltaMs
-        }
-    }
-
     _deactivate(model) {
+        if (this.requiresOperator) {
+            model.sub.operators.unassignOperator(this)
+            this._operator = null
+        }
+
         this._state = STATE.INACTIVE
         this._progress = 0
         this.onExitActive(model)
@@ -118,10 +124,14 @@ export class BaseAction {
     }
 
     _complete(model) {
-        console.log('action completed', this)
         this._payMaterials(model)
         this.onCompleted(model)
         this.params.onCompleted(model)
+    }
+
+    cancel(model) {
+        this._deactivate(model)
+        this.onCancelled(model)
     }
 
     _requiresMaterials() {
@@ -149,18 +159,20 @@ export class BaseAction {
             recentlyCompleted: false,
             enabled: this.enabled,
             active: this.active,
-            category: this.params.category,
             visible: this.visible,
             longName: this.longName,
             showTooltip: true,
             errorConditions: this._errorConditions,
             requiredMaterials: this.requiredMaterials,
+            usesProgress: this._progressMax > 0,
+            progress: this._progress,
+            progressMax: this._progressMax,
         }
     }
 
     __updateErrorConditions(deltaMs, model) {
-        this.errorConditions = []
-        this.addErrorConditions(this.errorConditions, model)
+        this._errorConditions = []
+        this.addErrorConditions(this._errorConditions, model)
     }
 
     updateState(deltaMs, model, actionController) {
@@ -176,6 +188,9 @@ export class BaseAction {
             this._activate(model)
         }
 
+        if (this.active && this.requiresOperator && !model.sub.operators.hasAssignedOperator(this)) {
+            this._deactivate(model)
+        }
         if (this.enabled && this.active) {
             if (this._state === STATE.PROGRESSING) {
                 this._progress += deltaMs
@@ -188,10 +203,6 @@ export class BaseAction {
         }
     }
 
-    cancel(model) {
-        this._deactivate(model)
-        this.onCancelled(model)
-    }
 }
 
 ///////////////
@@ -229,145 +240,8 @@ export class ToggleAction extends BaseAction {
     }
 }
 
-///////////////
-// PROGRESSING
-///////////////
-
-export class ProgressAction extends BaseAction {
-    constructor(progressMax, innerAction) {
-        super(innerAction.params)
-        this._inner = innerAction
-        this._progressMax = progressMax
-        this._progress = 0
-        this._progressing = false
-    }
-
-    execute(model, payMaterials=true) {
-        this._activate(model, payMaterials)
-        this._progressing = true
-    }
-
-
-    get active() {
-        return this._inner.active || this._progressing
-    }
-
-    onCancelled(model) {
-        if (this.progressing) {
-            this._deactivate(model)
-        } else {
-            super.onCancelled(model)
-        }
-    }
-
-    _deactivate(model) {
-        super._deactivate(model)
-        this._resetProgress()
-    }
-
-    addErrorConditions(c, m) {
-        super.addErrorConditions(c, m)
-    }
-
-
-    _resetProgress() {
-        this._progressing = false
-        this._progress = 0
-    }
-
-    toViewState() {
-        const res = {
-            ...this._inner.toViewState(),
-            ...super.toViewState(),
-        }
-        res.usesProgress = true
-        res.progress = this._progress
-        res.progressMax = this._progressMax
-        return res
-    }
-
-    updateState(deltaMs, model, actionController) {
-        super.updateState(deltaMs, model, actionController)
-        if (this._inner.active) {
-            this._inner.updateState(deltaMs, model, actionController)
-        }
-        if (!this._progressing) {
-            return
-        }
-        if (!this.enabled) {
-            this._deactivate(model)
-//            this._complete(model)
-            this._resetProgress()
-            return
-        }
-
-        this._progress += deltaMs
-        if (this._progress > this._progressMax) {
-            this._resetProgress()
-            this._inner.execute(model, false)
-            this._deactivate(model)
-            this._complete(model)
-        }
-    }
-
-}
-
-export class OperatorController {
-    constructor() {
-        this._currentAction = null
-    }
-
-    assignOperator(a) {
-        this._currentAction = a
-        return {id: "operator"}
-    }
-
-    unassignOperator(a) {
-        if (this._currentAction === a) {
-            this._currentAction = null
-        }
-    }
-
-    hasAssignedOperator(a) {
-        return this._currentAction === a
-    }
-}
-
-export class OperatorAction extends ProgressAction {
-    constructor(progressTime, inner) {
-        super(progressTime, inner)
-        this._operator = null
-    }
-
-    _activate(model, payMaterials) {
-        this._operator = model.sub.assignOperator(this)
-        super._activate(model, payMaterials)
-    }
-
-    _deactivate(model) {
-        super._deactivate(model)
-        model.sub.unassignOperator(this)
-        this._operator = null
-    }
-
-    updateState(deltaMs, model, actionController) {
-        if (this.active && !model.sub.hasAssignedOperator(this)) {
-            this.cancel(model)
-        }
-        super.updateState(deltaMs, model, actionController)
-    }
-
-}
 
 export function action(params) {
-    var res = new BaseAction(params)
-    if (params.progressTime) {
-        if (params.requiresOperator) {
-            res = new OperatorAction(params.progressTime, res)
-        } else {
-            res = new ProgressAction(params.progressTime, res)
-        }
-    }
-    return res
+    return new BaseAction(params)
 }
 

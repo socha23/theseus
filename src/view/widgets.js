@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import ReactSlider from "react-slider";
-import { MATERIALS, MATERIALS_IN_ORDER, MATERIAL_DEFINITIONS } from "../model/materials";
-import { Tooltip, TooltipContext } from "./tooltip";
+import { TooltipContext } from "./tooltip";
 import { Materials, RequiredInventory } from "./materials";
 
 

@@ -1,10 +1,10 @@
-import {ToggleAction, ACTION_CATEGORY } from '../action'
+import {ToggleAction } from '../action'
 import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
 import {Point, rectangle, Volume} from "../physics"
 
 class SonarDebugAction extends ToggleAction {
     constructor(sonar) {
-        super({id: sonar.id + "_debug", name: "Toggle debug mode", category: ACTION_CATEGORY.THROTTLE, icon: "fa-solid fa-bug"})
+        super({id: sonar.id + "_debug", name: "Toggle debug mode", icon: "fa-solid fa-bug"})
         this.sonar = sonar
     }
 

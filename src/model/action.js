@@ -9,13 +9,19 @@ export const ACTION_CATEGORY = {
 // BASE ACTIONS
 ///////////////
 
+const STATE = {
+    INACTIVE: "inactive",
+    PROGRESSING: "progressing",
+    ACTIVE: "active",
+
+}
+
 const BASE_ACTION_PARAMS = {
     id: "",
     name: "",
     longName: "",
     icon: "fa-solid fa-angle-right",
     category: ACTION_CATEGORY.STANDARD,
-    key: null,
     getLongName: null,
     onCompleted: m => {},
     onEnterActive: m => {},
@@ -23,7 +29,6 @@ const BASE_ACTION_PARAMS = {
     addErrorConditions: c => {},
     isVisible: () => true,
     onChange: (newVal, oldVal) => {},
-    activeUntilCancel: false,
     requiresOperator: false,
     requiredMaterials: {},
 }
@@ -32,8 +37,10 @@ const BASE_ACTION_PARAMS = {
 export class BaseAction {
     constructor(params){
         this.params = {...BASE_ACTION_PARAMS, ...params}
-        this._active = false
-        this.errorConditions = []
+        this._state = STATE.INACTIVE
+        this._errorConditions = []
+        this._progressMax = this.params.progressMax || 0
+        this._progress = 0
     }
 
     get id() {
@@ -51,16 +58,13 @@ export class BaseAction {
         return this.params.longName || this.name
     }
 
-    get key() {
-        return this.params.key
-    }
-
     get active() {
-        return this._active
+        return this._state == STATE.PROGRESSING
+            || this._state == STATE.ACTIVE
     }
 
     get enabled() {
-        return this.errorConditions.length === 0
+        return this._errorConditions.length === 0
     }
 
     get visible() {
@@ -73,47 +77,49 @@ export class BaseAction {
 
     addErrorConditions(conditions, model) {
         this.params.addErrorConditions(conditions, model)
-        if (this._requiresMaterials && !this.active) {
+        if (this._requiresMaterials) {
             const store = model.sub.getStorage()
             const missingMats = Object.keys(this.requiredMaterials)
                 .filter(matId =>  store.getCount(matId) < this.requiredMaterials[matId])
                 .length
-
-
             if (missingMats) {
                 conditions.push("Missing materials")
             }
         }
     }
 
-    execute(model, payMaterials = true) {
-        this._activate(model, payMaterials)
-        if (!this.params.activeUntilCancel) {
-            this._deactivate(model)
-            this._complete(model)
-        }
-    }
-
-    _activate(model, payMaterials) {
-        if (payMaterials && this._requiresMaterials()) {
+    _payMaterials(model) {
+        if (this._requiresMaterials()) {
             const storage = model.sub.getStorage()
             Object.keys(this.requiredMaterials).forEach(matId => {
                 storage.take(matId, this.requiredMaterials[matId])
             })
         }
+    }
 
-        this._active = true
+    _activate(model) {
+        this._state = STATE.PROGRESSING
+        this._progress = 0
         this.onEnterActive(model)
         this.params.onEnterActive(model)
     }
 
+    _progress(model, deltaMs) {
+        if (this._state === STATE.PROGRESSING) {
+            this._progress += deltaMs
+        }
+    }
+
     _deactivate(model) {
-        this._active = false
+        this._state = STATE.INACTIVE
+        this._progress = 0
         this.onExitActive(model)
         this.params.onExitActive(model)
     }
 
     _complete(model) {
+        console.log('action completed', this)
+        this._payMaterials(model)
         this.onCompleted(model)
         this.params.onCompleted(model)
     }
@@ -142,25 +148,43 @@ export class BaseAction {
             iconClass: this.params.icon,
             recentlyCompleted: false,
             enabled: this.enabled,
-            active: this._active,
+            active: this.active,
             category: this.params.category,
             visible: this.visible,
             longName: this.longName,
             showTooltip: true,
-            errorConditions: this.errorConditions,
+            errorConditions: this._errorConditions,
             requiredMaterials: this.requiredMaterials,
         }
     }
 
-    _updateErrorConditions(deltaMs, model) {
+    __updateErrorConditions(deltaMs, model) {
         this.errorConditions = []
         this.addErrorConditions(this.errorConditions, model)
     }
 
     updateState(deltaMs, model, actionController) {
-        this._updateErrorConditions(deltaMs, model)
+        this.__updateErrorConditions(deltaMs, model)
+        if (!this.enabled && this.active) {
+            this._deactivate(model)
+        }
+
         if (this.enabled && actionController.isCurrent(this)) {
-            this.execute(model)
+            if (this.active) {
+                this._deactivate(model)
+            }
+            this._activate(model)
+        }
+
+        if (this.enabled && this.active) {
+            if (this._state === STATE.PROGRESSING) {
+                this._progress += deltaMs
+            }
+
+            if (this._progress >= this._progressMax) {
+                this._deactivate(model)
+                this._complete(model)
+            }
         }
     }
 
@@ -194,7 +218,6 @@ export class ToggleAction extends BaseAction {
             this._value = val
             this.params.onChange(val, oldVal)
         }
-
     }
 
     toViewState() {
@@ -202,51 +225,6 @@ export class ToggleAction extends BaseAction {
             ...super.toViewState(),
             value: this.value,
             selected: this.value,
-        }
-    }
-}
-
-///////////////
-// RADIO
-///////////////
-
-class RadioController {
-    constructor() {
-        this.toggleGroupValues = {}
-    }
-
-    set(toggleGroup, val) {
-        this.toggleGroupValues[toggleGroup] = val
-    }
-
-    get(toggleGroup, defaultVal) {
-        return this.toggleGroupValues[toggleGroup] ?? defaultVal
-    }
-}
-
-const RADIO_CONTROLLER = new RadioController()
-
-export class RadioAction extends BaseAction {
-    constructor(params){
-        super(params)
-        this.toggleGroup = params.toggleGroup ?? params.id + "_group"
-        this.value = params.value
-    }
-
-    get selected() {
-        return RADIO_CONTROLLER.get(this.toggleGroup, null) === this.value
-    }
-
-    onCompleted(model) {
-        RADIO_CONTROLLER.set(this.toggleGroup, this.value)
-    }
-
-
-    toViewState() {
-        return {
-            ...super.toViewState(),
-            selected: this.selected,
-            value: this.value,
         }
     }
 }

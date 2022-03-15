@@ -83,7 +83,6 @@ export function ActionButton({action, actionController, className="default", add
             + className
         }
         onClick={e => actionController.onClick(action)}
-        onMouseDown={e => actionController.onMouseDown(action)}
 
         onMouseOver = {e => {
             tooltipCtx.tooltip = tooltip

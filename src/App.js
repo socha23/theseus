@@ -38,8 +38,7 @@ class ActionController {
     }
 
     isCurrent(action) {
-        return ((this._activeActions[action.id] ?? null) != null)
-            || (action.key && this.isKeyDown(action.key))
+        return (this._activeActions[action.id] ?? null) != null
     }
 
     onClick(action) {
@@ -70,15 +69,6 @@ class ActionController {
         this._mouseOverAction = null
     }
 
-    onMouseUp() {
-        this._activeActions = {}
-    }
-
-    onMouseDown(action) {
-        this._activeActions[action.id] = action
-    }
-
-
     isKeyDown(key) {
         return this.keysDown[key] === true
     }
@@ -102,10 +92,7 @@ class ActionController {
 
         this.movedSubsystemId = null
         this.movedSubsystemPosition = null
-
-        Object.values(this._activeActions)
-            .filter(a => !a.usesPressToActivate)
-            .forEach(a => {delete this._activeActions[a.id]})
+        this._activeActions = {}
     }
 
     onSubsystemMoved(id, position) {
@@ -147,10 +134,6 @@ function App() {
     return (
         <div className="app"
             tabIndex={0}
-
-                onMouseUp={e => game.actionController.onMouseUp()}
-                onMouseLeave={e => game.actionController.onMouseUp()}
-
                 onKeyDown={e => game.actionController.onKeyDown(e.key)}
                 onKeyUp={e => game.actionController.onKeyUp(e.key)}
         >

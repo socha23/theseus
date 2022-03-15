@@ -6,15 +6,11 @@ const DEFAULT_PARAMS = {
     minFrameDistance: 0,
 }
 
-
-const stats = []
-
-class Statistic {
+export class Statistic {
     constructor(params) {
         this.params = {...DEFAULT_PARAMS, ...params}
         this.values = []
         this._frame = this._newFrame()
-        stats.push(this)
     }
 
     _newFrame() {
@@ -29,19 +25,19 @@ class Statistic {
         return this.avg.toFixed(2) + " ms"
     }
 
-    add(val) {
+    add(val, commit = false) {
         this._frame.value += val
+        if (commit) {
+            this.commit()
+        }
     }
 
     commit() {
-
-        const frameDistance = this.values.length === 0 ? Infinity
-            : this._frame.time - this.values[this.values.length - 1].time
-
+        const frameDistance = (this.values.length === 0) ? Infinity
+            : (this._frame.time - this.values[this.values.length - 1].time)
         if (frameDistance >= this.params.minFrameDistance) {
             this.values.push(this._frame)
         }
-
         this._frame = this._newFrame()
         const now = Date.now()
         while(this.values.length > 0 && this.values[0].time < now - this.params.retentionTime) {
@@ -78,6 +74,8 @@ export const STATISTICS = {
     }),
 }
 
-export function commitStats() {
-    stats.forEach(s => s.commit())
+export function commitFrameStats() {
+    STATISTICS.STATE_UPDATE_MS.commit()
+    STATISTICS.RENDER_TIME_MS.commit()
+    STATISTICS.PHYSICS_UPDATE.commit()
 }

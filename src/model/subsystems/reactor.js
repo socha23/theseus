@@ -1,5 +1,6 @@
 import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
 import "../../css/subsystems/reactor.css"
+import { Statistic } from '../../stats'
 
 ////////////////////////////////////////
 // REACTOR
@@ -18,14 +19,23 @@ export class Reactor extends Subsystem {
 
         this.fuel = 1
         this.control = 0
-        this.outputHistory = []
 
-        this._historyX = 0
-        for (var i = 0; i < REACTOR_HISTORY_FRAMES; i++) {
-            this._addHistoryFrame()
-        }
-        this._sinceUpdateHistory = 0
         this._externalSetControl = false
+
+        this._statistics = {
+            powerProduction: new Statistic({
+                name: "Power production",
+                unit: "W",
+                retentionTime: HIST_TIME_MS,
+                minFrameDistance: 200,
+            }),
+            powerConsumption: new Statistic({
+                name: "Power consumption",
+                unit: "W",
+                retentionTime: HIST_TIME_MS,
+                minFrameDistance: 200,
+            })
+        }
     }
 
     get output() {
@@ -41,37 +51,24 @@ export class Reactor extends Subsystem {
         return this.output
     }
 
-    _addHistoryFrame(consumption = 0) {
-        this.outputHistory.push({
-            output: this.output,
-            consumption: consumption,
-            timeMs: Date.now(),
-        })
-        while (this.outputHistory.length > REACTOR_HISTORY_FRAMES) {
-            this.outputHistory.shift()
-        }
-
-    }
-
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
+
+        this._statistics.powerProduction.add(this.output, true)
+        this._statistics.powerConsumption.add(model.sub.power.consumption, true)
+
+
+
+
         if (this._externalSetControl) {
             this._externalSetControl = false
             actionController.setValue(this.id + "_control", this.control)
         }
-
         if (!this.on) {
             actionController.setValue(this.id + "_control", 0)
         }
 
-
         this.control = actionController.getValue(this.id + "_control", 0)
-
-        this._sinceUpdateHistory += deltaMs
-        while (this._sinceUpdateHistory >= REACTOR_UPDATE_HISTORY_MS) {
-            this._sinceUpdateHistory -= REACTOR_UPDATE_HISTORY_MS
-            this._addHistoryFrame(model.sub.power.consumption)
-        }
     }
 
 
@@ -81,8 +78,9 @@ export class Reactor extends Subsystem {
             fuel: this.fuel,
             control: this.control,
             isReactor: true,
-            history: this.outputHistory,
-            historyTo: Date.now(),
+            historyPowerProduction: this._statistics.powerProduction.values,
+            historyPowerConsumption: this._statistics.powerConsumption.values,
+            historyTo: Date.now() - 500,
             historyFrom: Date.now() - HIST_TIME_MS,
             maxOutput: this.maxOutput,
         }

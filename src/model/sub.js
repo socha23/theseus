@@ -68,7 +68,7 @@ class PowerManagement {
         const shutdownOrder = [...this.subsystems].sort(
             (a, b) => b.powerConsumption - a.powerConsumption
             )
-        while (this.powerBalance < 0 && shutdownOrder.length > 0) {
+        while (this._balance < 0 && shutdownOrder.length > 0) {
             const s = shutdownOrder.shift()
             s.shutdown()
             this._updateCaches()
@@ -99,7 +99,7 @@ class PowerManagement {
 
     updateState() {
         this._updateCaches()
-        if (this.powerBalance < 0) {
+        if (this.balance < 0) {
             this._emergencyShutdown()
         }
 

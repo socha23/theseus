@@ -1,38 +1,115 @@
 import React from "react";
-import { CartesianGrid, Area, AreaChart, XAxis, YAxis } from "recharts";
 import {VertSlider, ActionButton} from "../widgets"
-import { STATISTICS } from "../../stats.js";
+import {Stage, Layer, Line, Group, Rect, } from 'react-konva'
+
+
+const MARGIN = 20
+
+function StatLine({
+        values=[],
+        scaleX=1,
+        scaleY=1,
+        timeFrom=0,
+        height=100,
+        stroke="red",
+        fill="rgba(255,0,0,0.5)"
+    }) {
+    if (values.length === 0) {
+        return null
+    }
+    const points = []
+    var x = (values[0].time - timeFrom) * scaleX
+    var y = height + MARGIN
+    points.push(x, y)
+    values.forEach(v => {
+        x = (v.time - timeFrom) * scaleX
+        y = height - (v.value * scaleY)
+        points.push(x, y)
+    })
+    points.push(x, height + MARGIN)
+    return <Line points={points} closed={true} fill={fill} strokeWidth={3} stroke={stroke}/>
+}
+
+function VertLines({timeFrom, timeTo, scaleX=1, everyMs=5000, height=100}) {
+    const xs = []
+    const firstLineT = Math.floor(timeFrom / everyMs) * everyMs
+    for (var t = firstLineT; t < timeTo; t += everyMs) {
+        xs.push((t - timeFrom) * scaleX)
+    }
+    return <Group>
+    {
+        xs.map(x => <Line
+            key={x}
+            points={[x, 0, x, height]}
+            stroke="white"
+            strokeWidth={1}
+        />)
+    }
+    </Group>
+}
+
+function HorizLines({everyPx=20, width=100, height=100}) {
+    const ys = []
+    for (var y = height; y > 0; y -= everyPx) {
+        ys.push(y)
+    }
+    return <Group>
+    {
+        ys.map(y => <Line
+            key={y}
+            points={[0, y, width, y]}
+            stroke="white"
+            strokeWidth={1}
+        />)
+    }
+    </Group>
+}
 
 function ReactorHistory({subsystem, height}) {
     const WIDTH = 184
+    const MS_MARGIN = 200
 
-    const history = subsystem.history
-    const histGridTimePoints = []
+    const histPowerProd = subsystem.historyPowerProduction
+    const histPowerCon = subsystem.historyPowerConsumption
 
-    const time = subsystem.historyTo - subsystem.historyFrom
+    const timeFrom = subsystem.historyFrom
+    const timeTo = subsystem.historyTo
+    const timeLength = timeTo - timeFrom
 
+    const msToX = (WIDTH + 2) / (timeLength + MS_MARGIN )
+    const valToY = height / subsystem.maxOutput
 
-
-    const MS_PER_STEP = 5000
-    const PX_PER_STEP = WIDTH * MS_PER_STEP / time
-
-    const phase = 1 - (subsystem.historyFrom % MS_PER_STEP) / MS_PER_STEP
-    for (var x = phase * PX_PER_STEP; x <= WIDTH; x += PX_PER_STEP) {
-        histGridTimePoints.push(x)
-    }
-    return <div className='history' style={{width: WIDTH, height: height}}>
+    return <div className='history' style={{width: WIDTH + 2, height: height + 2}}>
         {subsystem.on &&
-            <div className="chart">
-                <AreaChart margin={{top: 0, left: 0, right: 0, bottom: 0}} width={WIDTH} height={height} data={history}>
-                    <CartesianGrid verticalPoints={histGridTimePoints} stroke="#469528"/>
-                    <YAxis hide={true} type="number" domain={[0, subsystem.maxOutput]}/>
-                    <XAxis hide={true} type="number" domain={[subsystem.historyFrom + 200, subsystem.historyTo - 200]} dataKey="timeMs"/>
-                    <Area dataKey="output" stroke="#a5d000" strokeWidth={3} fill="green"/>
-                    <Area dataKey="consumption" stroke="red" strokeWidth={3} fill="#6f0000"/>
-                </AreaChart>
-            </div>}
-    </div>
+            <Stage width={WIDTH} height={height} opacity={0.7}>
+                <Layer>
+                    <Rect x={0} y={0} width={WIDTH} height={height} fill="black"/>
+                    <HorizLines width={WIDTH} height={height} everyPx={50}/>
+                    <VertLines timeFrom={timeFrom} timeTo={timeTo} scaleX={msToX} height={height}/>
+                    <StatLine
+                        values={histPowerProd}
+                        height={height}
+                        scaleX={msToX}
+                        scaleY={valToY}
+                        timeFrom={timeFrom + MS_MARGIN}
+                        stroke="#a5d000"
+                        fill="rgba(0,255,0,0.5)"
+                    />
+                    <StatLine
+                        values={histPowerCon}
+                        height={height}
+                        scaleX={msToX}
+                        scaleY={valToY}
+                        timeFrom={timeFrom + MS_MARGIN}
+                        stroke="red"
+                        fill="rgba(255,0,0,0.5)"
+                    />
 
+
+                </Layer>
+            </Stage>
+        }
+    </div>
 }
 
 

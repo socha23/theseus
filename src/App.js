@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import GameModel from './model'
-import { commitStats, STATISTICS } from "./stats";
+import { commitFrameStats, STATISTICS } from "./stats";
 import GameView from './view/view.js';
 import {ActionController} from "./actionController"
 
@@ -41,7 +41,7 @@ function App() {
             STATISTICS.STATE_UPDATE_MS.add(window.performance.now() - updateStart)
             setGameState(newState)
             lastUpdate = window.performance.now()
-            commitStats()
+            commitFrameStats()
         }, TICK_DELAY_MS)
         return () => clearInterval(interval)
     })

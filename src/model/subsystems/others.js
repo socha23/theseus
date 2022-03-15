@@ -91,49 +91,6 @@ export class Reactor extends Subsystem {
 
 ////////////////////////////////////////
 
-export class Engine extends Subsystem {
-    constructor(gridPosition, id, name, template) {
-        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, template)
-        this.force = template.force
-        this.rotationalForce = template.rotationalForce
-        this._subThrottle = 0
-    }
-
-    isEngine() {
-        return true
-    }
-
-    toViewState() {
-        return {
-            ...super.toViewState(),
-        }
-    }
-
-    updateState(deltaMs, model, actionController) {
-        super.updateState(deltaMs, model, actionController)
-        this._subThrottle = model.sub.steering.throttle
-    }
-
-    get nominalPowerConsumption() {
-        return 0.1 * this._powerConsumption
-    }
-
-    get powerConsumption() {
-        return this.on ? Math.abs(this._subThrottle * this._powerConsumption) : 0
-    }
-
-    get thrust() {
-        return this.on ? this.force : 0
-    }
-
-    get rotationalThrust() {
-        return this.on ? this.rotationalForce : 0
-    }
-
-}
-
-////////////////////////////////////////
-
 export class SubStatusScreen extends Subsystem {
     constructor(gridPosition, id, name) {
         super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.STATUS, {powerConsumption: 5, takesDamage: false})

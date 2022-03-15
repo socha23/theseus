@@ -272,3 +272,24 @@ hr {
     width: 100%;
     height: 100%;
 }
+
+
+.segmentProgress {
+    display: flex;
+    border: 1px solid #a5d000;
+    gap: 2px;
+    padding: 2px;
+}
+
+.segmentProgress .segment {
+    height: 10px;
+    flex-grow: 1;
+}
+
+.segmentProgress .segment.filled {
+    background-color: #a5d000;
+}
+
+.subsystem.unpowered .segmentProgress {
+    border-color: #469528;
+}

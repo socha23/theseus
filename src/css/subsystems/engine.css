@@ -1,0 +1,51 @@
+.subsystem .engine {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.subsystem .engine .mainPane {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.subsystem .engine .mainPane .topRow {
+    display: flex;
+    gap: 5px;
+}
+
+.subsystem .engine .mainPane .engineIcon {
+    font-size: 40pt;
+    padding: 4px;
+}
+
+.subsystem .engine .mainPane .powerBox {
+    font-size: 16pt;
+    padding: 4px;
+    padding-left: 6px;
+    flex-grow: 1;
+}
+
+.subsystem .engine .infoBox {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.subsystem .engine .infoBox .directions {
+    display: flex;
+    gap: 3px;
+}
+
+.subsystem .engine .infoBox .directions .segmentProgress {
+    flex-grow: 1;
+}
+
+.subsystem.powered .engine .mainPane .powerBox.reducedForce {
+    color: #dba800;
+}
+
+.enginePowerTooltip .reducedForce {
+    color: #dba800;
+}

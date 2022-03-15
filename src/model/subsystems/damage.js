@@ -9,7 +9,7 @@ import { MATERIALS } from '../materials'
 export class RandomShutdown extends SubsystemDamage {
     static TYPE = "damageRandomShutdown"
 
-    constructor(subsystem, everyS, params) {
+    constructor(subsystem, params={}) {
         super(subsystem, {
             type: RandomShutdown.TYPE,
             name: "Torn cables",
@@ -20,7 +20,7 @@ export class RandomShutdown extends SubsystemDamage {
             },
             ...params,
         })
-        this.everyS = everyS
+        this.everyS = this.params.everyS ?? 60
         this._flickerEveryS = 1
     }
 

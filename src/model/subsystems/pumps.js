@@ -118,7 +118,7 @@ export class Pumps extends Subsystem {
 
     createDamageOfType(type) {
         if (type === RandomShutdown.TYPE) {
-            return new RandomShutdown(this, 60)
+            return new RandomShutdown(this)
         }
         if (type === IncreasedPowerConsumption.TYPE) {
             return new IncreasedPowerConsumption(this)

@@ -1,3 +1,5 @@
+import { transpose } from "./utils"
+
 /* def is like
 [
     {time: 0, value: 0},
@@ -26,6 +28,3 @@ export function gradientValue(time, definition) {
     return lastFrame.value
 }
 
-export function transpose(val, aF, aT, bF=aF, bT=aT) {
-    return bF + (bT - bF) * ((val - aF) / (aT - aF))
-}

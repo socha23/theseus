@@ -1,5 +1,6 @@
 import { Subsystem, SUBSYSTEM_CATEGORIES } from "."
 import { randomElem } from "../../utils"
+import { Engine } from "./engine"
 import { action } from "../action"
 import { Reactor } from "./others"
 import { Pumps } from "./pumps"
@@ -22,10 +23,25 @@ export class CheatBox extends Subsystem {
                 },
             }),
             action({
-                id: "cheat_add_pump_light_damage",
+                id: "cheat_add_pump_damage",
                 name: "Pump damage",
                 onCompleted: (model) => {
                     const s = model.sub.subsystems.find(s => s instanceof Pumps)
+                    const r = Math.random()
+                    if (r < 0.33) {
+                        s.addLightDamage()
+                    } else if (r < 0.66) {
+                        s.addMediumDamage()
+                    } else {
+                        s.addHeavyDamage()
+                    }
+                },
+            }),
+            action({
+                id: "cheat_add_engine_damage",
+                name: "Engine damage",
+                onCompleted: (model) => {
+                    const s = model.sub.subsystems.find(s => s instanceof Engine)
                     const r = Math.random()
                     if (r < 0.33) {
                         s.addLightDamage()

@@ -2,7 +2,7 @@ import {Point, Body } from './physics.js'
 import { Entity } from './entities.js'
 
 import { Storage } from './subsystems/storage'
-import { Engine } from './subsystems/others'
+import { Engine } from './subsystems/engine'
 import { randomElem } from '../utils.js'
 import { shake } from './effects.js'
 import { MATERIALS } from './materials.js'
@@ -188,19 +188,12 @@ export class Sub extends Entity {
         this.subsystems
             .filter(s => s.isEngine())
             .forEach(e => {
-                force += e.thrust
-                rotationalForce += e.rotationalThrust
+                force += e.activeThrustForce
+                rotationalForce += e.activeRotationForce
             })
 
-        var dir = this.steering.direction
-        if (
-            (dir === 0)
-            && (Math.abs(this.body.rotationSpeed) > 0.01)
-         ) {
-            dir = Math.sign(this.body.rotationSpeed) * -1
-        }
-        this.body.addActingForce(this.body.dorsalThrustVector(force * this.steering.throttle))
-        this.body.addActingRotation(rotationalForce * dir)
+        this.body.addActingForce(this.body.dorsalThrustVector(force))
+        this.body.addActingRotation(rotationalForce)
     }
 
     _findSubsystem(clazz) {

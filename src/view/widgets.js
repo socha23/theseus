@@ -3,7 +3,7 @@ import ReactSlider from "react-slider";
 import { WithTooltip } from "./tooltip";
 import { MarkRequiredMaterialsOnHover, Materials, RequiredInventory } from "./materials";
 import { ActionControllerCtx } from "../actionController";
-import { jsonCompare } from "../utils";
+import { jsonCompare, transpose } from "../utils";
 
 
 export function VertSlider({id, actionController, children, enabled=true}) {
@@ -22,6 +22,34 @@ export function VertSlider({id, actionController, children, enabled=true}) {
     <div>{children}</div>
     </div>
 }
+
+
+export function _SegmentProgress({from = 0, to = 100, value = 0, segments = 10, reverse=false}) {
+    const segmentElems = []
+
+    var filledI = transpose(value, from, to, 0, segments)
+    if (reverse) {
+        filledI = segments - filledI - 1
+    }
+    for (var i = 0; i < segments; i++) {
+        const filled = reverse
+        ? (filledI < i)
+        : (i < filledI)
+
+        segmentElems.push({
+            key: "seg" + i,
+            className: "segment " + (filled ? "filled " : "unfilled ")
+        })
+    }
+    return <div className="segmentProgress">
+        {
+            segmentElems.map(s => <div {...s}/>)
+        }
+    </div>
+}
+
+export const SegmentProgress = memo(_SegmentProgress)
+
 
 
 function ActionTooltip({action, additionalContent=null}) {

@@ -4,6 +4,7 @@ import { ActionButton} from "../widgets"
 import { Weapon } from "./weapons"
 import { SubStatus, Tracking, Reactor, Cheatbox } from "./others";
 import { WithTooltip } from "../tooltip";
+import { Engine } from "./engine";
 import { Pumps } from "./pumps";
 import { Storage } from "./storage";
 import { SubsystemPowerButton } from "./power.js";
@@ -49,6 +50,9 @@ function SubsystemMainTab({subsystem, actionController}) {
             }
             {
                 subsystem.isStorage && <Storage subsystem={subsystem}/>
+            }
+            {
+                subsystem.isEngine && <Engine subsystem={subsystem}/>
             }
         </div>
     </div>

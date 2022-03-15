@@ -44,7 +44,7 @@ class TogglePowerAction extends ToggleAction {
         if (!this._subsystem.on) {
             if (!this._subsystem.waterResistant && this._subsystem.underWater) {
                 conditions.push("Under water")
-            } else if (model.sub.powerBalance < this._subsystem.nominalPowerConsumption) {
+            } else if (model.sub.power.balance < this._subsystem.nominalPowerConsumption) {
                 conditions.push("Insufficient power")
             }
             this._subsystem.addStatusPowerErrorConditions(conditions, model)

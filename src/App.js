@@ -43,9 +43,7 @@ class ActionController {
     }
 
     onClick(action) {
-        if (!action.usesPressToActivate) {
-            this._activeActions[action.id] = action
-        }
+        this._activeActions[action.id] = action
     }
 
     onMouseOverSubsystem(subsystem) {
@@ -73,15 +71,11 @@ class ActionController {
     }
 
     onMouseUp() {
-        Object.values(this._activeActions)
-            .filter(a => a.usesPressToActivate)
-            .forEach(a => {delete this._activeActions[a.id]})
+        this._activeActions = {}
     }
 
     onMouseDown(action) {
-        if (action.usesPressToActivate) {
-            this._activeActions[action.id] = action
-        }
+        this._activeActions[action.id] = action
     }
 
 

@@ -3,10 +3,10 @@ import { Body, Point, rectangle, Volume } from "./physics"
 import { Sub } from "./sub"
 import { Flock, FlockAgent } from "./agent"
 
-import { Engine, Reactor, SubStatusScreen, Steering} from "./subsystems/others"
-import {Weapon} from "./subsystems/weapons"
-import {Tracking } from "./subsystems/tracking"
-import {Sonar } from "./subsystems/sonar"
+import { Engine, Reactor, SubStatusScreen } from "./subsystems/others"
+import { Weapon } from "./subsystems/weapons"
+import { Tracking } from "./subsystems/tracking"
+import { Sonar } from "./subsystems/sonar"
 import { Map } from "./map"
 import { Pumps } from "./subsystems/pumps"
 import { CheatBox } from "./subsystems/cheatbox"
@@ -110,7 +110,6 @@ export function getStartingSub() {
 
             new Reactor(new Point(4, 0), "reactor", "Reactor", REACTOR_TEMPLATES.BASIC_REACTOR),
             new Engine(new Point(4, 2), "engine_2", "Engine", ENGINE_TEMPLATES.BASIC_ENGINE),
-            new Steering(new Point(2, 3), "steering_1", "Steering"),
 
             new Pumps(new Point(3, 2), "pumps0", "Pumps", PUMP_TEMPLATES.BASIC_PUMP),
             new Storage(new Point(3, 3), "storage0", "Storage", {

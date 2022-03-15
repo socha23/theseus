@@ -3,10 +3,47 @@ import {Point, Body } from './physics.js'
 import { Entity } from './entities.js'
 
 import { Storage } from './subsystems/storage'
-import { Engine, Steering } from './subsystems/others'
+import { Engine } from './subsystems/others'
 import { randomElem } from '../utils.js'
 import { shake } from './effects.js'
 import { MATERIALS } from './materials.js'
+
+class Steering {
+    constructor() {
+        this.forward = false
+        this.backward = false
+        this.left = false
+        this.right = false
+    }
+
+    updateState(deltaMs, model, actionController) {
+        this.forward = actionController.isKeyDown("w")
+        this.backward = actionController.isKeyDown("s")
+        this.left = actionController.isKeyDown("a")
+        this.right = actionController.isKeyDown("d")
+    }
+
+    get throttle() {
+        if (this.forward && !this.backward) {
+            return 1
+        } else if (this.backward && !this.forward) {
+            return -0.5
+        } else {
+            return 0
+        }
+    }
+
+    get throttle() {
+        if (this.forward && this.backward) {
+            return 0
+        }
+        return (this.forward ? 1 : 0) - (this.backward ? 0.5 : 0)
+    }
+
+    get direction() {
+        return (this.left ? -1 : 0) + (this.right ? 1 : 0)
+    }
+}
 
 export class Sub extends Entity {
     constructor(volume, subsystems = []) {
@@ -16,7 +53,6 @@ export class Sub extends Entity {
         this.trackedEntity = null
 
         this._engine = this._findSubsystem(Engine)
-        this._steering = this._findSubsystem(Steering)
         this._storage = this._findSubsystem(Storage)
 
         this.gridWidth = 5
@@ -25,12 +61,16 @@ export class Sub extends Entity {
         this._gridBusyCache = this._getGridBusy()
 
         this._operatorController = new OperatorController()
+        this._steering = new Steering()
 
         this._waterLevel = 0
+
     }
 
     updateState(deltaMs, model, actionController) {
         this._moveSubsystems(actionController)
+
+        this._steering.updateState(deltaMs, model, actionController)
 
         if (actionController.targetEntityId != null) {
             this.targetEntity = model.world.getEntity(actionController.targetEntityId)
@@ -70,10 +110,6 @@ export class Sub extends Entity {
             const s = shutdownOrder.shift()
             s.shutdown()
         }
-    }
-
-    get throttle() {
-        return  this._steering.getThrottle()
     }
 
     get powerConsumption() {
@@ -126,7 +162,7 @@ export class Sub extends Entity {
          ) {
             dir = Math.sign(this.body.rotationSpeed) * -1
         }
-        this.body.addActingForce(this.body.dorsalThrustVector(force * this.throttle))
+        this.body.addActingForce(this.body.dorsalThrustVector(force * this._steering.throttle))
         this.body.addActingRotation(rotationalForce * dir)
     }
 

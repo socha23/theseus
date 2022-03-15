@@ -51,11 +51,6 @@ export class BaseAction {
         return this.params.longName || this.name
     }
 
-
-    get usesPressToActivate() {
-        return false
-    }
-
     get key() {
         return this.params.key
     }
@@ -146,7 +141,6 @@ export class BaseAction {
             name: this.name,
             iconClass: this.params.icon,
             recentlyCompleted: false,
-            usesPressToActivate: this.usesPressToActivate,
             enabled: this.enabled,
             active: this._active,
             category: this.params.category,
@@ -173,32 +167,6 @@ export class BaseAction {
     cancel(model) {
         this._deactivate(model)
         this.onCancelled(model)
-    }
-}
-
-
-///////////////
-// PRESS AND CLICK
-///////////////
-
-export class PressAction extends BaseAction {
-    get usesPressToActivate() {
-        return true
-    }
-
-    updateState(deltaMs, model, actionController) {
-        this._updateErrorConditions(deltaMs, model)
-        if (this.enabled && actionController.isCurrent(this)) {
-            if (!this.active) {
-                this._active = true
-                this.onEnterActive(model)
-            }
-        } else {
-            if (this.active) {
-                this._active = false
-                this.onExitActive(model)
-            }
-        }
     }
 }
 

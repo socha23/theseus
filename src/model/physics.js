@@ -1,3 +1,5 @@
+import { STATISTICS } from "../stats"
+
 function vectorForPolar(r, theta) {
     return new Vector(r * Math.cos(theta), r * Math.sin(theta))
 }
@@ -157,9 +159,9 @@ export class Body {
     updateState(deltaMs, model, onCollision) {
         const deltaS = deltaMs / 1000
 
+        const updateStart = window.performance.now()
+
         var projectedMove = this._projectMove(deltaS)
-
-
         var recounts = 0
         while (true) {
             const collision = model.map.detectCollision(projectedMove.boundingBox)
@@ -177,6 +179,9 @@ export class Body {
                 break
             }
         }
+
+        STATISTICS.PHYSICS_UPDATE.add(window.performance.now() - updateStart)
+
         this.position = projectedMove.position
         this.orientation = projectedMove.orientation
         this.speed = projectedMove.speed

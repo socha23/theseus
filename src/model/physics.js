@@ -270,7 +270,9 @@ export class Body {
         const frictionFace = Math.abs(Math.cos(angleOfAttack)) * this.volume.frontSection()
             + Math.abs(Math.sin(angleOfAttack) * this.volume.sideSection())
 
-        const frictionForce =  0.5 * WATER_DENSITY * this.speed.squared() * this.volume.dragCoefficient * frictionFace
+        const coeffMultiplier = (frictionFace / this.volume.frontSection()) * (frictionFace / this.volume.frontSection())
+
+        const frictionForce =  0.5 * WATER_DENSITY * this.speed.squared() * this.volume.dragCoefficient * coeffMultiplier * frictionFace
         const frictionDir = this.speed.theta() + Math.PI
         return vectorForPolar(frictionForce, frictionDir)
 

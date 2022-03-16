@@ -71,7 +71,7 @@ export class MovePlan extends Plan {
     }
 }
 
-function randomPointAround(point, distance) {
+export function randomPointAround(point, distance) {
     const dx = 2 * (Math.random() - 0.5) * distance
     const dy = 2 * (Math.random() - 0.5) * distance
     return point.plus(new Vector(dx, dy))
@@ -133,61 +133,3 @@ export class Agent {
     }
 }
 
-export class FishAgent extends Agent {
-    _nextPlan(entity, model) {
-        const plan = Math.random()
-        if (plan < 0.5) {
-            return new MoveAround(entity, 50)
-        } else {
-            return new Follow(entity, model.sub, 20)
-        }
-    }
-}
-
-export class MoveToFlockCenter extends MoveTo {
-    constructor(entity, flock) {
-        super(entity.id + "_move_to_flock_center",
-            randomPointAround(flock.getCenter(), 7),
-            5)
-        this.description = `Move to flock center`
-
-    }
-}
-
-
-export class FlockAgent extends FishAgent {
-    constructor(flock) {
-        super()
-        this.flock = flock
-    }
-
-    _nextPlan(entity, model) {
-        if (Math.random() < 0.1) {
-            return new MoveAround(entity, 100)
-        } else {
-            return new MoveToFlockCenter(entity, this.flock)
-        }
-    }
-}
-
-export class Flock {
-    constructor() {
-        this.entities = []
-    }
-
-    addEntity(entity) {
-        this.entities.push(entity)
-    }
-
-    getCenter() {
-        let x = 0
-        let y = 0
-        let count = 0
-        this.entities.forEach(e => {
-            x += e.getPosition().x
-            y += e.getPosition().y
-            count++
-        })
-        return new Point(x / count, y / count)
-    }
-}

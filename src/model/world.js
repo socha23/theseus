@@ -1,7 +1,6 @@
-import { Fish } from "./entities"
+import { Fish, Flock, FlockAgent } from "./fish"
 import { Body, Point, rectangle, Volume } from "./physics"
 import { Sub } from "./sub"
-import { Flock, FlockAgent } from "./agent"
 
 import { SubStatusScreen } from "./subsystems/others"
 import { Reactor } from "./subsystems/reactor"
@@ -34,8 +33,8 @@ const WEAPON_TEMPLATES = {
 
 const ENGINE_TEMPLATES = {
     BASIC_ENGINE: {
-        force: 10 * 40 * 1000,
-        rotationalForce: 10 * 2 * 1000,
+        force:  40 * 1000,
+        rotationalForce: 2 * 1000,
         powerConsumption: 10,
     }
 }
@@ -76,21 +75,21 @@ const FISH_TEMPLATES = {
     SMALL_FISH: {
         id: "small_fish",
         volume: new Volume(0.5, 0.5, 2, 0.2),
-        tailForce: 1 * 1000,
+        tailForce: 2 * 1000,
         rotationalForce: 1 * 1000,
         rotationSpeed: Math.PI,
     },
     FAT_FISH: {
         id: "fat_fish",
         volume: new Volume(2, 2, 3, 0.2),
-        tailForce: 5 * 1000,
+        tailForce: 15 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: Math.PI,
     },
     BIG_FISH: {
         id: "big_fish",
         volume: new Volume(2, 2, 5, 0.1),
-        tailForce: 15 * 1000,
+        tailForce: 25 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: Math.PI * 4,
     },

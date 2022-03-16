@@ -1,6 +1,6 @@
 import { DRAG_COEFFICIENTS, Vector } from "./physics"
 import { BackOff, FishAgent, MovePlan } from "./agent"
-import { EffectsMixin, entityHit, HasEffects } from "./effects"
+import { entityHit, HasEffects } from "./effects"
 
 export class Entity extends HasEffects {
     constructor(id, body) {
@@ -14,8 +14,8 @@ export class Entity extends HasEffects {
         return this.body.position
     }
 
-    getRadius() {
-        return this.body.volume.getRadius()
+    get radius() {
+        return this.body.volume.radius
     }
 
     getWidth() {
@@ -68,6 +68,10 @@ export class Entity extends HasEffects {
     updateState(deltaMs, model) {
         super.updateState(deltaMs, model)
         this.body.updateState(deltaMs, model, c => {this.onCollision(c)})
+    }
+
+    distanceTo(entity) {
+        return this.position.distanceTo(entity.position) - this.radius - entity.radius
     }
 }
 

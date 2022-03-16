@@ -171,7 +171,7 @@ function Ranges({position, scale, ranges}) {
             ranges.map(r => <Circle
                 key={r.id}
                 listening={false}
-                radius={r.range}
+                radius={r.range }
                 x={position.x}
                 y={position.y}
                 stroke={rangeVal(RANGE_COLOR, r)}

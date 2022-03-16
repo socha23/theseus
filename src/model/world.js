@@ -161,7 +161,7 @@ export class World {
         return Object.values(this.entitiesById).filter(e => {
             const deltaX = pos.x - e.getPosition().x
             const deltaY = pos.y - e.getPosition().y
-            const r = radius + e.getRadius()
+            const r = radius + e.radius
 
             return deltaX * deltaX + deltaY * deltaY <= r * r
         })

@@ -113,7 +113,7 @@ export class Volume {
         return this.height * this.length
     }
 
-    getRadius() {
+    get radius() {
         return Math.max(this.width, this.height, this.length) / 2
     }
 
@@ -286,7 +286,7 @@ export class Body {
     }
 
     get radius() {
-        return this.volume.getRadius()
+        return this.volume.radius
     }
 }
 

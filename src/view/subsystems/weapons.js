@@ -1,4 +1,5 @@
 import { ActionButton } from "../widgets"
+import "../../css/subsystems/weapons.css"
 
 function AmmoBullet({spent}) {
     return <span className='bullet'>
@@ -17,36 +18,48 @@ function AmmoBar({subsystem}) {
     </div>
 }
 
+
+function AimBarSegment({segment, className}) {
+    return <div
+    className={className}
+    style={{
+        left: segment.distancePercent + "%",
+        width: segment.sizePercent + "%",
+    }}
+/>
+}
+
 function AimBar({aim}) {
-    return <div className="aimBar">
-        <div
-            className="crosshairs"
-            style={{
-                left: ((aim.progress / aim.progressMax) * 100) + "%",
-                width: ((aim.crosshairsSize / aim.progressMax) * 100) + "%",
-
-
-            }}
-        />
-        {
-            aim.targets.map(t => <div
-                key={t.id}
-                className="target"
-                style={{
-                    left: ((t.position / aim.progressMax) * 100) + "%",
-                    width: ((t.size / aim.progressMax) * 100) + "%",
-                }}
-            />)
+    return <div className={"aimBar " + (aim.targetObscured ? "obscured " : "visible ")}>
+        {   aim.on && <div className="aimBarInner">
+            {
+                aim.rangePercent && <div
+                    className="range"
+                    style={{
+                        width: aim.rangePercent + "%",
+                    }}
+                />
+            }
+            {
+                aim.target && <AimBarSegment segment={aim.target}
+                    className={"target " + (aim.target.alive ? "alive " : "dead ") }/>
+            }
+            {
+                aim.crosshairs && <AimBarSegment segment={aim.crosshairs} className="crosshairs"/>
+            }
+            {
+                aim.shootMarks.map(t => <AimBarSegment
+                    segment={t}
+                    className={"shootMark " + (t.hit ? "hit " : "miss ")}
+                    key={t.distancePercent}
+                />)
+            }
+        </div>
         }
         {
-            aim.shootMarks.map(t => <div
-                key={t.id}
-                className={"shootMark " + (t.hit ? "hit " : "miss ")}
-                style={{
-                    left: ((t.position / aim.progressMax) * 100) + "%",
-                    width: ((t.size / aim.progressMax) * 100) + "%",
-                }}
-            />)
+            (aim.on && aim.targetObscured) && <div className="obscuredMessage">
+                Target obscured
+            </div>
         }
     </div>
 }
@@ -56,7 +69,7 @@ export function Weapon({subsystem}) {
     return <div className="weapon">
         <AmmoBar subsystem={subsystem}/>
         <div className="filler"/>
-        {subsystem.aim && <AimBar aim={subsystem.aim}/>}
+        <AimBar aim={subsystem.aim}/>
         <div className="actions">
             {subsystem.weaponActions.map(a =>
             <ActionButton key={a.id}

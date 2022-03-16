@@ -2,7 +2,7 @@ import {action } from '../action'
 import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
 import { AimLine, AIM_LINE_TYPE, RangeCircle, RANGE_CIRCLE_TYPE } from './sonar'
 import { EFFECT_TYPES, shootHit, shootMiss } from '../effects'
-import { MATERIALS, MATERIAL_DEFINITIONS, MATERIAL_TYPES } from '../materials'
+import { MATERIALS, MATERIAL_DEFINITIONS } from '../materials'
 
 
 const DEFAULT_WEAPON_PARAMS = {
@@ -18,30 +18,31 @@ export class Weapon extends Subsystem {
         this.ammo = this.template.ammoMax
         this.ammoMax = this.template.ammoMax
         this.range = this.template.range
-        this._aim = null
         this._target = null
         this._targetDistance = 0
         this._targetVisible = false
         this._mouseOver = false
         this._operator = false
+        this._aim = new Aim(this)
+        this._shotsLeft = 0
 
         this.aimAction = action({
             id: id + "_aim",
             name: "Aim",
             longName: "Aim " + name,
             icon: "fa-solid fa-bullseye",
-            isVisible: () => this._aim == null,
+            isVisible: () => !this._aim._aiming,
             addErrorConditions: c => this._addAimErrors(c),
-            onEnterActive: m => {this._startAim(m)},
+            onEnterActive: m => {this.aim(m)},
         });
 
         this.shootAction = action({
             id: id + "_shoot",
             name: "Shoot",
             icon: "fa-solid fa-bullseye",
-            isVisible: () => this._aim != null,
+            isVisible: () => this._aim._aiming,
             addErrorConditions: c => this._addShootErrors(c),
-            onCompleted: m => {this._shoot()}
+            onCompleted: m => {this.shoot()}
 
         });
 
@@ -81,26 +82,15 @@ export class Weapon extends Subsystem {
 
     }
 
-    _canContinueAim() {
-        return this.on
-            && this.ammo > 0
-            && this._targetDistance <= this.range
-            && this._targetVisible
-    }
-
-
-    _startAim(model) {
-        this._aim = new Aiming({
-            onCompleted: (m) => {this._stopAim(model)}
-        })
-        this._aim.addTarget(this._target)
-        this._aim.start()
+    aim(model) {
+        this._aim.aim()
+        this._shotsLeft = 1
         this._operator = model.sub.operators.assignOperator(this.aimAction)
     }
 
-    _stopAim(model) {
-        this._aim = null
+    onFinishAim(model) {
         this._operator = null
+        this._shotsLeft = 0
         model.sub.operators.unassignOperator(this.aimAction)
     }
 
@@ -113,53 +103,47 @@ export class Weapon extends Subsystem {
     _addShootErrors(c) {
         if (!this.on) {
             c.push("Unpowered")
-        }
-        if (this.ammo === 0) {
+        } else if (this.ammo === 0) {
             c.push("Out of ammo")
-        }
-        if (!this._target) {
+        } else if (!this._target) {
             c.push("No target")
-        }
-        if (this._aim && !this._aim.canShoot()) {
+        } else if (this._shotsLeft === 0) {
             c.push("Out of shots")
-        }
-        if (this._target && this.range < this._targetDistance) {
+        } else if (!this._targetVisible) {
+            c.push("Target obscured")
+        } else if (this.range < this._targetDistance) {
             c.push("Out of range")
         }
     }
 
-    _shoot() {
+    shoot() {
         this.ammo = Math.max(0, this.ammo - 1)
-        if (this._aim) {
-            const hit = this._aim.shoot()
-            this.addEffect(hit.length > 0 ? shootHit() : shootMiss())
-            hit.forEach(e => {
-                e.onHit()
-            })
-        }
+        this._shotsLeft -= 1
+
+        const hit = this._aim.shoot()
+        this.addEffect(hit.length > 0 ? shootHit() : shootMiss())
+        hit.forEach(e => {
+            e.onHit()
+        })
     }
 
     updateState(deltaMs, model, actionController) {
-        if (this._aim && !model.sub.operators.hasAssignedOperator(this.aimAction)) {
-            this.aimAction.cancel(model)
-        }
         super.updateState(deltaMs, model, actionController)
-        this._mouseOver = actionController.isMouseOverSubsystem(this)
         this._target = model.sub.trackedEntity
-
         if (this._target) {
-            this._targetDistance = this._target.position.distanceTo(model.sub.position)
+            this._targetDistance = this._target.position.distanceTo(model.sub.position) - this._target.radius
             this._targetVisible = (model.map.raycast(model.sub.position, this._target.position) == null)
         } else {
             this._targetDistance = 0
         }
-        if (this._aim) {
-            if (this._canContinueAim()) {
-                this._aim.updateState(deltaMs, model)
-            } else {
-                this.aimAction.cancel(model)
-            }
+
+        this._aim.updateState(deltaMs, model)
+
+        if (this._aim._aiming && !model.sub.operators.hasAssignedOperator(this.aimAction)) {
+            this._aim.onFinishAim(model)
+            this.aimAction.cancel(model)
         }
+        this._mouseOver = actionController.isMouseOverSubsystem(this)
     }
 
     toViewState() {
@@ -168,7 +152,7 @@ export class Weapon extends Subsystem {
             usesAmmo: true,
             ammo: this.ammo,
             ammoMax: this.ammoMax,
-            aim: (this._aim ? this._aim.toViewState() : null),
+            aim: this._aim.toViewState(),
             isWeapon: true,
             weaponActions: this.weaponActions.filter(a => a.visible).map(a => a.toViewState()),
         }
@@ -201,113 +185,98 @@ export class Weapon extends Subsystem {
 }
 
 
-const DEFAULT_AIM_PARAMS = {
-    onHit: (e) => {},
-    onCompleted: () => {},
-    aimTime: 1500,
-    crosshairsSize: 50,
-    shootCount: 1,
+function percentize(val, total) {
+    return Math.floor(val / total * 1000) / 10
 }
 
-class Aiming {
-    constructor(params = {}) {
-        this.params = {...DEFAULT_AIM_PARAMS, ...params}
-        this._progress = 0
-        this._started = false
-        this._completed = false
-        this._shootCount = this.params.shootCount
-        this._targets = []
+const TARGET_SIZE = 3
+const CROSSHAIRS_SIZE = 3
+const CROSSHAIRS_SPEED = 15
+
+const SHOOTMARKS_DECAY = 2000
+
+class Aim {
+    constructor(weapon) {
+        this._weapon = weapon
+        this._sonarRange = 1
+        this._targetSize = 0
+
+        this._aiming = false
+        this._crosshairsPos = 0
         this._shootMarks = []
-        this._lastProgress = 0
-    }
-
-
-    inProgress() {
-        return this._started && !this._completed
-    }
-
-    start() {
-        if (this.inProgress()) {
-            return
-        }
-        this._progress = 0
-        this._started = true
-        this._completed = false
-    }
-
-    canShoot() {
-        return this._shootCount > 0
-    }
-
-    shoot() {
-        if (!this.inProgress() || this._shootCount <= 0) {
-            return [];
-        } else {
-            this._shootCount--
-            const hits = []
-            this._targets.forEach(t => {
-                const aF = this._progress - this._lastProgress
-                const aT = aF + this.params.crosshairsSize
-                const bF = t.position
-                const bT = bF + t.size
-
-                const hit = (
-                    (aF <= bF && bF <= aT)
-                    || (bF <= aF && aF <= bT)
-                )
-
-                this._shootMarks.push({position: aF, size: this.params.crosshairsSize, hit: hit, id: "sm" + this._progress})
-                if (hit) {
-                    hits.push(t.entity)
-                }
-            })
-            return hits;
-        }
-    }
-
-    addTarget(entity) {
-        const targetSize = 100
-        const posFrom = Math.min(400, this.params.aimTime * 0.5)
-        const posTo = this.params.aimTime - targetSize
-        const targetPos = Math.random() * (posTo - posFrom) + posFrom
-
-        this._targets.push({
-            entity: entity,
-            position: targetPos,
-            size: targetSize,
-        })
-    }
-
-    _onCompleted(model) {
-        this._started = false
-        this._completed = true
-        this.params.onCompleted(model)
     }
 
     updateState(deltaMs, model) {
-        if (!this.inProgress()) {
-            return
-        }
-        this._progress = Math.min(this._progress + deltaMs, this.params.aimTime)
-        this._lastProgress = deltaMs
+        this._sonarRange = model.sub.sonarRange
 
-        if (this._progress >= this.params.aimTime) {
-            this._onCompleted(model)
+        if (this._weapon._target != null) {
+            this._targetSize = this._weapon._target.radius * TARGET_SIZE
+        } else {
+            this._targetSize = 0
         }
+
+        if (this._aiming) {
+            this._crosshairsPos = this._crosshairsPos + CROSSHAIRS_SPEED * deltaMs / 1000
+            if (this._crosshairsPos > this._weapon.range) {
+                this.onFinishAim(model)
+            }
+        }
+
+        this._shootMarks = this._shootMarks.filter(s => (Date.now() - s.time) < SHOOTMARKS_DECAY)
+    }
+
+    onFinishAim(model) {
+        this._aiming = false
+        this._crosshairsPos = 0
+        this._weapon.onFinishAim(model)
+    }
+
+    aim() {
+        this._aiming = true
+        this._crosshairsPos = 0
+    }
+
+    shoot() {
+        var hit = false
+        if (this._weapon._target) {
+            hit = true
+            if (
+                (this._crosshairsPos + CROSSHAIRS_SIZE < this._weapon._targetDistance)
+            || (this._weapon._targetDistance + this._targetSize < this._crosshairsPos)) {
+                hit = false
+            }
+            this._shootMarks.push({
+                hit: hit,
+                pos: this._crosshairsPos,
+                size: CROSSHAIRS_SIZE,
+                time: Date.now()
+            })
+        }
+        return hit ? [this._weapon._target] : []
     }
 
     toViewState() {
         return {
-            progress: this._progress,
-            progressMax: this.params.aimTime,
-            crosshairsSize: this.params.crosshairsSize,
-            targets: this._targets.map(t => ({
-                id: t.entity.id,
-                position: t.position,
-                size: t.size,
-            })),
-            shootMarks: this._shootMarks,
+            on: this._weapon.on,
+            targetObscured: (this._weapon._target && !this._weapon._targetVisible),
+            rangePercent: percentize(this._weapon.range, this._sonarRange),
+            target: this._weapon._target ? {
+                alive: this._weapon._target.alive,
+                distancePercent: percentize(this._weapon._targetDistance, this._sonarRange),
+                sizePercent: percentize(this._targetSize, this._sonarRange),
+            } : null,
+            crosshairs: this._aiming ? {
+                distancePercent: percentize(this._crosshairsPos, this._sonarRange),
+                sizePercent: percentize(CROSSHAIRS_SIZE, this._sonarRange)
+            } : null,
+            shootMarks: this._shootMarks.map(m => {
+                return {
+                    hit: m.hit,
+                    distancePercent: percentize(m.pos, this._sonarRange),
+                    sizePercent: percentize(m.size, this._sonarRange),
+                }
+            })
+
         }
     }
-
 }

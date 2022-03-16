@@ -1,5 +1,6 @@
 import {Point, Body } from './physics.js'
 import { Entity } from './entities.js'
+import { Sonar } from './subsystems/sonar'
 
 import { Storage } from './subsystems/storage'
 import { Engine } from './subsystems/engine'
@@ -129,6 +130,7 @@ export class Sub extends Entity {
 
         this._engine = this._findSubsystem(Engine)
         this._storage = this._findSubsystem(Storage)
+        this._sonar = this._findSubsystem(Sonar)
 
         this.gridWidth = 5
         this.gridHeight = 5
@@ -176,6 +178,10 @@ export class Sub extends Entity {
                 .gridPosition = actionController.movedSubsystemPosition
             this._gridBusyCache = this._getGridBusy()
         }
+    }
+
+    get sonarRange() {
+        return this._sonar.range
     }
 
     get ranges() {

@@ -1,13 +1,3 @@
-.subsystem .ammo {
-    margin-top: 3px;
-    display: flex;
-    gap: 5px;
-    vertical-align: middle;;
-}
-
-
-
-
 .subsystem .sonar {
     display: flex;
     gap: 5px;
@@ -51,100 +41,7 @@
     gap: 10px;
 }
 
-.subsystem .steering {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
 
-.subsystem .steering .directions {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.subsystem .steering .directions .row {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    gap: 5px;
-
-}
-
-.subsystem .steering .directions .button .name{
-    display: none;
-}
-
-.subsystem .steering .directions .button.active {
-    background-color: #ebf100;
-    border-color: #ebf100;
-    color: #003b35;
-}
-
-.subsystem .steering .directions .button .container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 32px;
-    width: 32px;
-    font-size: 20pt;
-}
-
-
-.subsystem .weapon {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    gap: 5px;
-}
-
-.subsystem .weapon .aimBar {
-    height: 30px;
-    position: relative;
-    background-color: #003b35;
-    overflow: hidden;
-    border: 1px solid #a5d000;
-}
-
-.subsystem .weapon .aimBar .crosshairs {
-    background-color: #ebf100;
-    position: absolute;
-    height: 100%;
-}
-
-.subsystem .weapon .aimBar .target {
-    background-color: rgba(255, 0, 0, 0.4);
-    border-left: 1px solid red;
-    border-right: 1px solid red;
-    position: absolute;
-    height: 100%;
-}
-
-
-.subsystem .weapon .aimBar .shootMark.hit {
-    background-color: rgba(255, 0, 0, 0.8);
-    position: absolute;
-    height: 100%;
-}
-
-.subsystem .weapon .aimBar .shootMark.miss {
-    background-color: rgba(0, 0, 0, 0.4);
-    position: absolute;
-    height: 100%;
-}
-
-.subsystem .weapon .filler {
-    flex-grow: 1;
-}
-
-.subsystem .weapon .actions{
-    display: flex;
-    gap: 5px;
-}
-
-.subsystem .weapon .actions .button{
-    flex: 1 0 0;
-}
 
 .subsystem .cheatbox {
     display: flex;

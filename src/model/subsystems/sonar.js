@@ -73,7 +73,7 @@ export class Sonar extends Subsystem {
                 id: this.id + "_" + e.id + "_blip",
                 color: "red",
                 position: e.getPosition(),
-                radius: e.getRadius(),
+                radius: e.radius,
                 entityId: e.id,
                 entityWidth: e.body.volume.width,
                 entityLength: e.body.volume.length,

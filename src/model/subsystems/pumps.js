@@ -14,6 +14,7 @@ export class Pumps extends Subsystem {
         this._engagesAt = 0.4
         this._disengagesAt = 0
         this._pumpPowerMultiplier = 1
+        this._tankBreaches = false
     }
 
     get pumpPowerMultiplier() {
@@ -35,7 +36,7 @@ export class Pumps extends Subsystem {
     }
 
     get waterResistant() {
-        return super.waterResistant && (!this.statusEffects.some(e => e instanceof TankBreach))
+        return super.waterResistant && !this._tankBreaches
     }
 
     get activePumpPower() {
@@ -58,12 +59,15 @@ export class Pumps extends Subsystem {
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
 
+        this._tankBreaches = this.statusEffects.some(e => e instanceof TankBreach)
+
         this._pumpPowerMultiplier = 1
         this.statusEffects.filter(s => s instanceof ReducedPumpPower).forEach(s => {
             this._pumpPowerMultiplier *= s.multiplier
         })
-
-        if (!this.pumping && this.on && (this.engagesAt <= model.sub.waterLevel)) {
+        if (this.pumping && !this.on) {
+            this.pumping = false
+        } else if (!this.pumping && this.on && (this.engagesAt <= model.sub.waterLevel)) {
             this.pumping = true
         } else if (this.pumping && (model.sub.waterLevel <= this.disengagesAt)) {
             this.pumping = false

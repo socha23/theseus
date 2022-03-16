@@ -23,7 +23,7 @@ const DEFAULT_REACTOR = {
     reactionDownSpeed: 0.05,
     heatUpSpeed: 0.04,
     heatDownSpeed: 0.065,
-    fuelConsumption: 0.02,
+    fuelConsumption: 0.01,
 }
 
 
@@ -32,7 +32,9 @@ export class Reactor extends Subsystem {
         super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, {...DEFAULT_REACTOR, ...template})
 
         this.maxOutput = template.maxOutput
+
         this._externalSetControl = false
+        this._externalSetControlVal = 0
 
         this._statistics = {
             powerProduction: new Statistic({
@@ -159,16 +161,15 @@ export class Reactor extends Subsystem {
     _updateControl(actionController) {
         if (this._externalSetControl) {
             this._externalSetControl = false
-            actionController.setValue(this.id + "_control", this._control)
-        }
-        if (!this.on) {
+            actionController.setValue(this.id + "_control", this._externalSetControlVal)
+        } else if (!this.on) {
             actionController.setValue(this.id + "_control", 0)
         }
         this._control = actionController.getValue(this.id + "_control", 0)
     }
 
     externalSetControl(val) {
-        this._control = val
+        this._externalSetControlVal = val
         this._externalSetControl = true
     }
 
@@ -180,8 +181,8 @@ export class Reactor extends Subsystem {
         this._statistics.powerConsumption.add(model.sub.power.consumption, true)
 
 
-        this._updateControl(actionController)
         this._updateReaction(deltaMs, model)
+        this._updateControl(actionController)
     }
 
     get powerGeneration() {

@@ -43,7 +43,6 @@ export class CheatBox extends Subsystem {
                             s._fuel = 1
                             s.externalSetControl(1)
                     })
-                    this.addEffect(new Autostart(model.sub.subsystems))
                 },
             }),
             action({

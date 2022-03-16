@@ -106,9 +106,17 @@ class PowerManagement {
         if (this.balance < 0) {
             this._emergencyShutdown()
         }
-
+        // auto turn on
+        var balanceLeft = this.balance
+        this.subsystems
+            .filter(s => !s.disabled && !s.on && s.canBeTurnedOn)
+            .forEach(s => {
+                if (s.nominalPowerConsumption <= balanceLeft) {
+                    s.on = true
+                    balanceLeft -= s.nominalPowerConsumption
+                }
+            })
     }
-
 }
 
 
@@ -139,8 +147,6 @@ export class Sub extends Entity {
     updateState(deltaMs, model, actionController) {
         this._moveSubsystems(actionController)
 
-        this.steering.updateState(deltaMs, model, actionController)
-        this.power.updateState()
 
         if (actionController.targetEntityId != null) {
             this.targetEntity = model.world.getEntity(actionController.targetEntityId)
@@ -151,6 +157,8 @@ export class Sub extends Entity {
 
         this.subsystems.forEach(s => s.updateState(deltaMs, model, actionController))
 
+        this.power.updateState()
+        this.steering.updateState(deltaMs, model, actionController)
         this._updatePosition()
         this._updateWaterLevel(deltaMs)
         super.updateState(deltaMs, model)

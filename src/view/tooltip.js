@@ -65,8 +65,7 @@ function MouseCatcher({children}) {
 export function Tooltip() {
     const c = useContext(TooltipContext)
     const left = Math.min(c.mouseX, c.windowWidth - 300)
-
-    return c.tooltip &&
+    return (c.tooltip != null) &&
         <div
             className="tooltip"
             style={{left: left, top: c.mouseY + 10}}
@@ -80,16 +79,20 @@ export function WithTooltip({
     children
 }) {
     const tooltipCtx = useContext(TooltipContext)
+    const [mouseOver, setMouseOver] = useState(false)
 
+    if (mouseOver) {
+        tooltipCtx.tooltip = tooltip
+    }
     if (!tooltip) {
         return <div>{children}</div>
     }
-
     return <div className="mouseOverCtx"
         onMouseOver = {e => {
-            tooltipCtx.tooltip = tooltip
+            setMouseOver(true)
         }}
         onMouseOut = {e => {
+            setMouseOver(false)
             tooltipCtx.tooltip = null
         }}
     >

@@ -73,6 +73,10 @@ export class BaseAction {
         return this.params.requiresOperator
     }
 
+    get showTooltip() {
+        return this.params.showTooltip
+    }
+
     addErrorConditions(conditions, model) {
         this.params.addErrorConditions(conditions, model)
         if (this._requiresMaterials) {
@@ -161,7 +165,7 @@ export class BaseAction {
             active: this.active,
             visible: this.visible,
             longName: this.longName,
-            showTooltip: true,
+            showTooltip: this.showTooltip,
             errorConditions: this._errorConditions,
             requiredMaterials: this.requiredMaterials,
             usesProgress: this._progressMax > 0,

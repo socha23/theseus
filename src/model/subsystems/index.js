@@ -24,31 +24,16 @@ const DEFAULT_TEMPLATE = {
 class TogglePowerAction extends ToggleAction {
     constructor(subsystem) {
         super({
-            id: subsystem.id + "_on",
-            name: "Toggle power",
+            id: subsystem.id + "_disable",
+            name: "Disable",
             icon: "fa-solid fa-power-off",
-            onChange: (val) => {
-                subsystem.addEffect(val ? poweringUp() : poweringDown())
-            },
+            showTooltip: false, // custom tooltip
         })
-
-        this._subsystem = subsystem
+        this.subsystem = subsystem
     }
 
     get longName() {
-        return this.value ? "Turn off " : "Turn on "
-    }
-
-    addErrorConditions(conditions, model) {
-        super.addErrorConditions(conditions, model)
-        if (!this._subsystem.on) {
-            if (!this._subsystem.waterResistant && this._subsystem.underWater) {
-                conditions.push("Under water")
-            } else if (model.sub.power.balance < this._subsystem.nominalPowerConsumption) {
-                conditions.push("Insufficient power")
-            }
-            this._subsystem.addStatusPowerErrorConditions(conditions, model)
-        }
+        return this.subsystem.name + (this.value ? " (disabled)" : "")
     }
 }
 
@@ -72,18 +57,42 @@ export class Subsystem extends HasEffects {
 
         this._statusEffects = []
         this._powerConsumptionMultiplier = 1
+
+        this._powerOnErrors = []
+        this._on = false
+    }
+
+    __updatePowerOnErrors(model) {
+        this._powerOnErrors = []
+        if (!this.waterResistant && this.underWater) {
+            this._powerOnErrors.push("Under water")
+        } else if (model.sub.power.balance < this.nominalPowerConsumption) {
+            this._powerOnErrors.push("Insufficient power")
+        }
+        this.statusEffects.forEach(e => {
+            e.addPowerErrorConditions(this._powerOnErrors, model)
+        })
+        this.addStatusPowerErrorConditions(this._powerOnErrors, model)
     }
 
     addStatusPowerErrorConditions(c, model) {
-        const result = []
-        this.statusEffects.forEach(e => {
-            e.addPowerErrorConditions(c, model)
-        })
+
     }
+
+    get disabled() {
+        return this._actionOn.value
+    }
+
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
+
+        if (this.on && this.disabled) {
+            this.on = false
+        }
+
+        this.__updatePowerOnErrors(model)
 
         this._statusEffects = this.effects
             .filter(e => e.statusEffect)
@@ -99,12 +108,12 @@ export class Subsystem extends HasEffects {
 
         this._updateUnderWater(deltaMs, model)
         this._subPowerBalance = model.sub.power.balance
-
     }
 
     get powerConsumptionMultiplier() {
         return this._powerConsumptionMultiplier
     }
+
 
     _updateUnderWater(deltaMs, model) {
         const myLevel = (model.sub.gridHeight - this.gridPosition.y) -  this.gridSize.y / 2
@@ -135,6 +144,8 @@ export class Subsystem extends HasEffects {
             powerConsumptionMultiplier: this._powerConsumptionMultiplier,
             nominalPowerConsumption: this.nominalPowerConsumption,
             subPowerBalance: this._subPowerBalance,
+            disabled: this.disabled,
+            powerOnErrors: this._powerOnErrors,
         }
     }
 
@@ -147,7 +158,7 @@ export class Subsystem extends HasEffects {
     }
 
     shutdown() {
-        this.on = false
+        this._on = false
         this.addEffect(shutdown())
     }
 
@@ -163,12 +174,23 @@ export class Subsystem extends HasEffects {
         return 0
     }
 
+    get canBeTurnedOn() {
+        return this._powerOnErrors.length === 0
+    }
+
     get on() {
-        return this._actionOn.value
+        return this._on
     }
 
     set on(value) {
-        this._actionOn.value  = value
+        if (value && !this._on && this.canBeTurnedOn) {
+            this._on = true
+            this.addEffect(poweringUp())
+        }
+        if (!value && this._on) {
+            this._on = false
+            this.addEffect(poweringDown())
+        }
     }
 
     get ranges() {
@@ -354,6 +376,13 @@ export class SubsystemDamage extends StatusEffect {
         });
         this._actions.push(this.repairAction)
         this.materialsMissing = false
+    }
+
+    addPowerErrorConditions(c, model) {
+        super.addPowerErrorConditions(c, model)
+        if (this.repairAction.active) {
+            c.push("Under repair")
+        }
     }
 
     get damageCategory() {

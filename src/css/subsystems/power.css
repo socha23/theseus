@@ -26,13 +26,14 @@
     font-size: 12pt;
 }
 
-.subsystem.unpowered .powerButton .button.enabled {
-    color: #ebf100;
-}
-
-.subsystem.unpowered.damageBrokenDown .powerButton .button {
+.subsystem.damageBrokenDown .powerButton .button {
     color: red;
 }
+
+.subsystem .powerButton .button.selected {
+    color: red;
+}
+
 
 .subsystem.powered.powerFlicker .powerButton .button {
     color: #469528 !important;

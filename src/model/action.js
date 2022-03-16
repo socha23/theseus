@@ -24,6 +24,7 @@ const BASE_ACTION_PARAMS = {
     requiresOperator: false,
     requiredMaterials: {},
     progressTime: 0,
+    showTooltip: true,
 }
 
 

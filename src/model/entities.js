@@ -136,7 +136,7 @@ export class Fish extends AgentEntity {
                 const rotationDir = Math.sign(rotationAngle)
                 const rotationForce = Math.abs(rotationAngle) / Math.PI * this.rotationSpeed
 
-                const rotation = rotationDir * rotationForce * deltaMs / 1000
+                const rotation = rotationDir * rotationForce * deltaMs / 2000
 
                 //const rotationForce = Math.sign(rotationAngle) * this.rotationForce * (Math.abs(rotationAngle) / Math.PI)
 

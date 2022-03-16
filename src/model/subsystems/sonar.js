@@ -37,10 +37,10 @@ export class RangeCircle {
 }
 
 export class AimLine {
-    constructor(id, position, type=AIM_LINE_TYPE.DEFAULT) {
+    constructor(id, from, to, type=AIM_LINE_TYPE.DEFAULT) {
         this.id = id
-        this.position = position
-        this.type = type
+        this.from = from
+        this.to = to
     }
 }
 
@@ -78,8 +78,10 @@ export class Sonar extends Subsystem {
                 entityWidth: e.body.volume.width,
                 entityLength: e.body.volume.length,
                 entityOrientation: e.body.orientation,
+
                 alive: e.alive,
                 tracked: e === model.sub.trackedEntity,
+                targetPosition: e.targetPosition,
                 mass: e.mass,
                 lastActingForce: e.lastActingForce,
                 targetPosition: e.targetPosition,

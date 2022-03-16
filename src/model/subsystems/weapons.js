@@ -25,6 +25,7 @@ export class Weapon extends Subsystem {
         this._operator = false
         this._aim = new Aim(this)
         this._shotsLeft = 0
+        this._position = null
 
         this.aimAction = action({
             id: id + "_aim",
@@ -129,6 +130,7 @@ export class Weapon extends Subsystem {
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
+        this._position = model.sub.position
         this._target = model.sub.trackedEntity
         if (this._target) {
             this._targetDistance = this._target.position.distanceTo(model.sub.position) - this._target.radius
@@ -167,7 +169,7 @@ export class Weapon extends Subsystem {
     }
 
     get aimLines() {
-        if (this._aim != null && this._target) {
+        if  (this._target && this._mouseOver) {
             var type = AIM_LINE_TYPE.DEFAULT
             if (this.hasEffectOfType(EFFECT_TYPES.SHOOT_HIT)) {
                 type = AIM_LINE_TYPE.HIT
@@ -175,8 +177,7 @@ export class Weapon extends Subsystem {
             if (this.hasEffectOfType(EFFECT_TYPES.SHOOT_MISS)) {
                 type = AIM_LINE_TYPE.MISS
             }
-
-            return [new AimLine(this.id + "_aim", this._target.position, type)]
+            return [new AimLine(this.id + "_aim", this._position, this._target.position, type)]
         } else {
             return []
         }

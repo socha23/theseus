@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {Stage, Layer, Line, Circle, Rect, Group} from 'react-konva'
+import {Stage, Layer, Line, Circle, Rect, Group, Ellipse} from 'react-konva'
 import { rgbGradientValue } from "../../gradient";
 import { EFFECT_TYPES } from "../../model/effects";
 import { AIM_LINE_TYPE, RANGE_CIRCLE_TYPE } from "../../model/subsystems/sonar";
@@ -87,9 +87,9 @@ function SonarBlipCircle({blip}) {
     const color = (phase === 0 || phase === 1) ? "red" : rgbGradientValue(phase, ANIM_COLOR)
     const opacity = (blip.alive ? 1 : 0.8)
 
-    return <Circle
-        width={blip.radius * 2}
-        height={blip.radius * 2}
+    return <Ellipse
+        radius={{x: blip.entityLength / 2, y: blip.entityWidth / 2}}
+        rotation={toDegrees(blip.entityOrientation)}
         fill={color}
         opacity={opacity}
     />
@@ -109,7 +109,7 @@ function SonarBlip({blip, actionController, debug=false, scale}) {
             dash={[2, 1]}
         />}
         {debug && <Facing blip={blip} scale={scale}/>}
-        {debug && blip.targetted && blip.targetPosition && <Circle /* entity target */
+        {debug && blip.tracked && blip.targetPosition && <Circle /* entity target */
             listening={false}
             x = {blip.targetPosition.x - blip.position.x}
             y = {blip.targetPosition.y - blip.position.y}
@@ -208,12 +208,12 @@ function aimlineVal(dict, a) {
     return dict[a.type] ?? dict[AIM_LINE_TYPE.DEFAULT]
 }
 
-function AimLines({position, scale, aimLines}) {
+function AimLines({scale, aimLines}) {
     return <Group>
         {
             aimLines.map(a => <Line
                 key={a.id}
-                points={[position.x, position.y, a.position.x, a.position.y]}
+                points={[a.from.x, a.from.y, a.to.x, a.to.y]}
                 listening={false}
                 stroke={aimlineVal(AIM_LINE_COLOR, a)}
                 strokeWidth={aimlineVal(AIM_LINE_STROKE_WIDTH, a)/scale}
@@ -292,7 +292,7 @@ function Sonar({subsystem, actionController}) {
                             <SonarBackground position={subsystem.position} scale={scale}/>
                             <SubReferenceFrame position={subsystem.position} scale={scale}>
                                 <Features scale={scale} features={subsystem.features}/>
-                                <AimLines position={subsystem.position} scale={scale} aimLines={subsystem.aimLines}/>
+                                <AimLines scale={scale} aimLines={subsystem.aimLines}/>
                                 <SonarBlips blips={subsystem.blips} actionController={actionController} scale={scale} debug={subsystem.debug}/>
                                 <Ranges position={subsystem.position} scale={scale} ranges={subsystem.ranges}/>
                                 {/*<BoundingBox polygon={subsystem.subBoundingBox} scale={scale}/>*/}

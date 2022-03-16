@@ -1,6 +1,6 @@
 import { randomElem } from '../../utils'
 import { ToggleAction, action } from '../action'
-import { Effect, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects, lightDamage, mediumDamage, heavyDamage, shootMiss } from '../effects'
+import { Effect, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects, lightDamage, mediumDamage, heavyDamage } from '../effects'
 import { Point } from '../physics.js'
 import { MATERIALS } from '../materials'
 
@@ -264,7 +264,7 @@ export class Subsystem extends HasEffects {
     }
 
     createDamageOfType(type) {
-        throw "Can't create damage"
+        throw new Error("Can't create damage")
     }
 
 }

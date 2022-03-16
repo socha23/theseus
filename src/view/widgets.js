@@ -1,7 +1,7 @@
-import React, { memo, useContext, useEffect, useState } from "react";
+import React, { memo, useContext } from "react";
 import ReactSlider from "react-slider";
 import { WithTooltip } from "./tooltip";
-import { MarkRequiredMaterialsOnHover, Materials, RequiredInventory } from "./materials";
+import { MarkRequiredMaterialsOnHover, Materials } from "./materials";
 import { ActionControllerCtx } from "../actionController";
 import { jsonCompare, transpose } from "../utils";
 

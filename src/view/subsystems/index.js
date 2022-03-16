@@ -117,7 +117,7 @@ function StatusTab({subsystem, setActiveTab}) {
                     }
                 </div> : <div className="noStatusEffects">
                     <div>No active effects</div>
-                    <div><a onClick={() => {setActiveTab(TABS.MAIN)}}>Back to main view in {Math.floor(backToMainIn / 1000) + 1}s</a></div>
+                    <div><span className="backToMain" onClick={() => {setActiveTab(TABS.MAIN)}}>Back to main view in {Math.floor(backToMainIn / 1000) + 1}s</span></div>
 
 
                 </div>

@@ -4,28 +4,6 @@ import { Engine } from "./engine"
 import { action } from "../action"
 import { Reactor } from "./reactor"
 import { Pumps } from "./pumps"
-import { Effect } from "../effects"
-
-
-class Autostart extends Effect {
-    constructor(subsystems) {
-        super({
-            type: "cheat_autostart"
-        })
-        this.subsystems = subsystems
-    }
-
-    updateState(deltaMs, model) {
-        const s = this.subsystems.find(s => !s.on)
-        if (s && model.sub.power.balance >= s.nominalPowerConsumption) {
-            s.on = true
-        }
-        if (!s) {
-            this.onCompleted()
-        }
-    }
-}
-
 
 export class CheatBox extends Subsystem {
     constructor(gridPosition) {

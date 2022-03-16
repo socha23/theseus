@@ -53,8 +53,8 @@ export class BaseAction {
     }
 
     get active() {
-        return this._state == STATE.PROGRESSING
-            || this._state == STATE.ACTIVE
+        return this._state === STATE.PROGRESSING
+            || this._state === STATE.ACTIVE
     }
 
     get enabled() {

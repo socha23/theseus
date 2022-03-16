@@ -13,6 +13,16 @@
     gap: 5px
 }
 
+
+.statusTab .noStatusEffects .backToMain{
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.statusTab .noStatusEffects .backToMain:hover{
+    color: #a5d000;
+}
+
 .subsystem .statusEffects {
     display: flex;
     flex-direction: column;

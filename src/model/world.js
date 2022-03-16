@@ -36,7 +36,7 @@ const ENGINE_TEMPLATES = {
     BASIC_ENGINE: {
         force: 10 * 40 * 1000,
         rotationalForce: 10 * 2 * 1000,
-        powerConsumption: 20,
+        powerConsumption: 10,
     }
 }
 
@@ -118,6 +118,7 @@ export function getStartingSub() {
                 [MATERIALS.SPARE_PARTS]: 20,
                 [MATERIALS.LEAK_SEALS]: 5,
                 [MATERIALS.KINETIC_AMMO]: 5,
+                [MATERIALS.FUEL_RODS]: 3,
             }),
     ])
 }

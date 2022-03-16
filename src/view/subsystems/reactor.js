@@ -122,9 +122,21 @@ function ReactorHistory({subsystem, height}) {
 }
 
 function ReactorHeat({heatPercent}) {
-    console.log(heatPercent)
     return <SegmentProgress className="heat" reverse={true} segments={10} value={heatPercent} vertical={true}/>
 }
+
+function ReactorFuel({subsystem}) {
+    return <div className="reactorFuel infoRow">
+        <div>
+            Fuel:
+        </div>
+        <SegmentProgress
+            className={"fuel " + ((subsystem.fuel === 0) ? "empty " : "")}
+            segments={10}
+            value={Math.floor(100 * subsystem.fuel)}/>
+    </div>
+}
+
 
 
 export function Reactor({subsystem, actionController}) {
@@ -146,8 +158,10 @@ export function Reactor({subsystem, actionController}) {
             <ReactorHistory subsystem={subsystem} height={HIST_HEIGHT}/>
             <ReactorHeat heatPercent={subsystem.heatPercent}/>
         </div>
-        <div className="bottomRow">
-
+        <ReactorFuel subsystem={subsystem}/>
+        <div className="actions">
+            <ActionButton action={subsystem.scramAction}/>
+            <ActionButton action={subsystem.refuelAction}/>
         </div>
     </div>
 }

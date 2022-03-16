@@ -7,6 +7,7 @@
 .subsystem .reactor {
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
 }
 
 .subsystem .reactor .topRow {
@@ -22,12 +23,12 @@
     border: 1px solid #a5d000;
 }
 
-.subsystem .reactor .vertSlider {
+.subsystem .reactor .controls .vertSlider {
     height: 180px;
     flex-grow: 0;
 }
 
-.subsystem .reactor .sliderThumb {
+.subsystem .reactor .controls .sliderThumb {
     height: 30px;
     display: flex;
     align-items: center;
@@ -35,19 +36,56 @@
 }
 
 
-.subsystem.unpowered .reactor .icon {
+.subsystem.unpowered .reactor .controls .icon {
     color: #00592f;
 }
 
-.subsystem.powered .reactor .icon {
+.subsystem.powered .reactor .controls .icon {
     color: #469528;
 }
 
+.subsystem .reactor .actions {
+    display: flex;
+    gap: 5px;
+}
+
+.subsystem .reactor .actions .button {
+    width: 120px;
+}
 
 .subsystem .reactor .history .chart {
     opacity: 0.7;
     background-color: rgba(0,22,19,1)
 }
+
+.reactor .reactorFuel {
+    flex: 1 0;
+    align-items: center;
+}
+
+.reactor .segmentProgress.fuel {
+    border: 1px solid #a5d000;
+    flex-grow: 1;
+    align-items: center;
+}
+
+.reactor .segmentProgress.fuel .segment {
+    border: 1px solid #a5d000;
+    height: 16px;
+}
+
+.reactor .segmentProgress.fuel.empty {
+    border: 1px solid #469528;
+}
+
+.reactor .segmentProgress.fuel.empty .segment {
+    border: 1px solid #469528;
+}
+
+.reactor .segmentProgress.fuel .segment.filled {
+    background-color: #a5d000;
+}
+
 
 .reactor .segmentProgress.heat .seg0.filled {
     background-color: #FFF75D;

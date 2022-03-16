@@ -2,6 +2,8 @@ import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
 import "../../css/subsystems/reactor.css"
 import { Statistic } from '../../stats'
 import { Point } from '../physics'
+import { MATERIALS, MATERIAL_DEFINITIONS } from '../materials'
+import { action } from '../action'
 
 ////////////////////////////////////////
 // REACTOR
@@ -16,10 +18,12 @@ const DEFAULT_REACTOR = {
     maxOutput: 100,
     gridSize: new Point(1, 2),
     waterResistant: true,
+    refuelTime: 3000,
     reactionUpSpeed: 0.2,
-    reactionDownSpeed: 0.2,
+    reactionDownSpeed: 0.05,
     heatUpSpeed: 0.04,
     heatDownSpeed: 0.065,
+    fuelConsumption: 0.02,
 }
 
 
@@ -28,10 +32,6 @@ export class Reactor extends Subsystem {
         super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, {...DEFAULT_REACTOR, ...template})
 
         this.maxOutput = template.maxOutput
-
-        this._control = 0
-
-
         this._externalSetControl = false
 
         this._statistics = {
@@ -48,7 +48,35 @@ export class Reactor extends Subsystem {
                 minFrameDistance: 200,
             })
         }
+        this.scramAction = action({
+            id: id + "_scram",
+            name: "Scram",
+            longName: "Shutdown the reactor fast",
+            icon: "fa-solid fa-dumpster-fire",
+            progressTime: 500,
+            addErrorConditions: c => this._addScramErrors(c),
+            onCompleted: m => {this._onScram(m)},
+            requiresOperator: true,
+        })
+        this.actions.push(this.scramAction)
 
+        this.refuelAction = action({
+            id: id + "_refuel",
+            name: "Refuel",
+            longName: "Insert new fuel rod",
+            icon: MATERIAL_DEFINITIONS[MATERIALS.FUEL_RODS].icon,
+            progressTime: this.template.refuelTime,
+            addErrorConditions: c => {this._addRefuelErrors(c)},
+            onCompleted: m => {this._onRefuel(m)},
+            requiresOperator: true,
+            requiredMaterials: {
+                [MATERIALS.FUEL_RODS]: 1
+            },
+        })
+        this.actions.push(this.refuelAction)
+
+        this._control = 0
+        this._fuel = 0
         this._reactionPower = 0
         this._heat = 0
 
@@ -57,14 +85,45 @@ export class Reactor extends Subsystem {
         this._reactionDownMultiplier = 1
         this._heatUpMultiplier = 1
         this._heatDownMultiplier = 1
+
     }
 
+    addStatusPowerErrorConditions(c, model) {
+        super.addStatusPowerErrorConditions(c, model)
+        if (this._fuel === 0) {
+            c.push("Out of fuel")
+        }
+    }
 
     get output() {
         return this.maxOutput * this._reactionPower * this._outputMultiplier
     }
 
+    _onRefuel(model) {
+        this._fuel = 1
+    }
+
+    _addRefuelErrors(c) {
+
+    }
+
+    _onScram(model) {
+        this._reactionPower = 0
+        this.shutdown()
+    }
+
+    _addScramErrors(c) {
+        if (!this._reactionPower) {
+            c.push("Reactor not working")
+        }
+    }
+
     _updateReaction(deltaMs, model) {
+
+        if (this.on && !this._fuel) {
+            this.shutdown()
+        }
+
         if (this._control > this._reactionPower) {
             const delta = this.template.reactionUpSpeed * this._reactionUpMultiplier * deltaMs / 1000
             this._reactionPower = Math.min(this._control, this._reactionPower + delta)
@@ -92,6 +151,9 @@ export class Reactor extends Subsystem {
         this._heat = Math.max(coolTo, this._heat - cooling)
 
         }
+
+        const consumedFuel = this._reactionPower * this.template.fuelConsumption * deltaMs / 1000
+        this._fuel = Math.max(0, this._fuel - consumedFuel)
     }
 
     _updateControl(actionController) {
@@ -129,7 +191,7 @@ export class Reactor extends Subsystem {
    toViewState() {
         return {
             ...super.toViewState(),
-            fuel: this.fuel,
+            fuel: this._fuel,
             control: this._control,
             reactionPower: this._reactionPower,
             heatPercent: Math.floor(this._heat * 1000) / 10,
@@ -139,6 +201,8 @@ export class Reactor extends Subsystem {
             historyTo: Date.now() - 500,
             historyFrom: Date.now() - HIST_TIME_MS,
             maxOutput: this.maxOutput,
+            refuelAction: this.refuelAction.toViewState(),
+            scramAction: this.scramAction.toViewState(),
         }
     }
 }

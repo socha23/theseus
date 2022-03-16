@@ -40,6 +40,7 @@ export class CheatBox extends Subsystem {
                         .filter(s => s instanceof Reactor)
                         .forEach(s => {
                             s.on = true
+                            s._fuel = 1
                             s.externalSetControl(1)
                     })
                     this.addEffect(new Autostart(model.sub.subsystems))

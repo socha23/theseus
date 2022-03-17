@@ -1,6 +1,6 @@
 import { STATISTICS } from "../stats"
 
-function vectorForPolar(r, theta) {
+export function vectorForPolar(r, theta) {
     return new Vector(r * Math.cos(theta), r * Math.sin(theta))
 }
 

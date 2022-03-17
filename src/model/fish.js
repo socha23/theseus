@@ -1,5 +1,5 @@
 import { DRAG_COEFFICIENTS, Vector } from "./physics"
-import { Point } from "./physics"
+import { Point, vectorForPolar } from "./physics"
 import { Agent, MoveAround, Follow, MoveTo, BackOff, MovePlan, randomPointAround } from "./agent"
 import { AgentEntity } from "./entities"
 
@@ -86,11 +86,25 @@ export class Fish extends AgentEntity {
 
 }
 
+
+function randomPointInSight(position, model, sightRange) {
+    for (var i = 0; i < 100; i++) {
+        const theta = Math.random() * 2 * Math.PI
+        const dist = Math.random() * sightRange
+        const posToCheck = position.plus(vectorForPolar(dist, theta))
+        if (model.map.raycast(position, posToCheck) == null) {
+            return posToCheck
+        }
+    }
+    throw new Error("can't find point in sight")
+}
+
+
 export class FishAgent extends Agent {
     _nextPlan(entity, model) {
         const plan = Math.random()
         if (plan < 0.5) {
-            return new MoveTo(entity.position, 50)
+            return new MoveTo(randomPointInSight(entity.position, model, 50), 3)
         } else {
             return new Follow(entity, model.sub, 20)
         }

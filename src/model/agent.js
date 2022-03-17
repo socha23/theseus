@@ -1,8 +1,10 @@
 import {Point, Vector} from "./physics"
 
+var autoinc = 0
+
 class Plan {
-    constructor(id) {
-        this.id = id
+    constructor() {
+        this.id = "plan" + autoinc++
         this.description = "Abstract plan"
     }
 
@@ -15,8 +17,8 @@ class Plan {
 }
 
 class Wait extends Plan {
-    constructor(id, waitTimeS) {
-        super(id)
+    constructor(waitTimeS) {
+        super()
         this.description = "Wait " + waitTimeS  + "s"
         this.waitTime = waitTimeS * 1000
     }
@@ -32,8 +34,8 @@ class Wait extends Plan {
 }
 
 export class BackOff extends Plan {
-    constructor(id, fromPosition, minDistance = 1) {
-        super(id)
+    constructor(fromPosition, minDistance = 1) {
+        super()
         this.description = "Back off"
         this.position = fromPosition
         this.fromPosition = fromPosition
@@ -51,8 +53,8 @@ export class BackOff extends Plan {
 }
 
 export class MovePlan extends Plan {
-    constructor(id, distanceTolerance = 1) {
-        super(id)
+    constructor(distanceTolerance = 1) {
+        super()
         this.description = "Abstract move plan"
         this.target = null
         this.position = null
@@ -79,8 +81,8 @@ export function randomPointAround(point, distance) {
 
 
 export class MoveTo extends MovePlan {
-    constructor(id, target, distance) {
-        super(id, distance)
+    constructor(target, distance) {
+        super(distance)
         this.description = `Move to ${target.x.toFixed(1)}, ${target.y.toFixed(1)}`
         this.target = target
     }
@@ -89,7 +91,7 @@ export class MoveTo extends MovePlan {
 
 export class Follow extends MovePlan {
     constructor(entity, targetEntity, distance) {
-        super(entity.id + "_follow", distance)
+        super(distance)
         this.description = `Follow ${targetEntity.id}`
         this.targetEntity = targetEntity
     }
@@ -103,9 +105,7 @@ export class Follow extends MovePlan {
 
 export class MoveAround extends MoveTo {
     constructor(entity, distance) {
-        super(entity.id + "_move_around",
-            randomPointAround(entity.getPosition(), distance),
-            10)
+        super(randomPointAround(entity.getPosition(), distance), 10)
     }
 }
 
@@ -129,7 +129,7 @@ export class Agent {
     }
 
     _nextPlan(entity, model) {
-        return new Wait(entity.id + "_plan_wait_1", 1)
+        return new Wait(1)
     }
 }
 

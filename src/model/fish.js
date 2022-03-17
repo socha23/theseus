@@ -77,7 +77,7 @@ export class Fish extends AgentEntity {
         super.onCollision(collision)
         if (this.alive) {
             if (Math.random() < 0.5) {
-                this.agent.currentPlan = new BackOff(this.id + "_backoff", this.position, this.body.radius * 2)
+                this.agent.currentPlan = new BackOff(this.position, this.body.radius * 2)
             } else {
                 this.agent.currentPlan = null;
             }
@@ -90,7 +90,7 @@ export class FishAgent extends Agent {
     _nextPlan(entity, model) {
         const plan = Math.random()
         if (plan < 0.5) {
-            return new MoveAround(entity, 50)
+            return new MoveTo(entity.position, 50)
         } else {
             return new Follow(entity, model.sub, 20)
         }
@@ -99,7 +99,7 @@ export class FishAgent extends Agent {
 
 export class MoveToFlockCenter extends MoveTo {
     constructor(entity, flock) {
-        super(entity.id + "_move_to_flock_center",
+        super(
             randomPointAround(flock.getCenter(), 7),
             5)
         this.description = `Move to flock center`

@@ -20,11 +20,11 @@ export class Entity extends HasEffects {
         return this.body.volume.width
     }
 
-    getLength() {
+    get length() {
         return this.body.volume.length
     }
 
-    getOrientation() {
+    get orientation() {
         return this.body.orientation
     }
 
@@ -72,20 +72,3 @@ export class Entity extends HasEffects {
         return this.position.distanceTo(entity.position) - this.radius - entity.radius
     }
 }
-
-
-export class AgentEntity extends Entity {
-    constructor(id, body, agent) {
-        super(id, body)
-        this.agent = agent
-        this.alive = true
-    }
-
-    updateState(deltaMs, model) {
-        super.updateState(deltaMs, model)
-        if (this.alive) {
-            this.agent.updateState(deltaMs, this, model)
-        }
-   }
-}
-

@@ -14,7 +14,7 @@ export class SubStatusScreen extends Subsystem {
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
         this.position = model.sub.body.position
-        this.speed = model.sub.body.speed.length()
+        this.speed = model.sub.body.speed.length
         this.orientation = model.sub.body.orientation
         this.rotationSpeed = model.sub.body.rotationSpeed
     }

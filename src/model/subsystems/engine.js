@@ -57,7 +57,7 @@ export class Engine extends Subsystem {
             this._thrustForceMultiplier *= e.thrustMultiplier
         })
 
-        this._activeSpeed = model.sub.body.speed.length()
+        this._activeSpeed = model.sub.body.speed.length
 
         if (this.on) {
             const desiredThrustThr = model.sub.steering.throttle

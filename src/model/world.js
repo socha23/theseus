@@ -1,4 +1,4 @@
-import { Fish, Flock, FlockAgent } from "./fish"
+import { Fish, Flock, flockPlanCreator } from "./fish"
 import { Body, Point, rectangle, Volume } from "./physics"
 import { Sub } from "./sub"
 
@@ -77,21 +77,21 @@ const FISH_TEMPLATES = {
         volume: new Volume(0.5, 0.5, 2, 0.2),
         tailForce: 2 * 1000,
         rotationalForce: 1 * 1000,
-        rotationSpeed: Math.PI,
+        rotationSpeed: 1,
     },
     FAT_FISH: {
         id: "fat_fish",
         volume: new Volume(2, 2, 3, 0.2),
         tailForce: 15 * 1000,
         rotationalForce: 2 * 1000,
-        rotationSpeed: Math.PI,
+        rotationSpeed: 1,
     },
     BIG_FISH: {
         id: "big_fish",
         volume: new Volume(2, 2, 5, 0.1),
         tailForce: 25 * 1000,
         rotationalForce: 2 * 1000,
-        rotationSpeed: Math.PI * 4,
+        rotationSpeed: 1,
     },
 
 }
@@ -210,7 +210,7 @@ function createFlock(map, template, count = 1, position=new Point(0, 0), spread 
                 template.id + autoinc++,
                 new Body(location, template.volume, Math.random() * 2 * Math.PI),
                 template,
-                new FlockAgent(flock)
+                flockPlanCreator(flock)
                 )
             if (!map.detectCollision(fish.boundingBox)) {
                 flock.addEntity(fish)

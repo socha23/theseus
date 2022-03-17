@@ -32,6 +32,10 @@ export class Point {
             Math.sin(theta) * (this.x - origin.x) + Math.cos(theta) * (this.y - origin.y) + origin.y,
         )
     }
+
+    vectorTo(p) {
+        return new Vector(p.x - this.x, p.y - this.y)
+    }
 }
 
 export class Vector {
@@ -63,7 +67,7 @@ export class Vector {
         return new Vector(this.x * c, this.y * c)
     }
 
-    length() {
+    get length() {
         return Math.sqrt(this.squared())
     }
 
@@ -71,7 +75,7 @@ export class Vector {
         return this.x * this.x + this.y * this.y
     }
 
-    theta() {
+    get theta() {
         return Math.atan2(this.y, this.x)
     }
 
@@ -80,7 +84,7 @@ export class Vector {
     }
 
     withLength(len = 1) {
-        const multiplier = len / this.length()
+        const multiplier = len / this.length
         return new Vector(this.x * multiplier, this.y * multiplier)
     }
 
@@ -194,27 +198,25 @@ export class Body {
     }
 
     _resolveCollision(collision, onCollision) {
-        const collisionAngle = this.speed.theta() - collision.mapFeatureWall.theta()
+        const collisionAngle = this.speed.theta - collision.mapFeatureWall.theta
 
         const IMPACT_SPEED_MULTIPLIER = 0.95
 
-        var newSpeedValue = Math.cos(collisionAngle) * this.speed.length() * IMPACT_SPEED_MULTIPLIER
+        var newSpeedValue = Math.cos(collisionAngle) * this.speed.length * IMPACT_SPEED_MULTIPLIER
         if (Math.abs(newSpeedValue) < MOVEMENT_HUSH) {
             newSpeedValue = 0
         }
 
-        const newActForceVal = Math.cos(collisionAngle) * this._actingForce.length()
-        const impactSpeed = Math.sin(collisionAngle) * this.speed.length()
+        const newActForceVal = Math.cos(collisionAngle) * this._actingForce.length
+        const impactSpeed = Math.sin(collisionAngle) * this.speed.length
 
-//        console.log("edge theta", collision.mapFeatureWall.theta())
-//        console.log("new speed val", )
-        const impactTheta = (collision.mapFeatureWall.theta() - Math.PI / 2) % (2 * Math.PI)
+        const impactTheta = (collision.mapFeatureWall.theta - Math.PI / 2) % (2 * Math.PI)
         const impactForce = vectorForPolar(impactSpeed, impactTheta)
 
 
-        this.speed = vectorForPolar(newSpeedValue, collision.mapFeatureWall.theta())
+        this.speed = vectorForPolar(newSpeedValue, collision.mapFeatureWall.theta)
         this.rotationSpeed = 0
-        this._actingForce = vectorForPolar(newActForceVal, collision.mapFeatureWall.theta())
+        this._actingForce = vectorForPolar(newActForceVal, collision.mapFeatureWall.theta)
         this._actingRotation = this._actingRotation * IMPACT_SPEED_MULTIPLIER
         if (Math.abs(this._actingRotation) < ROTATION_MOVEMENT_HUSH) {
             this._actingRotation = 0
@@ -223,7 +225,7 @@ export class Body {
 
         collision.angle = collisionAngle
         collision.impactSpeed =  impactSpeed
-        collision.relativeAngle = (2 * Math.PI + impactForce.theta() - this.orientation) % (2 * Math.PI)
+        collision.relativeAngle = (2 * Math.PI + impactForce.theta - this.orientation) % (2 * Math.PI)
 
         onCollision(collision)
     }
@@ -236,7 +238,7 @@ export class Body {
         const acc = force.div(this.volume.getMass())
         const deltaV = acc.times(deltaS)
         var projectedSpeed = this.speed.plus(deltaV)
-        if (projectedSpeed.length() < MOVEMENT_HUSH && this._actingForce.isZero()) {
+        if (projectedSpeed.length < MOVEMENT_HUSH && this._actingForce.isZero()) {
             projectedSpeed = new Vector(0, 0)
         }
         const projectedPosition = this.position.plus(projectedSpeed.times(deltaS))
@@ -265,15 +267,15 @@ export class Body {
     }
 
     getFrictionVector() {
-        const angleOfAttack = this.speed.theta() - this.orientation
+        const angleOfAttack = this.speed.theta - this.orientation
 
-        const frictionFace = Math.abs(Math.cos(angleOfAttack)) * this.volume.frontSection()
+            const frictionFace = Math.abs(Math.cos(angleOfAttack)) * this.volume.frontSection()
             + Math.abs(Math.sin(angleOfAttack) * this.volume.sideSection())
 
         const coeffMultiplier = (frictionFace / this.volume.frontSection()) * (frictionFace / this.volume.frontSection())
 
         const frictionForce =  0.5 * WATER_DENSITY * this.speed.squared() * this.volume.dragCoefficient * coeffMultiplier * frictionFace
-        const frictionDir = this.speed.theta() + Math.PI
+        const frictionDir = this.speed.theta + Math.PI
         return vectorForPolar(frictionForce, frictionDir)
 
     }
@@ -334,7 +336,7 @@ export class Edge {
         return null
     }
 
-    theta() {
+    get theta() {
         return Math.atan2(this.from.y - this.to.y, this.from.x - this.to.x)
     }
 }

@@ -84,7 +84,6 @@ export class Sonar extends Subsystem {
                 targetPosition: e.targetPosition,
                 mass: e.mass,
                 lastActingForce: e.lastActingForce,
-                targetPosition: e.targetPosition,
             }})
     }
 

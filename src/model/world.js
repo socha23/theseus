@@ -13,6 +13,7 @@ import { Pumps } from "./subsystems/pumps"
 import { CheatBox } from "./subsystems/cheatbox"
 import { Storage } from "./subsystems/storage"
 import { MATERIALS } from "./materials"
+import { randomPolygon } from "./mapGeneration"
 
 const WEAPON_TEMPLATES = {
     COILGUN: {
@@ -86,7 +87,16 @@ const FISH_TEMPLATES = {
         tailForce: 15 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: 1,
-        color: "#8EE3EF"
+        color: "#E08E45",
+        aggresive: true,
+        attacks: [{
+            range: 2,
+            cooldown: 1000,
+            damage: {
+                type: "default",
+                strength: 5,
+            }
+        }],
     },
     BIG_FISH: {
         id: "big_fish",
@@ -101,9 +111,9 @@ const FISH_TEMPLATES = {
             cooldown: 3000,
             damage: {
                 type: "default",
-                strength: 8,
+                strength: 10,
             }
-        }]
+        }],
     },
 
 }
@@ -139,8 +149,8 @@ export function getStartingWorld(map) {
         [
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
-            ...createFish(map, FISH_TEMPLATES.FAT_FISH, 10, Point.ZERO, 100),
-            ...createFish(map, FISH_TEMPLATES.BIG_FISH, 4, Point.ZERO, 50),
+            ...createFish(map, FISH_TEMPLATES.FAT_FISH, 100, Point.ZERO, 400),
+            ...createFish(map, FISH_TEMPLATES.BIG_FISH, 30, Point.ZERO, 400),
         ]
     )
 }
@@ -237,14 +247,6 @@ function createFlock(map, template, count = 1, position=new Point(0, 0), spread 
 
 
 
-function randomPolygon(position) {
-    const width = 10 + Math.random() * 100
-    const height = 10 + Math.random() * 100
-    const theta = Math.random() * 2 * Math.PI
-    return rectangle(position, new Point(width, height), theta)
-
-}
-
 const DEFAULT_MAP_PARAMS = {
     position: new Point(0, 0),
     featuresCount: 50,
@@ -255,11 +257,13 @@ export function getStartingMap(subBoundingBox, params={}) {
     params = {...DEFAULT_MAP_PARAMS, ...params}
     const res = new Map()
 
-    res.addFeature(rectangle(new Point(0, -40), new Point(40, 4), -Math.PI / 4))
-
     for (var i = 0; i < params.featuresCount; i++) {
         while (true) {
-            const poly = randomPolygon(randomPointAround(params.position, params.featuresSpread))
+            const position = randomPointAround(params.position, params.featuresSpread)
+            const width = 10 + Math.random() * 30
+            const height = width * Math.random() * 4
+
+            const poly = randomPolygon(position, width, height)
             if (!poly.overlaps(subBoundingBox)) {
                 res.addFeature(poly)
                 break;

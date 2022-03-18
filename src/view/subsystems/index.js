@@ -83,30 +83,15 @@ function StatusEffect({effect}) {
     </div>
 }
 
-const SWITCH_TO_MAIN_AFTER = 5000
-
 function StatusTab({subsystem, setActiveTab}) {
     const effects = subsystem.statusEffects
 
-    const [activatedAt, setActivatedAt] = useState(Date.now())
-    const [noEffectsAt, setNoEffectsAt] = useState(null)
-    var backToMainIn = 0
-
-    if (effects.length === 0) {
-        if (noEffectsAt === null && activatedAt != null) {
-            setNoEffectsAt(Date.now())
-        } else {
-            if (activatedAt && noEffectsAt) {
-                backToMainIn = SWITCH_TO_MAIN_AFTER - (Date.now() - Math.max(activatedAt, noEffectsAt))
-                if (backToMainIn <= 0) {
-                    setActivatedAt(null)
-                    setNoEffectsAt(null)
-                    setTimeout(() => {setActiveTab(TABS.MAIN)})
-                }
-            }
-        }
-    } else if (noEffectsAt != null) {
-        setNoEffectsAt(null)
+    const [lastEffectCount, setLastEffectCount] = useState(effects.length)
+    if (lastEffectCount > 0 && effects.length === 0) {
+        setLastEffectCount(0)
+        setTimeout(() => {setActiveTab(TABS.MAIN)})
+    } else if (effects.length != lastEffectCount) {
+        setLastEffectCount(effects.length)
     }
 
     return <div className="tab statusTab" onDragStart={e => false}>
@@ -117,9 +102,7 @@ function StatusTab({subsystem, setActiveTab}) {
                     }
                 </div> : <div className="noStatusEffects">
                     <div>No active effects</div>
-                    <div><span className="backToMain" onClick={() => {setActiveTab(TABS.MAIN)}}>Back to main view in {Math.floor(backToMainIn / 1000) + 1}s</span></div>
-
-
+                    <div><span className="backToMain" onClick={() => {setActiveTab(TABS.MAIN)}}>Back to main view</span></div>
                 </div>
             )}
         </div>

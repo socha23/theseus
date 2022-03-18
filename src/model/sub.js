@@ -283,6 +283,18 @@ export class Sub extends Entity {
         }
     }
 
+    _allocateAtackDamage(damage) {
+        const s = randomElem(this.subsystems.filter(s => s.takesDamage))
+        const d = damage.strength * Math.random()
+        if (d > 5) {
+            s.addHeavyDamage()
+        } else if (d > 2) {
+            s.addMediumDamage()
+        } else {
+            s.addLightDamage()
+        }
+    }
+
     _getDirection(collision) {
         const a = collision.relativeAngle
         if ((a <= Math.PI / 4) || (7 / 4 * Math.PI <= a)) {
@@ -306,7 +318,9 @@ export class Sub extends Entity {
         super.onHit(hit)
 
         const positionOnSub = hit.position.plus(new Vector(-this.x, -this.y)).rotate(-this.orientation)
-        this.addEffect(hitMarkStatus(positionOnSub, hit.damage.strength) )
+        this.addEffect(hitMarkStatus(positionOnSub, hit.damage.strength))
+
+        this._allocateAtackDamage(hit.damage)
     }
 
 

@@ -33,8 +33,8 @@ const WEAPON_TEMPLATES = {
 
 const ENGINE_TEMPLATES = {
     BASIC_ENGINE: {
-        force:  40 * 1000,
-        rotationalForce: 2 * 1000,
+        force:  10 * 40 * 1000,
+        rotationalForce: 10 * 2 * 1000,
         powerConsumption: 10,
     }
 }
@@ -78,6 +78,7 @@ const FISH_TEMPLATES = {
         tailForce: 2 * 1000,
         rotationalForce: 1 * 1000,
         rotationSpeed: 1,
+        color: "#AEF3E7"
     },
     FAT_FISH: {
         id: "fat_fish",
@@ -85,6 +86,7 @@ const FISH_TEMPLATES = {
         tailForce: 15 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: 1,
+        color: "#8EE3EF"
     },
     BIG_FISH: {
         id: "big_fish",
@@ -92,6 +94,16 @@ const FISH_TEMPLATES = {
         tailForce: 25 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: 1,
+        color: "red",
+        aggresive: true,
+        attacks: [{
+            range: 2,
+            cooldown: 3000,
+            damage: {
+                type: "default",
+                strength: 8,
+            }
+        }]
     },
 
 }
@@ -128,7 +140,7 @@ export function getStartingWorld(map) {
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
             ...createFish(map, FISH_TEMPLATES.FAT_FISH, 10, Point.ZERO, 100),
-            ...createFish(map, FISH_TEMPLATES.BIG_FISH, 4, Point.ZERO, 100),
+            ...createFish(map, FISH_TEMPLATES.BIG_FISH, 4, Point.ZERO, 50),
         ]
     )
 }
@@ -158,8 +170,8 @@ export class World {
 
     getEntitiesAround(pos, radius) {
         return Object.values(this.entitiesById).filter(e => {
-            const deltaX = pos.x - e.getPosition().x
-            const deltaY = pos.y - e.getPosition().y
+            const deltaX = pos.x - e.position.x
+            const deltaY = pos.y - e.position.y
             const r = radius + e.radius
 
             return deltaX * deltaX + deltaY * deltaY <= r * r

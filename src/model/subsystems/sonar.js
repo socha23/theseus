@@ -71,8 +71,8 @@ export class Sonar extends Subsystem {
             .map(e => {return {
                 effects: e.toViewState().effects,
                 id: this.id + "_" + e.id + "_blip",
-                color: "red",
-                position: e.getPosition(),
+                color: e.color,
+                position: e.position,
                 radius: e.radius,
                 entityId: e.id,
                 entityWidth: e.body.volume.width,
@@ -119,6 +119,8 @@ export class Sonar extends Subsystem {
             features: this.features ?? [],
             subBoundingBox: this.sub?.boundingBox ?? [],
             toggleActions: [this.debugAction.toViewState()],
+            hitMarks: this.sub?.hitMarksViewState() ?? [],
+
         }
     }
 }

@@ -154,7 +154,7 @@ export class Effect {
 
 }
 
-class TimedEffect extends Effect {
+export class TimedEffect extends Effect {
     constructor(params) {
         super(params)
         this.durationMs = this.params.durationMs

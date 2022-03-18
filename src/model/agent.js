@@ -1,4 +1,7 @@
+import { toDegrees } from "../units"
+import { transpose } from "../utils"
 import { Entity } from "./entities"
+import { vectorForPolar } from "./physics"
 
 export class AgentEntity extends Entity {
     constructor(id, body) {
@@ -33,6 +36,21 @@ export class AgentEntity extends Entity {
     }
 }
 
+function randomPointInSight(entity, model, sightRangeTo, sightRangeFrom = 0, relativeAngleMax = Math.PI, maxTries = 10) {
+    for (var i = 0; i < maxTries; i++) {
+        const range = transpose(Math.random(), 0, 1, sightRangeFrom, sightRangeTo)
+        const relAngle = transpose(Math.random(), 0, 1, -relativeAngleMax, relativeAngleMax)
+
+        const target = entity.position.plus(vectorForPolar(range, entity.body.speed.theta + relAngle))
+
+        if (!model.map.raycast(entity.position, target)) {
+            return target
+        }
+
+    }
+    return null
+}
+
 /////////
 // ACTIONS
 /////////
@@ -42,6 +60,10 @@ export class AgentAction {
         this.params = params
         this._done = false
         this._entity = entity
+    }
+
+    get me() {
+        return this._entity
     }
 
     get finished() {
@@ -68,7 +90,13 @@ export class AgentAction {
 }
 
 function deltaRotation(from, to) {
-    return ((4 * Math.PI + to - from) % (2 * Math.PI)) - Math.PI
+    var delta = to - from
+    if (delta > Math.PI) {
+        delta -= 2 * Math.PI
+    } else if (delta < -Math.PI) {
+        delta += 2* Math.PI
+    }
+    return delta
 }
 
 function rotateTo(fish, point, deltaMs) {
@@ -113,7 +141,7 @@ class _MoveAction extends AgentAction {
 
 class StopAction extends AgentAction {
     constructor(entity, params = {}) {
-        super(entity, {speedLimit: 0.3, ...params})
+        super(entity, {speedLimit: 1, ...params})
     }
 
     get targetPosition() {
@@ -182,7 +210,9 @@ class BackOffAction extends AgentAction {
 
         const me = this._entity
 
-        const force = me.body.dorsalThrustVector(me.tailForce).negative()
+        const dir = this.params.direction ?? (me.body.orientation + Math.PI)
+
+        const force = vectorForPolar(me.tailForce, dir)
         me.body.addActingForce(force)
     }
 }
@@ -211,6 +241,76 @@ export class FollowEntityAction extends _MoveAction {
     }
 }
 
+
+export class FollowEntityTillContactAction extends FollowEntityAction {
+    constructor(entity, targetEntity, params) {
+        super(entity, targetEntity, params)
+    }
+
+    canBeFinished(model) {
+        return this._target.boundingBox.overlaps(this.me.boundingBox)
+    }
+}
+
+export class GainDistanceAction extends _MoveAction {
+    constructor(entity, distance = 20, params = {}) {
+        super(entity, params)
+        this.distance = distance
+        this._target = null
+    }
+
+    get targetPosition() {
+        return this._target
+    }
+
+    updateState(deltaMs, model) {
+        if (!this._target) {
+            this._target =  randomPointInSight(this.me, model, this.me.sightRange / 2, this.me.sightRange, Math.PI / 16)
+                || randomPointInSight(this.me, model, this.me.sightRange / 2, this.me.sightRange, Math.PI / 8)
+                || randomPointInSight(this.me, model, this.me.sightRange / 2, this.me.sightRange, Math.PI / 4)
+                || randomPointInSight(this.me, model, this.me.sightRange / 2, this.me.sightRange, Math.PI / 2)
+                || randomPointInSight(this.me, model, this.me.sightRange / 2, this.me.sightRange, Math.PI / 1)
+
+            if (!this._target) {
+                console.log("Can't find a point to retreat to")
+                this.finish()
+            }
+        }
+        super.updateState(deltaMs, model)
+    }
+}
+
+
+export class AttackAction extends AgentAction {
+    constructor(entity, target, params={}) {
+        super(entity, params)
+        this.target = target
+    }
+
+    updateState(deltaMs, model) {
+        super.updateState(deltaMs, model)
+        const me = this._entity
+        me.attacks.forEach(a => {
+            if (a.cooldown <= 0) {
+                a.attack(this.target)
+            }
+        })
+        this.finish()
+   }
+}
+
+
+
+export class WaitForReadyAttack extends AgentAction {
+    constructor(entity, params) {
+        super(entity, params)
+    }
+
+    canBeFinished(model) {
+        return this.me.attacks.some(w => w.ready)
+    }
+
+}
 
 /////////
 // PLANS
@@ -245,10 +345,10 @@ export class Plan {
     }
 }
 
-export function planBackOff(entity) {
+export function planBackOff(entity, direction = null) {
     return new Plan(
         "Backoff",
-        new BackOffAction(entity),
+        new BackOffAction(entity, {distance: entity.radius, direction: direction}),
     )
 }
 
@@ -263,7 +363,7 @@ function stopAndRotate(entity, point) {
         return []
     } else if (needed < Math.PI / 2) {
         // 180' cone, stop before continuing
-        return [new StopAction(entity)]
+        return []// [new StopAction(entity)]
     } else {
         // target in the back, stop and rotate
         return [new StopAction(entity), new RotateToAction(entity, point)]
@@ -283,5 +383,16 @@ export function planFollowEntity(entity, target) {
         `Follow ${target.id}`,
         ...stopAndRotate(entity, target.position),
         new FollowEntityAction(entity, target),
+    )
+}
+
+export function planAttack(entity, target) {
+    return new Plan(
+        `Attack ${target.id}`,
+        new WaitForReadyAttack(entity),
+        ...stopAndRotate(entity, target.position),
+        new FollowEntityTillContactAction(entity, target),
+        new AttackAction(entity, target),
+        new GainDistanceAction(entity, 30),
     )
 }

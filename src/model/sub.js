@@ -1,11 +1,11 @@
-import {Point, Body } from './physics.js'
+import {Point, Body, Vector } from './physics.js'
 import { Entity } from './entities.js'
 import { Sonar } from './subsystems/sonar'
 
 import { Storage } from './subsystems/storage'
 import { Engine } from './subsystems/engine'
 import { randomElem } from '../utils.js'
-import { shake } from './effects.js'
+import { shake, TimedEffect } from './effects.js'
 import { MATERIALS } from './materials.js'
 
 class Steering {
@@ -233,20 +233,6 @@ export class Sub extends Entity {
         return grid
     }
 
-    toViewState() {
-        return {
-            ...super.toViewState(),
-            subsystems: this.subsystems.map(s => s.toViewState()),
-            position: this.body.position,
-            gridWidth: this.gridWidth,
-            gridHeight: this.gridHeight,
-            gridBusy: this._gridBusyCache,
-            waterLevel: this.waterLevel,
-            inventory: this._storage.inventory,
-        }
-    }
-
-
     _randomSubsystemFromSide(direction) {
         const subsystemLots = []
         this.subsystems.forEach(s => {
@@ -316,6 +302,14 @@ export class Sub extends Entity {
         this._allocateImpactDamage(collision)
     }
 
+    onHit(hit) {
+        super.onHit(hit)
+
+        const positionOnSub = hit.position.plus(new Vector(-this.x, -this.y)).rotate(-this.orientation)
+        this.addEffect(hitMarkStatus(positionOnSub, hit.damage.strength) )
+    }
+
+
     get leak() {
         var res = 0
         this.subsystems.forEach(s => {
@@ -345,4 +339,36 @@ export class Sub extends Entity {
         return this._storage.inventory
     }
 
+    toViewState() {
+        return {
+            ...super.toViewState(),
+            subsystems: this.subsystems.map(s => s.toViewState()),
+            position: this.body.position,
+            gridWidth: this.gridWidth,
+            gridHeight: this.gridHeight,
+            gridBusy: this._gridBusyCache,
+            waterLevel: this.waterLevel,
+            inventory: this._storage.inventory,
+        }
+    }
+
+    hitMarksViewState() {
+        return this.effects
+            .filter(e => e.type === HIT_MARK_STATUS)
+            .map(h => ({
+                position: h.params.position.rotate(this.orientation).plus(new Vector(this.x, this.y)),
+                strength: h.params.strength,
+            }))
+    }
+}
+
+const HIT_MARK_STATUS = "hitMark"
+
+function hitMarkStatus(position, strength = 10) {
+    return new TimedEffect({
+        type: HIT_MARK_STATUS,
+        durationMs: 1000,
+        position,
+        strength,
+    })
 }

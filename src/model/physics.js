@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom"
 import { STATISTICS } from "../stats"
 
 export function vectorForPolar(r, theta) {
@@ -200,6 +201,14 @@ export class Body {
     _resolveCollision(collision, onCollision) {
         const collisionAngle = this.speed.theta - collision.mapFeatureWall.theta
 
+        const wallVect = collision.mapFeatureWall.toVector()
+        var wallNormal = null
+        if (collision.mapFeatureWall.theta > this.speed.theta) {
+            wallNormal = new Vector(wallVect.y, -wallVect.x)
+        } else {
+            wallNormal = new Vector(-wallVect.y, wallVect.x)
+        }
+
         const IMPACT_SPEED_MULTIPLIER = 0.95
 
         var newSpeedValue = Math.cos(collisionAngle) * this.speed.length * IMPACT_SPEED_MULTIPLIER
@@ -211,8 +220,7 @@ export class Body {
         const impactSpeed = Math.sin(collisionAngle) * this.speed.length
 
         const impactTheta = (collision.mapFeatureWall.theta - Math.PI / 2) % (2 * Math.PI)
-        const impactForce = vectorForPolar(impactSpeed, impactTheta)
-
+        const impactForce = vectorForPolar(impactSpeed, impactTheta).negative()
 
         this.speed = vectorForPolar(newSpeedValue, collision.mapFeatureWall.theta)
         this.rotationSpeed = 0
@@ -223,9 +231,11 @@ export class Body {
         }
         this._actingFixedOrientation = null
 
+
         collision.angle = collisionAngle
         collision.impactSpeed =  impactSpeed
         collision.relativeAngle = (2 * Math.PI + impactForce.theta - this.orientation) % (2 * Math.PI)
+        collision.wallNormal = wallNormal
 
         onCollision(collision)
     }
@@ -286,7 +296,7 @@ export class Body {
 
 
     dorsalThrustVector(r) {
-        return vectorForPolar(r, this.orientation + Math.PI)
+        return vectorForPolar(r, this.orientation)
     }
 
     get radius() {
@@ -338,6 +348,10 @@ export class Edge {
 
     get theta() {
         return Math.atan2(this.from.y - this.to.y, this.from.x - this.to.x)
+    }
+
+    toVector() {
+        return new Vector(this.to.x - this.from.x, this.to.y - this.from.y)
     }
 }
 

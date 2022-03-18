@@ -8,10 +8,6 @@ export class Entity extends HasEffects {
         this.deleted = false
     }
 
-    getPosition() {
-        return this.body.position
-    }
-
     get radius() {
         return this.body.volume.radius
     }
@@ -49,14 +45,19 @@ export class Entity extends HasEffects {
     }
 
     get position() {
-        return this.getPosition()
+        return this.body.position
     }
 
     get boundingBox() {
         return this.body.boundingBox
     }
 
-    onHit() {
+    get color() {
+        // for sonar blips
+        return "gray"
+    }
+
+    onHit(damage) {
         this.addEffect(entityHit())
     }
 
@@ -66,9 +67,18 @@ export class Entity extends HasEffects {
     updateState(deltaMs, model) {
         super.updateState(deltaMs, model)
         this.body.updateState(deltaMs, model, c => {this.onCollision(c)})
+
     }
 
-    distanceTo(entity) {
-        return this.position.distanceTo(entity.position) - this.radius - entity.radius
+    distanceTo(p) {
+        return this.position.distanceTo(p)
+    }
+
+    get x() {
+        return this.position.x
+    }
+
+    get y() {
+        return this.position.y
     }
 }

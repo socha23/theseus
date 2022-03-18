@@ -53,7 +53,7 @@ function Facing({blip, scale}) {
     const w = blip.entityLength
     return <Group x={-w / 2} y={-h / 2} offsetX={-w / 2} offsetY={-h / 2}>
         <Group offsetX={w/2} offsetY={h/2} rotation={toDegrees(blip.entityOrientation)}>
-            <Line points={[0, h/2, w, 0, w, h, 0, h/2]} stroke="yellow" strokeWidth={1/scale}/>
+            <Line points={[w, h/2, 0, 0, 0, h, w, h/2]} stroke="yellow" strokeWidth={1/scale}/>
         </Group>
     </Group>
 }
@@ -84,7 +84,7 @@ function SonarBlipCircle({blip}) {
             phase = deltaMs / HIT_ANIM_TIME
         }
     }
-    const color = (phase === 0 || phase === 1) ? "red" : rgbGradientValue(phase, ANIM_COLOR)
+    const color = (phase === 0 || phase === 1) ? blip.color : rgbGradientValue(phase, ANIM_COLOR)
     const opacity = (blip.alive ? 1 : 0.8)
 
     return <Ellipse
@@ -164,8 +164,6 @@ function rangeVal(dict, range) {
 }
 
 function Ranges({position, scale, ranges}) {
-
-
     return <Group>
         {
             ranges.map(r => <Circle
@@ -251,26 +249,46 @@ function Feature({feature}) {
 }
 
 ///////////
+// HITMARKS
+///////////
+
+function HitMarks({hitMarks}) {
+    return <Group>
+        {
+            hitMarks.map(h => <Circle
+                key={h.position.x + "_" + h.position.y}
+                x={h.position.x}
+                y={h.position.y}
+                radius={h.strength}
+                fillRadialGradientStartRadius={0}
+                fillRadialGradientEndRadius={h.strength}
+                fillRadialGradientColorStops={[0, 'red', 1, 'transparent']}
+
+                listening={false}
+            />)
+        }
+    </Group>
+}
+
+
+///////////
 // SUB MARKER
 ///////////
 
-function SubMarker({volume, scale}){
-    const wPx = volume.width * scale
-    const rPx = wPx / 2
-    const hPx = volume.length * scale
+function SubMarker({subsystem}){
+    const wPx = subsystem.subVolume.length
+    const hPx = subsystem.subVolume.width
+    const rPx = hPx / 2
     const color = "#777777"
 
-    return <Group>
-        {/*<Rect x={-rPx} y={-hPx / 2} width={wPx} height={hPx} fill="green"/>*/}
-        <Circle x={0} y={-hPx / 2 + rPx} radius={rPx} fill={color}/>
-        <Rect x={-wPx / 2} y={-hPx / 2 + rPx} width={wPx} height={hPx - rPx - 8} fill={color}/>
-        <Rect x={-wPx / 2 + 2} y={hPx / 2 - 8} width={wPx - 4} height={2} fill={color}/>
-        <Rect x={-wPx / 2 + 1} y={hPx / 2 - 6} width={wPx - 2} height={6} fill={color}/>
-
-
-
-    </Group>
-
+    return <ReferenceFrame position={subsystem.position}>
+        <Group rotation={toDegrees(subsystem.orientation)}>
+            <Circle x={wPx / 2 - rPx} y={0} radius={rPx} fill={color}/>
+            <Rect x={(-wPx / 2 + 2)} y={-hPx / 2} width={wPx - rPx - 2} height={hPx} fill={color}/>
+            <Rect x={-wPx / 2} y={-hPx / 2 + 0.2} width={3} height={hPx - 0.4} fill={color}/>
+            <Rect x={-wPx / 2} y={-hPx / 2} width={1} height={hPx} fill={color}/>
+        </Group>
+    </ReferenceFrame>
 }
 
 function SubReferenceFrame({position, scale=1, children}) {
@@ -288,17 +306,18 @@ function Sonar({subsystem, actionController}) {
             {subsystem.on && <Stage width={SIZE_PX} height={SIZE_PX} >
                 <Layer>
                     <Group offsetX={-SIZE_PX / 2} offsetY={-SIZE_PX / 2}>
-                        <Group rotation={toDegrees(-subsystem.orientation) + 90}>
+                        <Group rotation={toDegrees(-subsystem.orientation) - 90}>
                             <SonarBackground position={subsystem.position} scale={scale}/>
                             <SubReferenceFrame position={subsystem.position} scale={scale}>
+                                <SubMarker subsystem={subsystem}/>
                                 <Features scale={scale} features={subsystem.features}/>
                                 <AimLines scale={scale} aimLines={subsystem.aimLines}/>
                                 <SonarBlips blips={subsystem.blips} actionController={actionController} scale={scale} debug={subsystem.debug}/>
                                 <Ranges position={subsystem.position} scale={scale} ranges={subsystem.ranges}/>
+                                <HitMarks hitMarks={subsystem.hitMarks}/>
                                 {/*<BoundingBox polygon={subsystem.subBoundingBox} scale={scale}/>*/}
                             </SubReferenceFrame>
                         </Group>
-                        {<SubMarker volume={subsystem.subVolume} scale={scale}/>}
                     </Group>
                 </Layer>
             </Stage>}

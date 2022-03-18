@@ -6,13 +6,13 @@ const DEFAULT_DAMAGE = {
     strength: 10,
     type: "default",
 }
-
+/*
 const SAMPLE_ATTACK_DEFINITION = {
     range: 2,
     cooldown: 3000,
     damage: DEFAULT_DAMAGE,
 }
-
+*/
 const DEFAULT_FISH_TEMPALTE = {
     volume: new Volume(2, 2, 4, 0.2),
     tailForce: 20 * 1000,

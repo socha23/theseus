@@ -1,5 +1,5 @@
 import { Fish, Flock, flockPlanCreator } from "./fish"
-import { Body, Point, rectangle, Volume } from "./physics"
+import { Body, Point, Volume } from "./physics"
 import { Sub } from "./sub"
 
 import { SubStatusScreen } from "./subsystems/others"

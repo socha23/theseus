@@ -90,7 +90,7 @@ function StatusTab({subsystem, setActiveTab}) {
     if (lastEffectCount > 0 && effects.length === 0) {
         setLastEffectCount(0)
         setTimeout(() => {setActiveTab(TABS.MAIN)})
-    } else if (effects.length != lastEffectCount) {
+    } else if (effects.length !== lastEffectCount) {
         setLastEffectCount(effects.length)
     }
 

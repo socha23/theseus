@@ -1,4 +1,4 @@
-import { Edge, Point, Polygon } from "./physics"
+import { Point, Polygon } from "./physics"
 
 export function randomPolygon(position, radX=10, radY=radX, edgeCount = (radX * radY) / 50) {
 

@@ -1,4 +1,3 @@
-import { toDegrees } from "../units"
 import { transpose } from "../utils"
 import { Entity } from "./entities"
 import { vectorForPolar } from "./physics"
@@ -243,10 +242,6 @@ export class FollowEntityAction extends _MoveAction {
 
 
 export class FollowEntityTillContactAction extends FollowEntityAction {
-    constructor(entity, targetEntity, params) {
-        super(entity, targetEntity, params)
-    }
-
     canBeFinished(model) {
         return this._target.boundingBox.overlaps(this.me.boundingBox)
     }
@@ -302,10 +297,6 @@ export class AttackAction extends AgentAction {
 
 
 export class WaitForReadyAttack extends AgentAction {
-    constructor(entity, params) {
-        super(entity, params)
-    }
-
     canBeFinished(model) {
         return this.me.attacks.some(w => w.ready)
     }

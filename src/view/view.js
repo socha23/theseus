@@ -1,8 +1,8 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext } from "react";
 import {SubsystemCell, DropTargets, GRID_CELL_HEIGHT, GRID_CELL_WIDTH} from "./grid"
 import {Subsystem} from "./subsystems"
 import { TooltipArea } from "./tooltip";
-import { AvailableInventory, InventoryContext, RequiredInventory } from "./materials";
+import { AvailableInventory, RequiredInventory } from "./materials";
 import { ActionControllerCtx } from "../actionController";
 import '../css/water.css';
 import '../css/gameOver.css';

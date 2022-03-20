@@ -1,6 +1,6 @@
 import { Point, Polygon } from "./physics"
 
-export function randomPolygon(position, radX=10, radY=radX, edgeCount = (radX * radY) / 50) {
+export function randomPolygon(position, radX=10, radY=radX, edgeCount = (radX + radY) / 5) {
 
     // Pick random points on a (non-rotated) ellipse, rotate, translate.
     // This quarantees a convex polygon.

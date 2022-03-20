@@ -56,6 +56,9 @@ function GameView({model, actionController, onNewGame}) {
         {
             model.gameOver && <GameOverScreen onNewGame={onNewGame}/>
         }
+        {
+            model.win && <WinScreen onNewGame={onNewGame}/>
+        }
     </div>
 }
 
@@ -69,6 +72,14 @@ function GameOverScreen({onNewGame}) {
     </div>
 }
 
+function WinScreen({onNewGame}) {
+    return <div className="gameOverContainer">
+        <div className="gameOverScreen">
+            <div className="gameOver">Congratulations, you won!</div>
+            <div className="playAgain" onClick={onNewGame}>Play again</div>
+        </div>
+    </div>
+}
 
 
 export default GameView;

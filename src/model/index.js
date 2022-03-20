@@ -1,3 +1,4 @@
+import { Point } from "./physics"
 import {getStartingSub, getStartingWorld, getStartingMap} from "./world"
 
 const MAX_TIME_FRAME_FOR_MODEL_UPDATE = 20
@@ -7,10 +8,16 @@ class GameModel {
         this.sub = getStartingSub()
         this.map = getStartingMap(this.sub.boundingBox)
         this.world = getStartingWorld(this.map)
+        this.target = {
+            position: new Point(
+                (Math.random() - 0.5) * 1000,
+                (Math.random() - 0.5) * 1000),
+            name: "Goal"
+        }
     }
 
     updateState(deltaMs, actionController) {
-        if (this.isGameOver()) {
+        if (this.isGameOver() || this.isWin()) {
             return
         }
         while (deltaMs > MAX_TIME_FRAME_FOR_MODEL_UPDATE) {
@@ -33,10 +40,16 @@ class GameModel {
         return this.sub.waterLevel >= 5
     }
 
+    isWin() {
+        return this.sub.position.distanceTo(this.target.position) < 10
+    }
+
     toViewState() {
         return {
             sub: this.sub.toViewState(),
+            target: this.target,
             gameOver: this.isGameOver(),
+            win: this.isWin(),
         }
     }
 }

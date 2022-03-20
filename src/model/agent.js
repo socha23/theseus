@@ -1,4 +1,4 @@
-import { transpose } from "../utils"
+import { relativeAngle, transpose } from "../utils"
 import { Entity } from "./entities"
 import { vectorForPolar } from "./physics"
 
@@ -88,21 +88,11 @@ export class AgentAction {
     }
 }
 
-function deltaRotation(from, to) {
-    var delta = to - from
-    if (delta > Math.PI) {
-        delta -= 2 * Math.PI
-    } else if (delta < -Math.PI) {
-        delta += 2* Math.PI
-    }
-    return delta
-}
-
 function rotateTo(fish, point, deltaMs) {
     const direction = fish.position.vectorTo(point)
     // rotate towards target
     const rotation =
-        Math.sign(deltaRotation(fish.orientation, direction.theta))
+        Math.sign(relativeAngle(fish.orientation, direction.theta))
         * fish.rotationSpeed
         * deltaMs / 1000
     fish.body.setActingOrientation(fish.orientation + rotation)
@@ -173,7 +163,7 @@ class RotateToAction extends AgentAction {
 
     _neededRotation() {
         const me = this._entity
-        return deltaRotation(me.orientation, me.position.vectorTo(this._point).theta)
+        return relativeAngle(me.orientation, me.position.vectorTo(this._point).theta)
     }
 
     canBeFinished(model) {
@@ -344,7 +334,7 @@ export function planBackOff(entity, direction = null) {
 }
 
 function stopAndRotate(entity, point) {
-    const needed = Math.abs(deltaRotation(
+    const needed = Math.abs(relativeAngle(
         entity.orientation,
         entity.position.vectorTo(point).theta
     ))

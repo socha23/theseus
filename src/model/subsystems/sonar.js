@@ -54,6 +54,7 @@ export class Sonar extends Subsystem {
         this.blips = []
         this.features = []
         this.sub = null
+        this.target = null
 
         this.debugAction = new SonarDebugAction(this)
 
@@ -101,6 +102,7 @@ export class Sonar extends Subsystem {
         this.blips = this._observeBlips(model)
         this.features = this._observeFeatures(model)
         this.sub = model.sub
+        this.target = model.target
     }
 
     toViewState() {
@@ -120,6 +122,7 @@ export class Sonar extends Subsystem {
             subBoundingBox: this.sub?.boundingBox ?? [],
             toggleActions: [this.debugAction.toViewState()],
             hitMarks: this.sub?.hitMarksViewState() ?? [],
+            target: this.target,
 
         }
     }

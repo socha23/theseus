@@ -14,3 +14,14 @@ export function jsonCompare(obj1, obj2) {
 export function transpose(val, aF, aT, bF=aF, bT=aT) {
     return bF + (bT - bF) * ((val - aF) / (aT - aF))
 }
+
+// results in (-Math.PI; Math.PI)
+export function relativeAngle(from, to) {
+    var delta = to - from
+    if (delta > Math.PI) {
+        delta -= 2 * Math.PI
+    } else if (delta < -Math.PI) {
+        delta += 2* Math.PI
+    }
+    return delta
+}

@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import {Stage, Layer, Line, Circle, Rect, Group, Ellipse} from 'react-konva'
+import {Stage, Layer, Line, Circle, Rect, Group, Ellipse, Text} from 'react-konva'
 import { rgbGradientValue } from "../../gradient";
 import { EFFECT_TYPES } from "../../model/effects";
+import { Point, SimpleRect, Vector } from "../../model/physics";
 import { AIM_LINE_TYPE, RANGE_CIRCLE_TYPE } from "../../model/subsystems/sonar";
 import { toDegrees } from "../../units";
+import { relativeAngle } from "../../utils";
 import { ActionButton } from "../widgets";
 
 const SIZE_PX = 420//376
@@ -299,6 +301,68 @@ function SubReferenceFrame({position, scale=1, children}) {
     </Group>
 }
 
+
+
+function gamePosToScreenPos(subPosition, subOrientation, targetPosition, scale) {
+    const deltaP = targetPosition.minus(subPosition)
+    const deltaPScaled = new Point(deltaP.x * scale, deltaP.y * scale)
+
+    return deltaPScaled.rotate(-subOrientation - Math.PI / 2).plus(new Point(SIZE_PX / 2, SIZE_PX / 2))
+}
+
+function Target({subPosition, subOrientation, target, scale}) {
+
+    const targetTheta = subPosition.vectorTo(target.position).theta
+    const relAngle = relativeAngle(subOrientation, targetTheta)
+
+    const MARK_SIZE = 5
+    const MARGIN = 3
+    const LABEL_MARGIN = 13
+
+
+    var mark = null
+    var labelText = target.name
+    var labelAttrs = {}
+
+    const targetPosOnScreen = gamePosToScreenPos(subPosition, subOrientation, target.position, scale)
+    const viewport = new SimpleRect(0, 0, SIZE_PX, SIZE_PX)
+
+    if (viewport.contains(targetPosOnScreen)) {
+        mark = <Circle listening={false} stroke="#ebf100" radius={MARK_SIZE} opacity={0.5} position={targetPosOnScreen}/>
+        labelAttrs = {width: SIZE_PX, height: SIZE_PX - 2 * LABEL_MARGIN, x: targetPosOnScreen.x - SIZE_PX / 2, y: targetPosOnScreen.y + LABEL_MARGIN, align: "center", verticalAlign: "top"}
+    } else {
+        var arrowPoints = []
+        labelText += "\n" + (subPosition.distanceTo(target.position).toFixed(0)) + "m"
+        if ((-Math.PI / 4 < relAngle) && (relAngle <= Math.PI / 4)) {
+            // front
+            const x = (SIZE_PX / 2) + (Math.tan(relAngle) * SIZE_PX / 2)
+            arrowPoints = [x - MARK_SIZE, MARGIN + MARK_SIZE, x, MARGIN, x + MARK_SIZE, MARGIN + MARK_SIZE]
+            labelAttrs = {width: SIZE_PX, height: SIZE_PX - 2 * LABEL_MARGIN, x: x - SIZE_PX / 2, y: LABEL_MARGIN, align: "center", verticalAlign: "top"}
+        } else if ((Math.PI / 4 < relAngle) && (relAngle <= Math.PI * 3 / 4)) {
+            // right
+            const y = (SIZE_PX / 2) + (Math.tan(relAngle - Math.PI / 2) * SIZE_PX / 2)
+            arrowPoints = [SIZE_PX - MARGIN - MARK_SIZE, y - MARK_SIZE, SIZE_PX - MARGIN, y, SIZE_PX - MARGIN - MARK_SIZE, y + MARK_SIZE]
+            labelAttrs = {width: SIZE_PX - 2 * LABEL_MARGIN, height: SIZE_PX, x: LABEL_MARGIN, y: y - SIZE_PX / 2, align: "right", verticalAlign: "middle"}
+        } else if ((-Math.PI * 3 / 4) < relAngle && relAngle <= (-Math.PI / 4)) {
+            // left
+            const y = (SIZE_PX / 2) - (Math.tan(relAngle + Math.PI / 2) * SIZE_PX / 2)
+            arrowPoints = [MARGIN + MARK_SIZE, y - MARK_SIZE, MARGIN, y, MARGIN + MARK_SIZE, y + MARK_SIZE]
+            labelAttrs = {width: SIZE_PX - 2 * LABEL_MARGIN, height: SIZE_PX, x: LABEL_MARGIN, y: y - SIZE_PX / 2, align: "left", verticalAlign: "middle"}
+        } else {
+            const x = (SIZE_PX / 2) - (Math.tan(relAngle) * SIZE_PX / 2)
+            arrowPoints = [x - MARK_SIZE, SIZE_PX - MARGIN - MARK_SIZE, x, SIZE_PX - MARGIN, x + MARK_SIZE, SIZE_PX - MARGIN - MARK_SIZE]
+            labelAttrs = {width: SIZE_PX, height: SIZE_PX - 2 * LABEL_MARGIN, x: x - SIZE_PX / 2, y: LABEL_MARGIN, align: "center", verticalAlign: "bottom"}
+        }
+        mark = <Line listening={false }stroke="#ebf100" closed={true} points={arrowPoints} opacity={0.5}/>
+    }
+
+    return <Group>
+        {mark}
+        <Text listening={false} {...labelAttrs} fontFamily="monospace" stroke="#ebf100" opacity={0.5} strokeWidth={1} text={labelText}/>
+    </Group>
+}
+
+
 function Sonar({subsystem, actionController}) {
     const scale = SIZE_PX / (subsystem.range * 2)   // px per unit
     return <div className="sonar">
@@ -319,6 +383,14 @@ function Sonar({subsystem, actionController}) {
                             </SubReferenceFrame>
                         </Group>
                     </Group>
+                    <Target
+                        subPosition={subsystem.position}
+                        subOrientation={subsystem.orientation}
+                        target={subsystem.target}
+                        scale={scale}
+                    />
+
+
                 </Layer>
             </Stage>}
         </div>

@@ -16,6 +16,10 @@ export class Point {
         return new Point(this.x + v.x, this.y + v.y)
     }
 
+    minus(v) {
+        return new Point(this.x - v.x, this.y - v.y)
+    }
+
     distanceTo(p) {
         const dX = p.x - this.x
         const dY = p.y - this.y
@@ -458,4 +462,20 @@ export function rectangle(position, size, theta=0) {
         new Point(position.x + size.x / 2, position.y + size.y / 2),
         new Point(position.x + size.x / 2, position.y - size.y / 2),
     ]).rotate(theta)
+}
+
+export class SimpleRect {
+    constructor(x, y, width, height) {
+        this.x = x
+        this.y = y
+        this.width = width
+        this.height = height
+    }
+
+    contains(p) {
+        return this.x <= p.x
+            && p.x <= this.x + this.width
+            && this.y <= p.y
+            && p.y <= this.y + this.height
+    }
 }

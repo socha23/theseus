@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import GameModel from './model'
-import { commitFrameStats, STATISTICS } from "./stats";
 import GameView from './view/view.js';
 import {ActionController} from "./actionController"
+import { commitFrameStats, STATISTICS } from "./stats"
 
 class Game {
     constructor() {
@@ -25,13 +25,10 @@ class Game {
 
 
 const TICK_DELAY_MS = 0
-const game = new Game()
-
 var lastUpdate = window.performance.now()
 
-function App() {
+function RunningGameView({game, onNewGame}) {
     const [gameState, setGameState] = useState(game.gameModel.toViewState())
-
 
     useEffect(() => {
         const interval = setInterval(_ => {
@@ -47,12 +44,22 @@ function App() {
     })
 
     return (
-        <div className="app"
+        <div
             tabIndex={0}
                 onKeyDown={e => game.actionController.onKeyDown(e.key)}
                 onKeyUp={e => game.actionController.onKeyUp(e.key)}
         >
-            <GameView model={gameState} actionController={game.actionController}/>
+            <GameView model={gameState} actionController={game.actionController} onNewGame={onNewGame}/>
+        </div>
+    );
+}
+
+function App() {
+    const [game, setGame] = useState(new Game())
+
+    return (
+        <div className="app">
+            <RunningGameView game={game} onNewGame={e => {setGame(new Game())}}/>
         </div>
     );
 }

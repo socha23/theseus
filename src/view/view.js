@@ -1,10 +1,11 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {SubsystemCell, DropTargets, GRID_CELL_HEIGHT, GRID_CELL_WIDTH} from "./grid"
 import {Subsystem} from "./subsystems"
 import { TooltipArea } from "./tooltip";
-import '../css/water.css';
 import { AvailableInventory, InventoryContext, RequiredInventory } from "./materials";
 import { ActionControllerCtx } from "../actionController";
+import '../css/water.css';
+import '../css/gameOver.css';
 
 
 function Water({waterLevel}) {
@@ -38,7 +39,7 @@ function Sub({sub, actionController}) {
 }
 
 
-function GameView({model, actionController}) {
+function GameView({model, actionController, onNewGame}) {
     const availableInventory = useContext(AvailableInventory)
     const requiredInventory = useContext(RequiredInventory)
     availableInventory.values = model.sub.inventory
@@ -52,7 +53,22 @@ function GameView({model, actionController}) {
                 </RequiredInventory.Provider>
             </AvailableInventory.Provider>
         </ActionControllerCtx.Provider>
+        {
+            model.gameOver && <GameOverScreen onNewGame={onNewGame}/>
+        }
     </div>
 }
+
+
+function GameOverScreen({onNewGame}) {
+    return <div className="gameOverContainer">
+        <div className="gameOverScreen">
+            <div className="gameOver">Game over!</div>
+            <div className="playAgain" onClick={onNewGame}>Play again</div>
+        </div>
+    </div>
+}
+
+
 
 export default GameView;

@@ -10,6 +10,9 @@ class GameModel {
     }
 
     updateState(deltaMs, actionController) {
+        if (this.isGameOver()) {
+            return
+        }
         while (deltaMs > MAX_TIME_FRAME_FOR_MODEL_UPDATE) {
             this._updateInner(MAX_TIME_FRAME_FOR_MODEL_UPDATE, actionController)
             deltaMs -= MAX_TIME_FRAME_FOR_MODEL_UPDATE
@@ -26,9 +29,14 @@ class GameModel {
         actionController.reset()
     }
 
+    isGameOver() {
+        return this.sub.waterLevel >= 5
+    }
+
     toViewState() {
         return {
-            sub: this.sub.toViewState()
+            sub: this.sub.toViewState(),
+            gameOver: this.isGameOver(),
         }
     }
 }

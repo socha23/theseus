@@ -329,6 +329,7 @@ export const GENERIC_MEDIUM_DAMAGE = {
     description: "Generic medium damage",
     type: "damageMedium",
     repairTime: 3000,
+    leak: 0.02,
     requiredMaterials: {
         [MATERIALS.SPARE_PARTS]: 2,
     }

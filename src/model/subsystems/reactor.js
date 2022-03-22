@@ -78,7 +78,7 @@ export class Reactor extends Subsystem {
         this.actions.push(this.refuelAction)
 
         this._control = 0
-        this._fuel = 0
+        this._fuel = 1
         this._reactionPower = 0
         this._heat = 0
 

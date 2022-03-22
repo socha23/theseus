@@ -325,7 +325,8 @@ export class Sub extends Entity {
 
 
     get leak() {
-        var res = 0
+        const LEAK_BASE = 0.01
+        var res = LEAK_BASE
         this.subsystems.forEach(s => {
             res += s.leak
         })

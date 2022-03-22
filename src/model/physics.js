@@ -361,6 +361,18 @@ export class Edge {
 export class Polygon {
     constructor(points) {
         this.points = points
+
+        var minX = Infinity
+        var maxX = -Infinity
+        var minY = Infinity
+        var maxY = -Infinity
+        this.points.forEach(p => {
+            minX = Math.min(minX, p.x)
+            maxX = Math.max(maxX, p.x)
+            minY = Math.min(minY, p.y)
+            maxY = Math.max(maxY, p.y)
+        })
+        this._simpleBoundingBox = new SimpleRect(minX, minY, maxX - minX, maxY - minY)
     }
 
     overlaps(other) {
@@ -453,6 +465,10 @@ export class Polygon {
         })
         return new Point((minX + maxX) / 2, (minY + maxY) / 2)
     }
+
+    get simpleBoundingBox() {
+        return this._simpleBoundingBox
+    }
 }
 
 export function rectangle(position, size, theta=0) {
@@ -470,6 +486,10 @@ export class SimpleRect {
         this.y = y
         this.width = width
         this.height = height
+    }
+
+    get simpleBoundingBox() {
+        return this
     }
 
     contains(p) {

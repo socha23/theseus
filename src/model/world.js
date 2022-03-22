@@ -1,5 +1,5 @@
 import { Fish, Flock, flockPlanCreator } from "./fish"
-import { Body, Point, Volume } from "./physics"
+import { Body, Point, vectorForPolar, Volume } from "./physics"
 import { Sub } from "./sub"
 
 import { SubStatusScreen } from "./subsystems/others"
@@ -8,7 +8,7 @@ import { Engine } from "./subsystems/engine"
 import { Weapon } from "./subsystems/weapons"
 import { Tracking } from "./subsystems/tracking"
 import { Sonar } from "./subsystems/sonar"
-import { Map } from "./map"
+import { BucketMap, LinearMap } from "./map"
 import { Pumps } from "./subsystems/pumps"
 import { CheatBox } from "./subsystems/cheatbox"
 import { Storage } from "./subsystems/storage"
@@ -34,8 +34,8 @@ const WEAPON_TEMPLATES = {
 
 const ENGINE_TEMPLATES = {
     BASIC_ENGINE: {
-        force:  10 * 40 * 1000,
-        rotationalForce: 10 * 2 * 1000,
+        force:  40 * 1000,
+        rotationalForce: 2 * 1000,
         powerConsumption: 10,
     }
 }
@@ -84,7 +84,7 @@ const FISH_TEMPLATES = {
     FAT_FISH: {
         id: "fat_fish",
         volume: new Volume(2, 2, 3, 0.2),
-        tailForce: 15 * 1000,
+        tailForce: 25 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: 1,
         color: "#E08E45",
@@ -101,7 +101,7 @@ const FISH_TEMPLATES = {
     BIG_FISH: {
         id: "big_fish",
         volume: new Volume(2, 2, 5, 0.1),
-        tailForce: 25 * 1000,
+        tailForce: 35 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: 1,
         color: "red",
@@ -149,8 +149,8 @@ export function getStartingWorld(map) {
         [
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
-            ...createFish(map, FISH_TEMPLATES.FAT_FISH, 100, Point.ZERO, 400),
-            ...createFish(map, FISH_TEMPLATES.BIG_FISH, 30, Point.ZERO, 400),
+            ...createFish(map, FISH_TEMPLATES.FAT_FISH, 100, Point.ZERO, 400, 70),
+            ...createFish(map, FISH_TEMPLATES.BIG_FISH, 30, Point.ZERO, 400, 70),
         ]
     )
 }
@@ -195,19 +195,17 @@ export class World {
 
 var autoinc = 0
 
-function randomPointAround(position, distanceMax) {
-    const dx = (Math.random() * 2 - 1) * distanceMax
-    const dy = (Math.random() * 2 - 1) * distanceMax
-
-    return new Point(position.x + dx, position.y + dy)
+function randomPointAround(position, distance) {
+    const theta = Math.random() * 2 * Math.PI
+    return position.plus(vectorForPolar(distance, theta))
 }
 
-function createFish(map, template, count = 1, position=new Point(0, 0), spread = 100) {
+function createFish(map, template, count = 1, position=new Point(0, 0), spread = 100, minSpread = 0) {
     const result = []
     for (var i = 0; i < count; i++) {
 
         while (true) {
-            const location = randomPointAround(position, spread)
+            const location = randomPointAround(position, Math.random() * (spread - minSpread) + minSpread)
             const fish = new Fish(
                 template.id + autoinc++,
                 new Body(location, template.volume, Math.random() * 2 * Math.PI),
@@ -249,19 +247,22 @@ function createFlock(map, template, count = 1, position=new Point(0, 0), spread 
 
 const DEFAULT_MAP_PARAMS = {
     position: new Point(0, 0),
-    featuresCount: 50,
-    featuresSpread: 400,
+    featuresCount: 200,
+    featuresSpread: 600,
 }
 
 export function getStartingMap(subBoundingBox, params={}) {
     params = {...DEFAULT_MAP_PARAMS, ...params}
-    const res = new Map()
+    const res = new BucketMap()
 
     for (var i = 0; i < params.featuresCount; i++) {
         while (true) {
-            const position = randomPointAround(params.position, params.featuresSpread)
-            const width = 10 + Math.random() * 30
-            const height = width * Math.random() * 4
+            const position = new Point(
+                ((Math.random() * 2) - 1) * params.featuresSpread,
+                ((Math.random() * 2) - 1) * params.featuresSpread,
+            )
+            const width = 10 + Math.random() * 40
+            const height = width * Math.random()
 
             const poly = randomPolygon(position, width, height)
             if (!poly.overlaps(subBoundingBox)) {

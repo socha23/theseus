@@ -81,4 +81,20 @@ export class Entity extends HasEffects {
     get y() {
         return this.position.y
     }
+
+    toViewState() {
+        return {
+            ...super.toViewState(),
+            id: this.id,
+            position: this.body.position,
+            color: this.color,
+            radius: this.radius,
+            width: this.body.volume.width,
+            length: this.body.volume.length,
+            orientation: this.body.orientation,
+            mass: this.mass,
+            lastActingForce: this.lastActingForce,
+            speed: this.body.speed.length,
+        }
+    }
 }

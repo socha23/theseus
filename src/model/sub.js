@@ -126,8 +126,6 @@ export class Sub extends Entity {
         super("sub", new Body(new Point(0, 0), volume, Math.PI / 2))
         this.subsystems = subsystems
 
-        this.trackedEntity = null
-
         this._engine = this._findSubsystem(Engine)
         this._storage = this._findSubsystem(Storage)
         this._sonar = this._findSubsystem(Sonar)
@@ -358,7 +356,6 @@ export class Sub extends Entity {
         return {
             ...super.toViewState(),
             subsystems: this.subsystems.map(s => s.toViewState()),
-            position: this.body.position,
             gridWidth: this.gridWidth,
             gridHeight: this.gridHeight,
             gridBusy: this._gridBusyCache,

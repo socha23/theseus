@@ -55,6 +55,7 @@ export class Sonar extends Subsystem {
         this.features = []
         this.sub = null
         this.target = null
+        this._trackedId = null
 
         this.debugAction = new SonarDebugAction(this)
 
@@ -69,23 +70,7 @@ export class Sonar extends Subsystem {
 
     _observeBlips(model) {
         return this._observeEntities(model)
-            .map(e => {return {
-                effects: e.toViewState().effects,
-                id: this.id + "_" + e.id + "_blip",
-                color: e.color,
-                position: e.position,
-                radius: e.radius,
-                entityId: e.id,
-                entityWidth: e.body.volume.width,
-                entityLength: e.body.volume.length,
-                entityOrientation: e.body.orientation,
-
-                alive: e.alive,
-                tracked: e === model.sub.trackedEntity,
-                targetPosition: e.targetPosition,
-                mass: e.mass,
-                lastActingForce: e.lastActingForce,
-            }})
+            .map(e => e.toViewState())
     }
 
     _observeFeatures(model) {
@@ -97,6 +82,9 @@ export class Sonar extends Subsystem {
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
+
+        this._trackedId = model.sub.targetEntity?.id
+
         this.position = model.sub.body.position
         this.orientation = model.sub.body.orientation
         this.subVolume = model.sub.body.volume
@@ -114,6 +102,7 @@ export class Sonar extends Subsystem {
             position: this.position,
             orientation: this.orientation,
             blips: this.blips,
+            trackedBlipId: this._trackedId,
             subVolume: this.subVolume,
             debug: this.debugAction.value,
             sub: this.sub,

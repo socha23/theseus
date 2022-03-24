@@ -131,7 +131,7 @@ export class Weapon extends Subsystem {
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
         this._position = model.sub.position
-        this._target = model.sub.trackedEntity
+        this._target = model.sub.targetEntity
         if (this._target) {
             this._targetDistance = this._target.position.distanceTo(model.sub.position) - this._target.radius
             this._targetVisible = (model.map.raycast(model.sub.position, this._target.position) == null)

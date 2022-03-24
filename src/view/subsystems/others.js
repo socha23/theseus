@@ -64,7 +64,7 @@ export function Tracking({subsystem}) {
             { tracking ? <div>
                 <div className="infoRow">
                     <span className="label">Id:</span>
-                    <span>{tracking.entityId}</span>
+                    <span>{tracking.id}</span>
                 </div>
                 <div className="infoRow">
                     {tracking.alive ? <span>Alive</span> : <span>Dead</span>}

@@ -35,7 +35,7 @@ function SubsystemMainTab({subsystem, actionController}) {
                 subsystem.showsSubStatus && <SubStatus subsystem={subsystem}/>
             }
             {
-                subsystem.showsTracking && <Tracking subsystem={subsystem}/>
+                subsystem.isTracking && <Tracking subsystem={subsystem}/>
             }
             {
                 subsystem.showsSonar && <Sonar subsystem={subsystem} actionController={actionController}/>

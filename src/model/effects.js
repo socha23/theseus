@@ -136,6 +136,10 @@ export class Effect {
         return this.params.type
     }
 
+    param(name, defVal = null) {
+        return this.params[name] ?? defVal
+    }
+
     onCompleted(m) {
         this._active = false
         this.params.onCompleted(m)
@@ -223,4 +227,17 @@ export class HasEffects {
         }
         return this.effects.some(e => e.type === type)
     }
+
+    cumulativeEffect(paramName) {
+        var val = 0
+        this.effects.forEach(e => {val += e.param(paramName, 0)})
+        return val
+    }
+
+    multiplicativeEffect(paramName) {
+        var val = 1
+        this.effects.forEach(e => {val *= e.param(paramName, 1)})
+        return val
+    }
+
 }

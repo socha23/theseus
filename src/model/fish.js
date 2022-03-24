@@ -1,6 +1,7 @@
 import { DRAG_COEFFICIENTS, Vector, } from "./physics"
 import { Volume, Point, vectorForPolar } from "./physics"
 import { planBackOff, planAttack, planMoveToPoint, AgentEntity } from "./agent"
+import { Effect } from "./effects"
 
 const DEFAULT_DAMAGE = {
     strength: 10,
@@ -32,6 +33,9 @@ export class Fish extends AgentEntity {
         this.rotationForce = template.rotationForce
         this.rotationSpeed = template.rotationSpeed
         this._planCreator = planCreator
+
+        this._blood = 1
+        this._bleedRate = 0
 
         this._attacks = this.template.attacks.map(a =>
             new FishAttack(this, a.range, a.cooldown, a.damage)
@@ -74,8 +78,7 @@ export class Fish extends AgentEntity {
         super.onHit()
 
         // TODO replace with real damage
-        this.alive = false
-        this.body.volume.dragCoefficient = DRAG_COEFFICIENTS.DEFAULT
+        this.onDie()
     }
 
     onCollision(collision) {
@@ -89,6 +92,12 @@ export class Fish extends AgentEntity {
         }
     }
 
+    onDie() {
+        this.alive = false
+        this.body.volume.dragCoefficient = DRAG_COEFFICIENTS.DEFAULT
+
+    }
+
     createNextPlan(model) {
         return this._planCreator(this, model)
     }
@@ -96,10 +105,27 @@ export class Fish extends AgentEntity {
     updateState(deltaMs, model) {
         super.updateState(deltaMs, model)
         this._attacks.forEach(a => {a.updateState(deltaMs)})
+
+        this._bleedRate = this.cumulativeEffect("bleedRate")
+        this._blood = Math.max(0, this._blood - (this._bleedRate * deltaMs / 1000))
+        if (this.blood == 0) {
+            this.onDie()
+        }
     }
 
     get mouthPoint() {
         return this.position.plus(new Vector(this.length / 2, 0)).rotate(this.orientation, this.position)
+    }
+
+    toViewState() {
+        return {
+            ...super.toViewState(),
+            blood: this._blood,
+            bleedRate: this._bleedRate,
+            alive: this.alive,
+            targetPosition: this.targetPosition,
+            planDescription: this.planDescription,
+        }
     }
 
 }
@@ -206,3 +232,13 @@ class FishAttack {
 
 }
 
+const DAMAGE_PARAMS = {
+    bleedRate: 0.1,
+    shockChance: 0.1,
+}
+
+class FishDamage extends Effect {
+    constructor(params) {
+        super({...params})
+    }
+}

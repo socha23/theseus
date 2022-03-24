@@ -51,10 +51,10 @@ function ReferenceFrame({position, children}) {
 }
 
 function Facing({blip, scale}) {
-    const h = blip.entityWidth + 4 / scale
-    const w = blip.entityLength
+    const h = blip.width + 4 / scale
+    const w = blip.length
     return <Group x={-w / 2} y={-h / 2} offsetX={-w / 2} offsetY={-h / 2}>
-        <Group offsetX={w/2} offsetY={h/2} rotation={toDegrees(blip.entityOrientation)}>
+        <Group offsetX={w/2} offsetY={h/2} rotation={toDegrees(blip.orientation)}>
             <Line points={[w, h/2, 0, 0, 0, h, w, h/2]} stroke="yellow" strokeWidth={1/scale}/>
         </Group>
     </Group>
@@ -90,19 +90,19 @@ function SonarBlipCircle({blip}) {
     const opacity = (blip.alive ? 1 : 0.8)
 
     return <Ellipse
-        radius={{x: blip.entityLength / 2, y: blip.entityWidth / 2}}
-        rotation={toDegrees(blip.entityOrientation)}
+        radius={{x: blip.length / 2, y: blip.width / 2}}
+        rotation={toDegrees(blip.orientation)}
         fill={color}
         opacity={opacity}
     />
 }
 
 
-function SonarBlip({blip, actionController, debug=false, scale}) {
+function SonarBlip({blip, tracked, actionController, debug=false, scale}) {
     const force = blip.lastActingForce.div(blip.mass).multiply(5)
     return <ReferenceFrame position={blip.position}>
         <SonarBlipCircle blip={blip}/>
-        {blip.tracked && <Circle /* tracked overlay */
+        {tracked && <Circle /* tracked overlay */
             listening={false}
             width={blip.radius * 2 + 15 / scale}
             height={blip.radius * 2 + 15 / scale}
@@ -111,7 +111,7 @@ function SonarBlip({blip, actionController, debug=false, scale}) {
             dash={[2, 1]}
         />}
         {debug && <Facing blip={blip} scale={scale}/>}
-        {debug && blip.tracked && blip.targetPosition && <Circle /* entity target */
+        {debug && tracked && blip.targetPosition && <Circle /* entity target */
             listening={false}
             x = {blip.targetPosition.x - blip.position.x}
             y = {blip.targetPosition.y - blip.position.y}
@@ -128,15 +128,15 @@ function SonarBlip({blip, actionController, debug=false, scale}) {
         <Circle /* click overlay */
             width={blip.radius * 2 + 20 / scale}
             height={blip.radius * 2 + 20 / scale}
-            onClick={e => actionController.targetEntityId = blip.entityId}
+            onClick={e => actionController.targetEntityId = blip.id}
         />
     </ReferenceFrame>
 }
 
-function SonarBlips({blips, actionController, debug, scale}) {
+function SonarBlips({blips, trackedBlipId, actionController, debug, scale}) {
     return <Group>
         {
-            blips.map(b => <SonarBlip key={b.id} blip={b} scale={scale} debug={debug} actionController={actionController}/>)
+            blips.map(b => <SonarBlip key={b.id} blip={b} tracked={b.id===trackedBlipId} scale={scale} debug={debug} actionController={actionController}/>)
         }
     </Group>
 }
@@ -376,7 +376,7 @@ function Sonar({subsystem, actionController}) {
                                 <SubMarker subsystem={subsystem}/>
                                 <Features scale={scale} features={subsystem.features}/>
                                 <AimLines scale={scale} aimLines={subsystem.aimLines}/>
-                                <SonarBlips blips={subsystem.blips} actionController={actionController} scale={scale} debug={subsystem.debug}/>
+                                <SonarBlips blips={subsystem.blips} trackedBlipId={subsystem.trackedBlipId} actionController={actionController} scale={scale} debug={subsystem.debug}/>
                                 <Ranges position={subsystem.position} scale={scale} ranges={subsystem.ranges}/>
                                 <HitMarks hitMarks={subsystem.hitMarks}/>
                                 {/*<BoundingBox polygon={subsystem.subBoundingBox} scale={scale}/>*/}

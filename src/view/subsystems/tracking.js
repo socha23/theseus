@@ -1,33 +1,41 @@
 import React from "react";
 
+import "../../css/subsystems/tracking.css"
 ///////////////////////////////////
 
 
+function Effect({effect}) {
+    return <div className="effect ">
+        <div className="name">
+            {effect.name}
+        </div>
+    </div>
+}
+
 export function Tracking({subsystem}) {
-    const tracking = subsystem.tracking
+    const e = subsystem.tracking
     return <div className='tracking'>
 
-        {subsystem.on && <div className="trackedEntity">
-            { tracking ? <div>
-                <div className="infoRow">
-                    <span className="label">Id:</span>
-                    <span>{tracking.id}</span>
+        {subsystem.on && <div>
+            { e ? <div className="trackedEntity">
+                <div>
+                    {e.id} {e.alive ? "" : " (dead)"}
                 </div>
-                <div className="infoRow">
-                    {tracking.alive ? <span>Alive</span> : <span>Dead</span>}
+                <div className="bloodBarContainer">
+
+                    <div className="bloodBar">
+                        <div className="bloodBarInner" style={{width: e.bloodPercent + "%"}}/>
+                    </div>
                 </div>
-                <hr/>
-                <div className="infoRow">
-                    <span className="label">Pos:</span>
-                    <span>{tracking.position.x.toFixed(2)}, {tracking.position.y.toFixed(2)}</span>
-                </div>
-                <div className="infoRow">
-                    <span className="label">Speed:</span>
-                    <span>{tracking.speed.toFixed(2)} m/s</span>
-                </div>
-                <hr/>
-                {tracking.planDescription && <div>
-                    <span>{tracking.planDescription}</span>
+                {
+                    (e.effects.length > 0) && <div className="effects">
+                    {
+                        e.effects.map(e => <Effect key={e.id} effect={e}/>)
+                    }
+                    </div>
+                }
+                {e.planDescription && <div>
+                    <span>{e.planDescription}</span>
                 </div>
                 }
             </div> : "Nothing tracked"}

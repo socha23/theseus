@@ -24,10 +24,11 @@ const DEFAULT_EFFECT_PARAMS = {
     type: EFFECT_TYPES.DEFAULT,
     category: EFFECT_CATEGORIES.DEFAULT,
     onCompleted: (m) => {},
+    durationMs: 0,
 }
 
 export function shake(size, direction, params = {}) {
-    return new TimedEffect({
+    return new Effect({
         type: size + "Shake_" + direction,
         durationMs: 1000,
         ...params
@@ -36,7 +37,7 @@ export function shake(size, direction, params = {}) {
 
 
 export function lightDamage(params = {}) {
-    return new TimedEffect({
+    return new Effect({
         type: EFFECT_TYPES.LIGHT_DAMAGE,
         durationMs: 300,
         ...params
@@ -44,7 +45,7 @@ export function lightDamage(params = {}) {
 }
 
 export function mediumDamage(params = {}) {
-    return new TimedEffect({
+    return new Effect({
         type: EFFECT_TYPES.MEDIUM_DAMAGE,
         durationMs: 300,
         ...params
@@ -52,7 +53,7 @@ export function mediumDamage(params = {}) {
 }
 
 export function heavyDamage(params = {}) {
-    return new TimedEffect({
+    return new Effect({
         type: EFFECT_TYPES.HEAVY_DAMAGE,
         durationMs: 300,
         ...params
@@ -60,7 +61,7 @@ export function heavyDamage(params = {}) {
 }
 
 export function powerFlicker(params = {}) {
-    return new TimedEffect({
+    return new Effect({
         type: EFFECT_TYPES.POWER_FLICKER,
         durationMs: 50,
         ...params
@@ -68,7 +69,7 @@ export function powerFlicker(params = {}) {
 }
 
 export function poweringUp(params = {}) {
-    return new TimedEffect({
+    return new Effect({
         type: EFFECT_TYPES.POWER_UP,
         durationMs: 500,
         ...params
@@ -76,7 +77,7 @@ export function poweringUp(params = {}) {
 }
 
 export function poweringDown(params = {}) {
-    return new TimedEffect({
+    return new Effect({
         type: EFFECT_TYPES.POWER_DOWN,
         durationMs: 500,
         ...params
@@ -84,7 +85,7 @@ export function poweringDown(params = {}) {
 }
 
 export function shutdown(params = {}) {
-    return new TimedEffect({
+    return new Effect({
         type: EFFECT_TYPES.SHUTDOWN,
         durationMs: 500,
         ...params
@@ -92,7 +93,7 @@ export function shutdown(params = {}) {
 }
 
 export function shootHit(params = {}) {
-    return new TimedEffect({
+    return new Effect({
         type: EFFECT_TYPES.SHOOT_HIT,
         durationMs: 500,
         ...params
@@ -100,7 +101,7 @@ export function shootHit(params = {}) {
 }
 
 export function shootMiss(params = {}) {
-    return new TimedEffect({
+    return new Effect({
         type: EFFECT_TYPES.SHOOT_MISS,
         durationMs: 500,
         ...params
@@ -108,7 +109,7 @@ export function shootMiss(params = {}) {
 }
 
 export function entityHit(params = {}) {
-    return new TimedEffect({
+    return new Effect({
         type: EFFECT_TYPES.ENTITY_HIT,
         durationMs: 500,
         ...params
@@ -122,6 +123,8 @@ export class Effect {
         this.params = {...DEFAULT_EFFECT_PARAMS, ...params}
         this.id = "effect" + autoinc++
         this._active = true
+        this._durationMax = this.params.durationMs ?? 0
+        this._durationMs = this.params.durationMs ?? 0
     }
 
     get category() {
@@ -146,6 +149,12 @@ export class Effect {
     }
 
     updateState(deltaMs, model, actionController) {
+        if (this._durationMax > 0) {
+            this._durationMs -= deltaMs
+            if (this._durationMs <= 0) {
+                this.onCompleted(model)
+            }
+        }
     }
 
     toViewState() {
@@ -153,30 +162,8 @@ export class Effect {
             id: this.id,
             type: this.type,
             category: this.category,
+            durationMs: this._duration,
         }
-    }
-
-}
-
-export class TimedEffect extends Effect {
-    constructor(params) {
-        super(params)
-        this.durationMs = this.params.durationMs
-    }
-
-    updateState(deltaMs, model, actionController) {
-        super.updateState(deltaMs, model, actionController)
-        this.durationMs -= deltaMs
-        if (this.durationMs <= 0) {
-            this.onCompleted(model)
-        }
-    }
-
-    toViewState() {
-        const res = super.toViewState()
-        res.durationMs = this.durationMs
-        return res
-
     }
 
 }

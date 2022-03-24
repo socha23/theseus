@@ -76,9 +76,7 @@ export class Fish extends AgentEntity {
 
     onHit() {
         super.onHit()
-
-        // TODO replace with real damage
-        this.onDie()
+        this.addEffect(lightDamage())
     }
 
     onCollision(collision) {
@@ -94,6 +92,7 @@ export class Fish extends AgentEntity {
 
     onDie() {
         this.alive = false
+        this._bleedRate = 0
         this.body.volume.dragCoefficient = DRAG_COEFFICIENTS.DEFAULT
 
     }
@@ -106,10 +105,12 @@ export class Fish extends AgentEntity {
         super.updateState(deltaMs, model)
         this._attacks.forEach(a => {a.updateState(deltaMs)})
 
-        this._bleedRate = this.cumulativeEffect("bleedRate")
-        this._blood = Math.max(0, this._blood - (this._bleedRate * deltaMs / 1000))
-        if (this.blood == 0) {
-            this.onDie()
+        if (this.alive) {
+            this._bleedRate = this.cumulativeEffect("bleedRate")
+            this._blood = Math.max(0, this._blood - (this._bleedRate * deltaMs / 1000))
+            if (this._blood <= 0) {
+                this.onDie()
+            }
         }
     }
 
@@ -120,7 +121,7 @@ export class Fish extends AgentEntity {
     toViewState() {
         return {
             ...super.toViewState(),
-            blood: this._blood,
+            bloodPercent: Math.floor(this._blood * 1000) / 10,
             bleedRate: this._bleedRate,
             alive: this.alive,
             targetPosition: this.targetPosition,
@@ -235,10 +236,31 @@ class FishAttack {
 const DAMAGE_PARAMS = {
     bleedRate: 0.1,
     shockChance: 0.1,
+    name: "Generic damage"
 }
+
+
+function lightDamage() {
+    return new FishDamage({
+        name: "Light damage",
+        bleedRate: 0.01,
+        shockChance: 0,
+        durationMs: 60000,
+    })
+}
+
+
 
 class FishDamage extends Effect {
     constructor(params) {
-        super({...params})
+        super({...DAMAGE_PARAMS, ...params})
+    }
+
+    toViewState() {
+        return {
+            ...super.toViewState(),
+            name: this.params.name,
+            description: this.params.description,
+        }
     }
 }

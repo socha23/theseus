@@ -5,7 +5,7 @@ import { Sonar } from './subsystems/sonar'
 import { Storage } from './subsystems/storage'
 import { Engine } from './subsystems/engine'
 import { randomElem } from '../utils.js'
-import { shake, TimedEffect } from './effects.js'
+import { shake, Effect } from './effects.js'
 import { MATERIALS } from './materials.js'
 
 class Steering {
@@ -377,7 +377,7 @@ export class Sub extends Entity {
 const HIT_MARK_STATUS = "hitMark"
 
 function hitMarkStatus(position, strength = 10) {
-    return new TimedEffect({
+    return new Effect({
         type: HIT_MARK_STATUS,
         durationMs: 1000,
         position,

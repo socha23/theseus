@@ -1,0 +1,33 @@
+.subsystem .tracking {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 5px;
+}
+
+.subsystem .tracking .trackedEntity{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.subsystem .tracking .bloodBarContainer {
+    border: 1px solid #469528;
+    padding: 2px;
+}
+
+
+.subsystem .tracking .bloodBar {
+    height: 20px;
+    position: relative;
+    background-color: rgba(255, 0, 0, 0.2);
+    overflow: hidden;
+    border: 1px solid red
+}
+
+
+.subsystem .tracking .bloodBarInner {
+    height: 100%;
+    background-color: rgba(255, 0, 0, 0.4);
+}
+

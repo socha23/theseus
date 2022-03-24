@@ -149,8 +149,8 @@ export function getStartingWorld(map) {
         [
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
-            ...createFish(map, FISH_TEMPLATES.FAT_FISH, 100, Point.ZERO, 400, 70),
-            ...createFish(map, FISH_TEMPLATES.BIG_FISH, 30, Point.ZERO, 400, 70),
+          //  ...createFish(map, FISH_TEMPLATES.FAT_FISH, 100, Point.ZERO, 400, 70),
+          //  ...createFish(map, FISH_TEMPLATES.BIG_FISH, 30, Point.ZERO, 400, 70),
         ]
     )
 }

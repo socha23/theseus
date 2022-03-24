@@ -10,6 +10,7 @@ const DEFAULT_WEAPON_PARAMS = {
     ammoMax: 5,
     powerConsumption: 10,
     range: 20,
+    damage: 10,
 }
 
 export class Weapon extends Subsystem {
@@ -18,6 +19,7 @@ export class Weapon extends Subsystem {
         this.ammo = this.template.ammoMax
         this.ammoMax = this.template.ammoMax
         this.range = this.template.range
+        this.damage = this.template.damage
         this._target = null
         this._targetDistance = 0
         this._targetVisible = false
@@ -124,7 +126,7 @@ export class Weapon extends Subsystem {
         const hit = this._aim.shoot()
         this.addEffect(hit.length > 0 ? shootHit() : shootMiss())
         hit.forEach(e => {
-            e.onHit()
+            e.onHit(this.damage)
         })
     }
 
@@ -191,7 +193,7 @@ function percentize(val, total) {
 }
 
 const TARGET_SIZE = 3
-const CROSSHAIRS_SIZE = 3
+const CROSSHAIRS_SIZE = 2
 const CROSSHAIRS_SPEED = 15
 
 const SHOOTMARKS_DECAY = 2000
@@ -211,7 +213,10 @@ class Aim {
         this._sonarRange = model.sub.sonarRange
 
         if (this._weapon._target != null) {
-            this._targetSize = this._weapon._target.radius * TARGET_SIZE
+
+
+            const sizeMultiplier = Math.max(0.1, 1 - this._weapon._targetDistance / this._sonarRange)
+            this._targetSize = this._weapon._target.radius * TARGET_SIZE * sizeMultiplier
         } else {
             this._targetSize = 0
         }

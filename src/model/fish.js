@@ -74,9 +74,28 @@ export class Fish extends AgentEntity {
         return this.template.sightRange
     }
 
-    onHit() {
+    onDamage(damageParams) {
+        this.addEffect(new FishDamage(damageParams))
+        if (Math.random() < damageParams.shockChance) {
+            this.onDie()
+        }
+    }
+
+    onHit(damage) {
         super.onHit()
-        this.addEffect(lightDamage())
+        const effectiveDamage = damage * 1000 / this.mass
+        const wounds = effectiveDamage / Math.random()
+        if (wounds < 1) {
+            this.onDamage(LIGHT_DAMAGE)
+        } else if (wounds < 2) {
+            this.onDamage(MEDIUM_DAMAGE)
+        } else if (wounds < 4) {
+            this.onDamage(HEAVY_DAMAGE)
+        } else {
+            this.onDamage(HEAVY_DAMAGE)
+            this.onDamage(HEAVY_DAMAGE)
+            this.onDamage(HEAVY_DAMAGE)
+        }
     }
 
     onCollision(collision) {
@@ -236,19 +255,39 @@ class FishAttack {
 const DAMAGE_PARAMS = {
     bleedRate: 0.1,
     shockChance: 0.1,
-    name: "Generic damage"
+    name: "Generic damage",
+    durationMs: 0,
 }
 
 
 function lightDamage() {
     return new FishDamage({
-        name: "Light damage",
-        bleedRate: 0.01,
-        shockChance: 0,
-        durationMs: 60000,
     })
 }
 
+const LIGHT_DAMAGE = {
+    ...DAMAGE_PARAMS,
+    name: "Light damage",
+    bleedRate: 0.01,
+    shockChance: 0,
+    durationMs: 30 * 1000,
+
+}
+
+const MEDIUM_DAMAGE = {
+    ...DAMAGE_PARAMS,
+    name: "Medium damage",
+    bleedRate: 0.02,
+    shockChance: 0.1,
+    durationMs: 120 * 1000,
+}
+
+const HEAVY_DAMAGE = {
+    ...DAMAGE_PARAMS,
+    name: "Heavy damage",
+    bleedRate: 0.05,
+    shockChance: 0.2,
+}
 
 
 class FishDamage extends Effect {

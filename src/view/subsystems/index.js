@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import Sonar from "./sonar.js";
 import { ActionButton} from "../widgets"
 import { Weapon } from "./weapons"
-import { SubStatus, Tracking, Cheatbox } from "./others";
+import { SubStatus, Cheatbox } from "./others";
+import { Tracking } from "./tracking";
 import { WithTooltip } from "../tooltip";
 import { Engine } from "./engine";
 import { Reactor } from "./reactor";

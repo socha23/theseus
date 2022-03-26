@@ -14,6 +14,7 @@ import { CheatBox } from "./subsystems/cheatbox"
 import { Storage } from "./subsystems/storage"
 import { MATERIALS } from "./materials"
 import { randomPolygon } from "./mapGeneration"
+import { calculateProfile } from "./physicsLab"
 
 const WEAPON_TEMPLATES = {
     COILGUN: {
@@ -83,6 +84,14 @@ const FISH_TEMPLATES = {
         rotationSpeed: 1,
         color: "#AEF3E7"
     },
+    GOAT_FISH: {
+        id: "goat_fish",
+        volume: new Volume(1, 1, 3, 0.2),
+        tailForce: 25 * 1000,
+        rotationalForce: 2 * 1000,
+        rotationSpeed: 1,
+        color: "blue",
+    },
     FAT_FISH: {
         id: "fat_fish",
         volume: new Volume(2, 2, 3, 0.2),
@@ -149,10 +158,11 @@ export function getStartingSub() {
 export function getStartingWorld(map) {
     return new World(
         [
-            ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
-            ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
-            ...createFish(map, FISH_TEMPLATES.FAT_FISH, 50, Point.ZERO, 400, 70),
-            ...createFish(map, FISH_TEMPLATES.BIG_FISH, 15, Point.ZERO, 400, 70),
+            //...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
+            //...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
+            //...createFish(map, FISH_TEMPLATES.FAT_FISH, 50, Point.ZERO, 400, 70),
+            //...createFish(map, FISH_TEMPLATES.BIG_FISH, 15, Point.ZERO, 400, 70),
+            ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 1, Point.ZERO, 20),
         ]
     )
 }
@@ -275,3 +285,6 @@ export function getStartingMap(subBoundingBox, params={}) {
     }
     return res
 }
+
+
+console.log(calculateProfile(FISH_TEMPLATES.BIG_FISH.volume, FISH_TEMPLATES.BIG_FISH.tailForce))

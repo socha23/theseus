@@ -83,7 +83,7 @@ export class BucketMap {
         return result
     }
 
-    detectWallCollision(polygon, speedVector=null) {
+    detectWallCollision(polygon, speedVector=null, wallDetection=true) {
         let result = null
         this
             .getFeaturesIntersecting(polygon)
@@ -93,7 +93,7 @@ export class BucketMap {
                     mapFeature: f,
                     mapFeatureWall: f.polygon.myOverlappingEdge(polygon),
                 }
-                if (speedVector) {
+                if (speedVector && wallDetection && result.mapFeatureWall) {
                     result.angle = speedVector.theta - result.mapFeatureWall.theta
                     result.impactSpeed = Math.sin(result.angle) * speedVector.length
                     result.impactTheta = (result.mapFeatureWall.theta - Math.PI / 2) % (2 * Math.PI)
@@ -109,16 +109,24 @@ export class BucketMap {
 
                 }
             })
-        if (result && !result.mapFeatureWall) {
+        if (result && wallDetection && !result.mapFeatureWall) {
             // can't debug this
+
             console.log("DETECT WALL COLLISION DETECTS NO WALLS")
+            console.trace()
             result.mapFeatureWall = result.mapFeature.polygon.edges[0]
         }
         return result
     }
 
     raycast(from, to) {
-        const box = new SimpleRect(from.x, from.y, to.x - from.x, to.y - from.y)
+        const minX = Math.min(from.x, to.x)
+        const minY = Math.min(from.y, to.y)
+        const maxX = Math.max(from.x, to.x)
+        const maxY = Math.max(from.y, to.y)
+
+
+        const box = new SimpleRect(minX, minY, maxX - minX, maxY - minY)
         const features = this.getFeaturesIntersecting(box)
         const e = new Edge(from, to)
         var result = null

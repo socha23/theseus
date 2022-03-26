@@ -57,13 +57,18 @@ export class AgentAction {
 
 function rotateTo(fish, point, deltaMs) {
     const direction = fish.position.vectorTo(point)
+    rotateToTheta(fish, direction.theta, deltaMs)
+}
+
+function rotateToTheta(fish, theta, deltaMs) {
     // rotate towards target
     const rotation =
-        Math.sign(relativeAngle(fish.orientation, direction.theta))
+        Math.sign(relativeAngle(fish.orientation, theta))
         * fish.rotationSpeed
         * deltaMs / 1000
     fish.body.setActingOrientation(fish.orientation + rotation)
 }
+
 
 class _MoveAction extends AgentAction {
     constructor(entity, params = {}) {
@@ -145,6 +150,31 @@ class RotateToAction extends AgentAction {
     }
 }
 
+class FastRotateToAction extends AgentAction {
+    constructor(entity, theta, params = {}) {
+        super(entity, {distance: Math.PI / 16, ...params})
+        this._theta = theta
+    }
+
+    _neededRotation() {
+        const me = this._entity
+        return relativeAngle(me.orientation, this._theta)
+    }
+
+    canBeFinished(model) {
+        return Math.abs(this._neededRotation()) <= this.params.distance
+    }
+
+    updateState(deltaMs, model) {
+        super.updateState(deltaMs, model)
+        if (!this.canBeFinished(model)) {
+            rotateToTheta(this._entity, this._theta, deltaMs)
+            // swim at full speed
+            const tail = this._entity.body.dorsalThrustVector(this._entity.tailForce)
+            this._entity.body.addActingForce(tail)
+        }
+    }
+}
 
 
 class BackOffAction extends AgentAction {
@@ -315,6 +345,28 @@ function stopAndRotate(entity, point) {
         // target in the back, stop and rotate
         return [new StopAction(entity), new RotateToAction(entity, point)]
     }
+}
+
+export function planStop(entity) {
+    return new Plan(
+        `Stop`,
+        new StopAction(entity),
+    )
+}
+
+export function planFastRotateToTheta(entity, theta) {
+    return new Plan(
+        `Fast rotate`,
+        new FastRotateToAction(entity, theta),
+    )
+}
+
+
+export function planFastMoveToPoint(entity, p) {
+    return new Plan(
+        `Fast move to ${p.x.toFixed(1)}, ${p.y.toFixed(1)}`,
+        new MoveToPointAction(entity, p),
+    )
 }
 
 export function planMoveToPoint(entity, p) {

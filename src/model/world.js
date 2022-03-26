@@ -91,7 +91,7 @@ const FISH_TEMPLATES = {
         rotationalForce: 2 * 1000,
         rotationSpeed: 1,
         color: "blue",
-        territoryRange: 40,
+        territoryRange: 30,
     },
     FAT_FISH: {
         id: "fat_fish",
@@ -159,11 +159,11 @@ export function getStartingSub() {
 export function getStartingWorld(map) {
     return new World(
         [
-            //...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
-            //...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
-            //...createFish(map, FISH_TEMPLATES.FAT_FISH, 50, Point.ZERO, 400, 70),
-            //...createFish(map, FISH_TEMPLATES.BIG_FISH, 15, Point.ZERO, 400, 70),
-            ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 1, Point.ZERO, 20),
+            ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
+            ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
+            ...createFish(map, FISH_TEMPLATES.FAT_FISH, 50, Point.ZERO, 400, 70),
+            ...createFish(map, FISH_TEMPLATES.BIG_FISH, 15, Point.ZERO, 400, 70),
+            ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 40, Point.ZERO, 70),
         ]
     )
 }
@@ -260,19 +260,19 @@ function createFlock(map, template, count = 1, position=new Point(0, 0), spread 
 
 const DEFAULT_MAP_PARAMS = {
     position: new Point(0, 0),
-    featuresCount: 200,
-    featuresSpread: 300,
+    featuresCount: 40,
+    featuresSpread: 200,
 }
 
 export function getStartingMap(subBoundingBox, params={}) {
     params = {...DEFAULT_MAP_PARAMS, ...params}
     const res = new BucketMap()
 
-    res.addFeature(rectangle(new Point(-25, 0), new Point(1, 70)))
-    res.addFeature(rectangle(new Point(25, 0), new Point(1, 70)))
-    res.addFeature(rectangle(new Point(0, 30), new Point(70, 1)))
-    res.addFeature(rectangle(new Point(0, -30), new Point(70, 1)))
-    /*
+    //res.addFeature(rectangle(new Point(-25, 0), new Point(1, 70)))
+    //res.addFeature(rectangle(new Point(25, 0), new Point(1, 70)))
+    //res.addFeature(rectangle(new Point(0, 30), new Point(70, 1)))
+    //res.addFeature(rectangle(new Point(0, -30), new Point(70, 1)))
+
     for (var i = 0; i < params.featuresCount; i++) {
         while (true) {
             const position = new Point(
@@ -289,7 +289,7 @@ export function getStartingMap(subBoundingBox, params={}) {
             }
         }
     }
-    */
+
     return res
 
 }

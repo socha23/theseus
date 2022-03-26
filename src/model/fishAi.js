@@ -1,5 +1,5 @@
 import { Point, rectangle, vectorForPolar } from "./physics"
-import { planMoveToPoint, planAttack, planBackOff } from "./agent"
+import { planMoveToPoint, planAttack, planBackOff, planFastRotateToTheta, planStop } from "./agent"
 import { randomElem } from "../utils"
 import { STATISTICS } from "../stats"
 
@@ -16,6 +16,7 @@ export class Behavior {
     constructor(entity, params) {
         this.params = {...DEFAULT_BEHAVIOR_PARAMS, ...params}
         this.entity = entity
+        this.plan = null
     }
 
     get description() {
@@ -28,6 +29,16 @@ export class Behavior {
 
     nextPlan(model) {
         throw new Error("NOT IMPLEMENTED")
+    }
+
+    updateState(deltaMs, model) {
+        if (!this.plan) {
+            this.plan = this.nextPlan(model)
+        }
+        this.plan.updateState(deltaMs, model)
+        if (!this.plan.valid) {
+            this.plan = null
+        }
     }
 }
 
@@ -49,7 +60,8 @@ class DontCrashIntoWalls extends Behavior {
     constructor(entity, params={}) {
         super(entity, {
             name: "Not crashing into walls",
-            priority: 80,
+            priority: 60,
+            timeS: 2,
             ...params})
     }
 
@@ -61,12 +73,22 @@ class DontCrashIntoWalls extends Behavior {
     }
 
     drivingIntoWall(model) {
-        return (this.entity.body.willCrashIntoWall(model, 1) != null)
+        const result = (this.entity.body.willCrashIntoWall(model, this.params.timeS, this.entity.speed) != null)
+        return result
     }
 
     nextPlan(model) {
-        const crash = this.entity.body.willCrashIntoWall(model, 1)
-        return planBackOff(this.entity, crash.wallNormal.theta)
+        const speed = this.entity.speedVector
+        for (var theta = Math.PI / 6; theta < Math.PI; theta += Math.PI / 6) {
+            for (var sign in [-1, 1]) {
+                const dTheta = sign * theta
+                const nSpeed = vectorForPolar(speed.length, speed.theta + dTheta)
+                if (!this.entity.body.willCrashIntoWall(model, this.params.timeS, nSpeed)) {
+                    return planFastRotateToTheta(this.entity, speed.theta + dTheta)
+                }
+            }
+        }
+        return planStop(this.entity)
     }
 }
 
@@ -76,6 +98,8 @@ class AvoidWalls extends Behavior {
             name: "Avoiding walls",
             priority: 70,
             ...params})
+        this.lastTheta = 0
+        this.goodThetas = []
     }
 
     priority(model) {
@@ -86,8 +110,7 @@ class AvoidWalls extends Behavior {
     }
 
     closeToWall(model, deltaX = 0, deltaY = 0) {
-
-        const RADIUS_MUTLIPLIER = 4
+        const RADIUS_MUTLIPLIER = 3
         const boxSide = this.entity.radius * RADIUS_MUTLIPLIER
         const pos = new Point(this.entity.position.x + deltaX, this.entity.position.y + deltaY)
         const box = rectangle(pos, new Point(boxSide, boxSide))
@@ -132,10 +155,18 @@ class AvoidWalls extends Behavior {
        return result
     }
 
+    updateState(deltaMs, model) {
+        this.goodThetas = this.findGoodThetas(model)
+        if (!this.goodThetas.find(a => (a == this.lastTheta))) {
+            this.plan = null
+        }
+        super.updateState(deltaMs, model)
+    }
+
+
     nextPlan(model) {
-        const goodThetas = this.findGoodThetas(model)
-        const theta = randomElem(goodThetas)
-        return planBackOff(this.entity, theta, 5 * this,this.entity.radius)
+        this.lastTheta = randomElem(this.goodThetas)
+        return planBackOff(this.entity, this.lastTheta, 3 * this,this.entity.radius)
     }
 }
 
@@ -148,6 +179,16 @@ class TerritorialBehavior extends Behavior {
             ...params})
         this.position = position
         this.range = range
+        this.timeSincePlanChange = 0
+    }
+
+    updateState(deltaMs, model) {
+        super.updateState(deltaMs, model)
+        this.timeSincePlanChange += deltaMs
+        if (this.timeSincePlanChange > 10 * 1000) {
+            this.timeSincePlanChange = 0
+            this.plan = null
+        }
     }
 
     nextPlan(model) {
@@ -190,6 +231,7 @@ export class FishAI {
         this.behaviors = [
             new RandomMoveBehavior(entity),
             new AvoidWalls(entity),
+            new DontCrashIntoWalls(entity),
         ]
 
         if (entity.aggresive) {
@@ -204,10 +246,10 @@ export class FishAI {
     }
 
     get targetPosition() {
-        if (!this._plan) {
+        if (!this.currentBehavior?.plan) {
             return null
         }
-        return this._plan.targetPosition
+        return this.currentBehavior.plan.targetPosition
     }
 
     _updateBehavior(model) {
@@ -223,7 +265,6 @@ export class FishAI {
         })
         if (this.currentBehavior != nextBehavior) {
             this.currentBehavior = nextBehavior
-            this._plan = this.currentBehavior.nextPlan(model)
         }
     }
 
@@ -233,14 +274,7 @@ export class FishAI {
             if (!this.currentBehavior || (this._sinceLastBehaviorChange > BEHAVIOR_CHECK_EVERY_MS)) {
                 this._updateBehavior(model)
             }
-
-            if (!this._plan) {
-                this._plan = this.currentBehavior.nextPlan(model)
-            }
-            this._plan.updateState(deltaMs, model)
-            if (!this._plan.valid) {
-                this._plan = null
-            }
+            this.currentBehavior.updateState(deltaMs, model)
         }
 
     }
@@ -250,8 +284,8 @@ export class FishAI {
         if (this.currentBehavior) {
             result.push(this.currentBehavior.description)
         }
-        if (this._plan) {
-            result.push(this._plan.name)
+        if (this.currentBehavior?.plan) {
+            result.push(this.currentBehavior.plan.name)
         }
         return result
     }
@@ -260,10 +294,10 @@ export class FishAI {
 
 function randomPointInPerimeter(position, model, perimeterCenter, perimeterRange) {
 
-    //return lookForPointInSight(position,model,() => {
+    return lookForPointInSight(position,model,() => {
         const theta = Math.random() * 2 * Math.PI
         return perimeterCenter.plus(vectorForPolar(perimeterRange, theta))
-    //})
+    })
 }
 
 

@@ -1,7 +1,9 @@
 import { DRAG_COEFFICIENTS, Vector, } from "./physics"
-import { Volume, Point, vectorForPolar } from "./physics"
-import { planBackOff, planAttack, planMoveToPoint, AgentEntity } from "./agent"
+import { Volume, vectorForPolar } from "./physics"
+import { planBackOff, planAttack, planMoveToPoint } from "./agent"
 import { Effect } from "./effects"
+import { fishAI } from "./fishAi"
+import { Entity } from "./entities"
 
 const DEFAULT_DAMAGE = {
     strength: 10,
@@ -25,29 +27,22 @@ const DEFAULT_FISH_TEMPALTE = {
     color: "red",
 }
 
-export class Fish extends AgentEntity {
-    constructor(id, body, template, planCreator=DEFAULT_PLAN_CREATOR) {
+export class Fish extends Entity {
+    constructor(id, body, template, aiCreator=fishAI) {
         super(id, body)
         this.template = {...DEFAULT_FISH_TEMPALTE, ...template}
         this.tailForce = template.tailForce
         this.rotationForce = template.rotationForce
         this.rotationSpeed = template.rotationSpeed
-        this._planCreator = planCreator
+        this._ai = aiCreator(this)
 
+        this.alive = true
         this._blood = 1
         this._bleedRate = 0
 
         this._attacks = this.template.attacks.map(a =>
             new FishAttack(this, a.range, a.cooldown, a.damage)
         )
-    }
-
-    get targetPosition() {
-        if (this.plan) {
-            return this.plan.targetPosition
-        } else {
-            return null
-        }
     }
 
     get color() {
@@ -58,20 +53,16 @@ export class Fish extends AgentEntity {
         return this._attacks
     }
 
-    get planDescription() {
-        if (this.plan) {
-            return this.plan.name
-        } else {
-            return null
-        }
-    }
-
     get aggresive() {
         return this.template.aggresive
     }
 
     get sightRange() {
         return this.template.sightRange
+    }
+
+    param(name, defValue=null) {
+        return this.template[name] ?? defValue
     }
 
     onDamage(damageParams) {
@@ -116,12 +107,9 @@ export class Fish extends AgentEntity {
 
     }
 
-    createNextPlan(model) {
-        return this._planCreator(this, model)
-    }
-
     updateState(deltaMs, model) {
         super.updateState(deltaMs, model)
+        this._ai.updateState(deltaMs, model)
         this._attacks.forEach(a => {a.updateState(deltaMs)})
 
         if (this.alive) {
@@ -143,8 +131,8 @@ export class Fish extends AgentEntity {
             bloodPercent: Math.floor(this._blood * 1000) / 10,
             bleedRate: this._bleedRate,
             alive: this.alive,
-            targetPosition: this.targetPosition,
-            planDescription: this.planDescription,
+            targetPosition: this._ai.targetPosition,
+            planDescription: this._ai.planDescription,
         }
     }
 
@@ -176,37 +164,6 @@ const DEFAULT_PLAN_CREATOR = (entity, model) => {
 
 
 
-export function flockPlanCreator(flock) {
-    return (entity, model ) => {
-        if (Math.random() < 0.1) {
-            return planMoveToPoint(entity, randomPointInSight(entity.position, model, 100))
-        } else {
-            return planMoveToPoint(entity, flock.center)
-        }
-    }
-}
-
-export class Flock {
-    constructor() {
-        this.entities = []
-    }
-
-    addEntity(entity) {
-        this.entities.push(entity)
-    }
-
-    get center() {
-        let x = 0
-        let y = 0
-        let count = 0
-        this.entities.forEach(e => {
-            x += e.position.x
-            y += e.position.y
-            count++
-        })
-        return new Point(x / count, y / count)
-    }
-}
 
 
 class FishAttack {
@@ -257,12 +214,6 @@ const DAMAGE_PARAMS = {
     shockChance: 0.1,
     name: "Generic damage",
     durationMs: 0,
-}
-
-
-function lightDamage() {
-    return new FishDamage({
-    })
 }
 
 const LIGHT_DAMAGE = {

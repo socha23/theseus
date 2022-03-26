@@ -2,39 +2,6 @@ import { relativeAngle, transpose } from "../utils"
 import { Entity } from "./entities"
 import { vectorForPolar } from "./physics"
 
-export class AgentEntity extends Entity {
-    constructor(id, body) {
-        super(id, body)
-        this._plan = null
-        this.alive = true
-    }
-
-    get plan() {
-        return this._plan
-    }
-
-    set plan(val) {
-        this._plan = val
-    }
-
-    updateState(deltaMs, model) {
-        super.updateState(deltaMs, model)
-        if (this.alive) {
-            if (!this._plan) {
-                this._plan = this.createNextPlan(model)
-            }
-            this._plan.updateState(deltaMs, model)
-            if (!this._plan.valid) {
-                this._plan = null
-            }
-        }
-    }
-
-    createNextPlan(model) {
-        throw new Error("Not implemented")
-    }
-}
-
 function randomPointInSight(entity, model, sightRangeTo, sightRangeFrom = 0, relativeAngleMax = Math.PI, maxTries = 10) {
     for (var i = 0; i < maxTries; i++) {
         const range = transpose(Math.random(), 0, 1, sightRangeFrom, sightRangeTo)

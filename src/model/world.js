@@ -1,6 +1,7 @@
-import { Fish, Flock, flockPlanCreator } from "./fish"
+import { Fish  } from "./fish"
 import { Body, Point, vectorForPolar, Volume } from "./physics"
 import { Sub } from "./sub"
+import { Flock, flockAI} from "./flockAi"
 
 import { SubStatusScreen } from "./subsystems/others"
 import { Reactor } from "./subsystems/reactor"
@@ -158,10 +159,10 @@ export function getStartingSub() {
 export function getStartingWorld(map) {
     return new World(
         [
-            //...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
-            //...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
-            //...createFish(map, FISH_TEMPLATES.FAT_FISH, 50, Point.ZERO, 400, 70),
-            //...createFish(map, FISH_TEMPLATES.BIG_FISH, 15, Point.ZERO, 400, 70),
+            ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
+            ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
+            ...createFish(map, FISH_TEMPLATES.FAT_FISH, 50, Point.ZERO, 400, 70),
+            ...createFish(map, FISH_TEMPLATES.BIG_FISH, 15, Point.ZERO, 400, 70),
             ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 1, Point.ZERO, 20),
         ]
     )
@@ -242,7 +243,7 @@ function createFlock(map, template, count = 1, position=new Point(0, 0), spread 
                 template.id + autoinc++,
                 new Body(location, template.volume, Math.random() * 2 * Math.PI),
                 template,
-                flockPlanCreator(flock)
+                flockAI(flock)
                 )
             if (!map.detectCollision(fish.boundingBox)) {
                 flock.addEntity(fish)

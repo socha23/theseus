@@ -129,6 +129,10 @@ export class Volume {
         return this.width * this.height * this.length * density
     }
 
+    get key() {
+        return `${this.width}_${this.height}_${this.length}_${this.dragCoefficient}`
+    }
+
 }
 
 export class Body {
@@ -172,22 +176,20 @@ export class Body {
         var projectedMove = this._projectMove(deltaS)
         var recounts = 0
         while (true) {
-            const collision = model.map.detectWallCollision(projectedMove.boundingBox)
+            const collision = model.map.detectWallCollision(projectedMove.boundingBox, projectedMove.speed)
             if (collision) {
                 this._resolveCollision(collision, onCollision)
 
+                projectedMove = this._projectMove(deltaS)
                 if (recounts === 50) {
-                    //console.log("COLLISION RECOUNTS MAX")
                     break
                 }
-
                 recounts++
                 projectedMove = this._projectMove(deltaS)
             } else {
                 break
             }
         }
-
         STATISTICS.PHYSICS_UPDATE.add(window.performance.now() - updateStart)
 
         this.position = projectedMove.position
@@ -202,29 +204,12 @@ export class Body {
     }
 
     _resolveCollision(collision, onCollision) {
-        const collisionAngle = this.speed.theta - collision.mapFeatureWall.theta
-
-        const wallVect = collision.mapFeatureWall.toVector()
-        var wallNormal = null
-        if (collision.mapFeatureWall.theta > this.speed.theta) {
-            wallNormal = new Vector(wallVect.y, -wallVect.x)
-        } else {
-            wallNormal = new Vector(-wallVect.y, wallVect.x)
-        }
-
         const IMPACT_SPEED_MULTIPLIER = 0.95
-
-        var newSpeedValue = Math.cos(collisionAngle) * this.speed.length * IMPACT_SPEED_MULTIPLIER
+        var newSpeedValue = Math.cos(collision.angle) * this.speed.length * IMPACT_SPEED_MULTIPLIER
         if (Math.abs(newSpeedValue) < MOVEMENT_HUSH) {
             newSpeedValue = 0
         }
-
-        const newActForceVal = Math.cos(collisionAngle) * this._actingForce.length
-        const impactSpeed = Math.sin(collisionAngle) * this.speed.length
-
-        const impactTheta = (collision.mapFeatureWall.theta - Math.PI / 2) % (2 * Math.PI)
-        const impactForce = vectorForPolar(impactSpeed, impactTheta).negative()
-
+        const newActForceVal = Math.cos(collision.angle) * this._actingForce.length
         this.speed = vectorForPolar(newSpeedValue, collision.mapFeatureWall.theta)
         this.rotationSpeed = 0
         this._actingForce = vectorForPolar(newActForceVal, collision.mapFeatureWall.theta)
@@ -234,17 +219,24 @@ export class Body {
         }
         this._actingFixedOrientation = null
 
-
-        collision.angle = collisionAngle
-        collision.impactSpeed =  impactSpeed
-        collision.relativeAngle = (2 * Math.PI + impactForce.theta - this.orientation) % (2 * Math.PI)
-        collision.wallNormal = wallNormal
+        collision.relativeAngle = (2 * Math.PI + collision.impactForce.theta - this.orientation) % (2 * Math.PI)
 
         onCollision(collision)
     }
 
-    _projectSpeedAndPosition(deltaS, position, speed, orientation, actingForce=Vector.ZERO) {
+    willCrashIntoWall(model, deltaS = 1) {
+        for (var t = 0.1; t < deltaS; t += 0.1) {
+            const moveVector = this.speed.times(deltaS)
+            const projPos = this.position.plus(moveVector)
+            const projBox = rectangle(projPos, new Point(this.volume.length, this.volume.width)).rotate(this.orientation, projPos)
+            const collision = model.map.detectWallCollision(projBox, moveVector)
+            if (collision != null) {
+                return
+            }
+        }
+    }
 
+    _projectSpeedAndPosition(deltaS, position, speed, orientation, actingForce=Vector.ZERO) {
         const force = actingForce.plus(this.getFrictionVector(speed, orientation))
         const acc = force.div(this.volume.getMass())
         const deltaV = acc.times(deltaS)
@@ -261,6 +253,7 @@ export class Body {
     }
 
     _projectMove(deltaS) {
+
 
         // speed and position
         const projection = this._projectSpeedAndPosition(deltaS, this.position, this.speed, this.orientation, this._actingForce)

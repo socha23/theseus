@@ -1,4 +1,4 @@
-import { Edge, SimpleRect } from "./physics"
+import { Edge, Vector, SimpleRect, vectorForPolar } from "./physics"
 
 export const MAP_FEATURE_TYPE = {
     DEFAULT: "default",
@@ -83,7 +83,7 @@ export class BucketMap {
         return result
     }
 
-    detectWallCollision(polygon) {
+    detectWallCollision(polygon, speedVector=null) {
         let result = null
         this
             .getFeaturesIntersecting(polygon)
@@ -92,6 +92,21 @@ export class BucketMap {
                 result = {
                     mapFeature: f,
                     mapFeatureWall: f.polygon.myOverlappingEdge(polygon),
+                }
+                if (speedVector) {
+                    result.angle = speedVector.theta - result.mapFeatureWall.theta
+                    result.impactSpeed = Math.sin(result.angle) * speedVector.length
+                    result.impactTheta = (result.mapFeatureWall.theta - Math.PI / 2) % (2 * Math.PI)
+                    result.impactForce = vectorForPolar(result.impactSpeed, result.impactTheta).negative()
+
+                    const wallVect = result.mapFeatureWall.toVector()
+                    result.wallNormal = null
+                    if (result.mapFeatureWall.theta > speedVector.theta) {
+                        result.wallNormal = new Vector(wallVect.y, -wallVect.x)
+                    } else {
+                        result.wallNormal = new Vector(-wallVect.y, wallVect.x)
+                    }
+
                 }
             })
         if (result && !result.mapFeatureWall) {
@@ -112,54 +127,19 @@ export class BucketMap {
             f.edges.forEach(fEdge => {
                 const intersection = e.intersects(fEdge)
                 if (intersection && from.distanceTo(intersection) < minDistance) {
-                    result = intersection
-                    minDistance = from.distanceTo(intersection)
-                }
-            })
-        })
-        return result
+                    const eVect = fEdge.toVector()
+                    var normal = null
+                    if (eVect.theta > e.theta) {
+                        normal = new Vector(eVect.y, -eVect.x)
+                    } else {
+                        normal = new Vector(-eVect.y, eVect.x)
+                    }
 
-    }
-}
-
-export class LinearMap {
-    constructor() {
-        this.features = []
-    }
-
-    getFeaturesIntersecting(polygon) {
-        return this.features
-    }
-
-    addFeature(polygon, type =MAP_FEATURE_TYPE.DEFAULT) {
-        const feature = new MapFeature(("feature" + autoinc++), polygon, type)
-        this.features.push(feature)
-    }
-
-    detectCollision(polygon) {
-        let result = null
-        this.getFeaturesIntersecting(polygon).forEach(f => {
-            if (f.polygon.overlaps(polygon) && ( f.polygon.myOverlappingEdge(polygon) != null)) {
-                result = {
-                    mapFeature: f,
-                    mapFeatureWall: f.polygon.myOverlappingEdge(polygon),
-                }
-            }
-        })
-        return result
-    }
-
-    raycast(from, to) {
-        const box = new SimpleRect(from.x, from.y, to.x - from.x, to.y - from.y)
-        const features = this.getFeaturesIntersecting(box)
-        const e = new Edge(from, to)
-        var result = null
-        var minDistance = Infinity
-        features.forEach(f => {
-            f.edges.forEach(fEdge => {
-                const intersection = e.intersects(fEdge)
-                if (intersection && from.distanceTo(intersection) < minDistance) {
-                    result = intersection
+                    result = {
+                        point: intersection,
+                        edge: fEdge,
+                        normal: normal
+                    }
                     minDistance = from.distanceTo(intersection)
                 }
             })

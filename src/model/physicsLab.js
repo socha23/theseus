@@ -1,11 +1,14 @@
 import { Body, Point, Vector } from "./physics";
 
-class BodyProfile {
-    constructor() {
+const profiles = []
 
+export function physicsProfile(volume, forceAcc, forceDec=forceAcc) {
+    const key = `${volume.key}_${forceAcc}_${forceDec}`
+    if (!(key in profiles)) {
+        profiles[key] = calculateProfile(volume, forceAcc, forceDec)
     }
+    return profiles[key]
 }
-
 
 class AccProfile {
     constructor() {
@@ -48,7 +51,7 @@ function calculateAccProfile(volume, force=1000, timeMs=10 * 1000, timeStep=200)
     return result
 }
 
-function calculateDecProfile(volume, force=1000, speed=20, timeStep=200) {
+function calculateDecProfile(volume, force=1000, speed=20, timeStep=200, maxTime=20*1000) {
     var state = {
         position: new Point(0, 0),
         speed: new Vector(speed, 0)
@@ -58,7 +61,7 @@ function calculateDecProfile(volume, force=1000, speed=20, timeStep=200) {
     var t = 0
     result.add(t, 0, state.speed.length)
 
-    while (state.speed.length > 0.1) {
+    while (state.speed.length > 0.1 && t < maxTime) {
         t += timeStep
         const newState = body._projectSpeedAndPosition(timeStep / 1000, state.position, state.speed, 0, new Vector(-force, 0))
         result.add(t, newState.position.x, newState.speed.length)
@@ -67,9 +70,7 @@ function calculateDecProfile(volume, force=1000, speed=20, timeStep=200) {
     return result
 }
 
-
-
-export function calculateProfile(volume, accForce=1000, decForce=accForce, timeMs=10 * 1000, timeStep=200) {
+function calculateProfile(volume, accForce=1000, decForce=accForce, timeMs=10 * 1000, timeStep=200) {
     const acc = calculateAccProfile(volume, accForce, timeMs, timeStep)
     const dec = calculateDecProfile(volume, decForce, acc.maxSpeed, timeStep)
     const glide = calculateDecProfile(volume, 0, acc.maxSpeed, timeStep)

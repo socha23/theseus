@@ -1,9 +1,9 @@
 import { DRAG_COEFFICIENTS, Vector, } from "./physics"
-import { Volume, vectorForPolar } from "./physics"
-import { planBackOff, planAttack, planMoveToPoint } from "./agent"
+import { Volume } from "./physics"
 import { Effect } from "./effects"
 import { fishAI } from "./fishAi"
 import { Entity } from "./entities"
+import { physicsProfile } from "./physicsLab"
 
 const DEFAULT_DAMAGE = {
     strength: 10,
@@ -25,6 +25,7 @@ const DEFAULT_FISH_TEMPALTE = {
     sightRange: 50,
     attacks: [],
     color: "red",
+    territoryRange: 0,
 }
 
 export class Fish extends Entity {
@@ -35,6 +36,8 @@ export class Fish extends Entity {
         this.rotationForce = template.rotationForce
         this.rotationSpeed = template.rotationSpeed
         this._ai = aiCreator(this)
+
+        this.profile = physicsProfile(body.volume, this.tailForce, this.tailForce)
 
         this.alive = true
         this._blood = 1
@@ -59,6 +62,10 @@ export class Fish extends Entity {
 
     get sightRange() {
         return this.template.sightRange
+    }
+
+    get params() {
+        return this.template
     }
 
     param(name, defValue=null) {
@@ -91,13 +98,6 @@ export class Fish extends Entity {
 
     onCollision(collision) {
         super.onCollision(collision)
-        if (this.alive) {
-            if (Math.random() < 0.5) {
-                this.plan = planBackOff(this, collision.wallNormal.theta)
-            } else {
-                this.plan = null;
-            }
-        }
     }
 
     onDie() {
@@ -108,8 +108,8 @@ export class Fish extends Entity {
     }
 
     updateState(deltaMs, model) {
-        super.updateState(deltaMs, model)
         this._ai.updateState(deltaMs, model)
+        super.updateState(deltaMs, model)
         this._attacks.forEach(a => {a.updateState(deltaMs)})
 
         if (this.alive) {
@@ -137,34 +137,6 @@ export class Fish extends Entity {
     }
 
 }
-
-
-
-function randomPointInSight(position, model, sightRange) {
-    for (var i = 0; i < 100; i++) {
-        const theta = Math.random() * 2 * Math.PI
-        const dist = Math.random() * sightRange
-        const posToCheck = position.plus(vectorForPolar(dist, theta))
-        if (model.map.raycast(position, posToCheck) == null) {
-            return posToCheck
-        }
-    }
-    throw new Error("can't find point in sight")
-}
-
-
-
-const DEFAULT_PLAN_CREATOR = (entity, model) => {
-    if (entity.aggresive && entity.distanceTo(model.sub) <= entity.sightRange) {
-        return planAttack(entity, model.sub)
-    }
-    return planMoveToPoint(entity, randomPointInSight(entity.position, model, 50))
-}
-
-
-
-
-
 
 class FishAttack {
     constructor(entity, range, cooldownMs=1000, damage=DEFAULT_DAMAGE) {

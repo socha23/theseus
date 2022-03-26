@@ -167,7 +167,6 @@ class BackOffAction extends AgentAction {
         const me = this._entity
 
         const dir = this.params.direction ?? (me.body.orientation + Math.PI)
-
         const force = vectorForPolar(me.tailForce, dir)
         me.body.addActingForce(force)
     }
@@ -293,10 +292,10 @@ export class Plan {
     }
 }
 
-export function planBackOff(entity, direction = null) {
+export function planBackOff(entity, direction = null, distance=entity.radius) {
     return new Plan(
         "Backoff",
-        new BackOffAction(entity, {distance: entity.radius, direction: direction}),
+        new BackOffAction(entity, {distance: distance, direction: direction}),
     )
 }
 

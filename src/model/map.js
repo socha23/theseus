@@ -95,7 +95,9 @@ export class BucketMap {
                 }
             })
         if (result && !result.mapFeatureWall) {
+            // can't debug this
             console.log("DETECT WALL COLLISION DETECTS NO WALLS")
+            result.mapFeatureWall = result.mapFeature.polygon.edges[0]
         }
         return result
     }

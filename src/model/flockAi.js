@@ -1,23 +1,39 @@
 import { planMoveToPoint } from "./agent"
-import { FishAI, randomPointInSight } from "./fishAi"
+import { Behavior, FishAI, randomPointInSight } from "./fishAi"
 import { Point } from "./physics"
 
 export function flockAI(flock) {
     return (entity => new FlockAI(entity, flock))
 }
 
-class FlockAI extends FishAI {
-    constructor(entity, flock) {
-        super(entity)
+class FlockBehavior extends Behavior {
+    constructor(entity, flock, params = {}) {
+        super(entity, {
+            name: "Flocking",
+            priority: 20,
+            flockRange: 15,
+            ...params
+        })
         this.flock = flock
     }
 
-    nextPlan(model) {
-        if (Math.random() < 0.1) {
-            return planMoveToPoint(this.entity, randomPointInSight(this.entity.position, model, 100))
+    priority(model) {
+        if (this.entity.distanceTo(this.flock.center) >= this.params.flockRange) {
+            return this.params.priority
         } else {
-            return planMoveToPoint(this.entity, this.flock.center)
+            return 0
         }
+    }
+
+    nextPlan(model) {
+        return planMoveToPoint(this.entity, this.flock.center)
+    }
+}
+
+class FlockAI extends FishAI {
+    constructor(entity, flock) {
+        super(entity)
+        this.behaviors.push(new FlockBehavior(entity, flock))
     }
 }
 

@@ -1,7 +1,7 @@
 import { Point } from "./physics"
 import {getStartingSub, getStartingWorld, getStartingMap} from "./world"
 
-const MAX_TIME_FRAME_FOR_MODEL_UPDATE = 20
+const MAX_TIME_FRAME_FOR_MODEL_UPDATE = 10
 
 class GameModel {
     constructor() {

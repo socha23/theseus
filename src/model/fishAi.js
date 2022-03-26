@@ -3,18 +3,81 @@ import { planMoveToPoint, planAttack } from "./agent"
 
 export function fishAI(fish) { return new FishAI(fish)}
 
+
+const DEFAULT_BEHAVIOR_PARAMS = {
+    priority: 0,
+    name: "Default behavior"
+}
+
+export class Behavior {
+    constructor(entity, params) {
+        this.params = {...DEFAULT_BEHAVIOR_PARAMS, ...params}
+        this.entity = entity
+    }
+
+    get description() {
+        return this.params.name
+    }
+
+    priority(model) {
+        return this.params.priority
+    }
+
+    nextPlan(model) {
+        throw new Error("NOT IMPLEMENTED")
+    }
+}
+
+class RandomMoveBehavior extends Behavior {
+    constructor(entity, params={}) {
+        super(entity, {
+            name: "Wandering",
+            priority: 10,
+            ...params})
+    }
+
+    nextPlan(model) {
+        return planMoveToPoint(this.entity, randomPointInSight(this.entity.position, model, 50))
+    }
+}
+
+class AggresiveBehavior extends Behavior {
+    constructor(entity, params={}) {
+        super(entity, {
+            name: "Aggressive",
+            priority: 20,
+            ...params
+        })
+    }
+
+    priority(model) {
+        if (this.entity.distanceTo(model.sub) <= this.entity.sightRange) {
+            return this.params.priority
+        } else {
+            return 0
+        }
+    }
+
+    nextPlan(model) {
+        return planAttack(this.entity, model.sub)
+    }
+}
+
+
+const BEHAVIOR_CHECK_EVERY_MS = 100
+
 export class FishAI {
     constructor(entity) {
         this.entity = entity
         this._plan = null
-    }
 
-    nextPlan(model) {
-        if (this.entity.aggresive && this.entity.distanceTo(model.sub) <= this.entity.sightRange) {
-            return planAttack(this.entity, model.sub)
+        this.currentBehavior = null
+        this._sinceLastBehaviorChange = 0
+        this.behaviors = [new RandomMoveBehavior(entity)]
+
+        if (entity.aggresive) {
+            this.behaviors.push(new AggresiveBehavior(entity))
         }
-        return planMoveToPoint(this.entity, randomPointInSight(this.entity.position, model, 50))
-
     }
 
     get targetPosition() {
@@ -24,10 +87,32 @@ export class FishAI {
         return this._plan.targetPosition
     }
 
+    _updateBehavior(model) {
+        this._sinceLastBehaviorChange = 0
+
+        var maxPriority = -Infinity
+        var nextBehavior = null
+        this.behaviors.forEach(b => {
+            if (b.priority(model) > maxPriority) {
+                maxPriority = b.priority(model)
+                nextBehavior = b
+            }
+        })
+        if (this.currentBehavior != nextBehavior) {
+            this.currentBehavior = nextBehavior
+            this._plan = this.currentBehavior.nextPlan(model)
+        }
+    }
+
     updateState(deltaMs, model) {
         if (this.entity.alive) {
+            this._sinceLastBehaviorChange += deltaMs
+            if (!this.currentBehavior || (this._sinceLastBehaviorChange > BEHAVIOR_CHECK_EVERY_MS)) {
+                this._updateBehavior(model)
+            }
+
             if (!this._plan) {
-                this._plan = this.nextPlan(model)
+                this._plan = this.currentBehavior.nextPlan(model)
             }
             this._plan.updateState(deltaMs, model)
             if (!this._plan.valid) {
@@ -38,10 +123,14 @@ export class FishAI {
     }
 
     get planDescription() {
-        if (this._plan === null) {
-            return []
+        const result = []
+        if (this.currentBehavior) {
+            result.push(this.currentBehavior.description)
         }
-        return [this._plan.name]
+        if (this._plan) {
+            result.push(this._plan.name)
+        }
+        return result
     }
 }
 

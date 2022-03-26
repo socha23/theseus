@@ -35,7 +35,9 @@ export function Tracking({subsystem}) {
                     </div>
                 }
                 {e.planDescription && <div>
-                    <span>{e.planDescription}</span>
+                    {
+                        e.planDescription.map(d => <div key={d}>{d}</div>)
+                    }
                 </div>
                 }
             </div> : "Nothing tracked"}

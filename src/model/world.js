@@ -21,7 +21,7 @@ const WEAPON_TEMPLATES = {
         reloadTime: 5000,
         ammoMax: 5,
         powerConsumption: 10,
-        range: 25,
+        range: 32,
         damage: 10,
     },
     RAILGUN: {
@@ -36,8 +36,8 @@ const WEAPON_TEMPLATES = {
 
 const ENGINE_TEMPLATES = {
     BASIC_ENGINE: {
-        force:  40 * 1000,
-        rotationalForce: 2 * 1000,
+        force:  60 * 1000,
+        rotationalForce: 4 * 1000,
         powerConsumption: 10,
     }
 }

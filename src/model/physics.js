@@ -172,7 +172,7 @@ export class Body {
         var projectedMove = this._projectMove(deltaS)
         var recounts = 0
         while (true) {
-            const collision = model.map.detectCollision(projectedMove.boundingBox)
+            const collision = model.map.detectWallCollision(projectedMove.boundingBox)
             if (collision) {
                 this._resolveCollision(collision, onCollision)
 
@@ -243,19 +243,29 @@ export class Body {
         onCollision(collision)
     }
 
+    _projectSpeedAndPosition(deltaS, position, speed, orientation, actingForce=Vector.ZERO) {
+
+        const force = actingForce.plus(this.getFrictionVector(speed, orientation))
+        const acc = force.div(this.volume.getMass())
+        const deltaV = acc.times(deltaS)
+        var projectedSpeed = speed.plus(deltaV)
+        if (projectedSpeed.length < MOVEMENT_HUSH && actingForce.isZero()) {
+            projectedSpeed = new Vector(0, 0)
+        }
+        const projectedPosition = position.plus(projectedSpeed.times(deltaS))
+
+        return {
+            position: projectedPosition,
+            speed: projectedSpeed,
+        }
+    }
+
     _projectMove(deltaS) {
 
         // speed and position
-
-        const force = this._actingForce.plus(this.getFrictionVector())
-        const acc = force.div(this.volume.getMass())
-        const deltaV = acc.times(deltaS)
-        var projectedSpeed = this.speed.plus(deltaV)
-        if (projectedSpeed.length < MOVEMENT_HUSH && this._actingForce.isZero()) {
-            projectedSpeed = new Vector(0, 0)
-        }
-        const projectedPosition = this.position.plus(projectedSpeed.times(deltaS))
-
+        const projection = this._projectSpeedAndPosition(deltaS, this.position, this.speed, this.orientation, this._actingForce)
+        const projectedPosition = projection.position
+        const projectedSpeed = projection.speed
         // orientation and rotation speed
 
         const frictionForce =  -Math.sign(this.rotationSpeed) * 0.5 * WATER_DENSITY * this.rotationSpeed * this.rotationSpeed * this.volume.dragCoefficient * this.volume.sideSection()
@@ -279,16 +289,16 @@ export class Body {
         }
     }
 
-    getFrictionVector() {
-        const angleOfAttack = this.speed.theta - this.orientation
+    getFrictionVector(speed=this.speed, orientation=this.orientation) {
+        const angleOfAttack = speed.theta - orientation
 
             const frictionFace = Math.abs(Math.cos(angleOfAttack)) * this.volume.frontSection()
             + Math.abs(Math.sin(angleOfAttack) * this.volume.sideSection())
 
         const coeffMultiplier = (frictionFace / this.volume.frontSection()) * (frictionFace / this.volume.frontSection())
 
-        const frictionForce =  0.5 * WATER_DENSITY * this.speed.squared() * this.volume.dragCoefficient * coeffMultiplier * frictionFace
-        const frictionDir = this.speed.theta + Math.PI
+        const frictionForce =  0.5 * WATER_DENSITY * speed.squared() * this.volume.dragCoefficient * coeffMultiplier * frictionFace
+        const frictionDir = speed.theta + Math.PI
         return vectorForPolar(frictionForce, frictionDir)
 
     }

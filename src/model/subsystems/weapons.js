@@ -193,7 +193,7 @@ function percentize(val, total) {
 }
 
 const TARGET_SIZE = 3
-const CROSSHAIRS_SIZE = 2
+const CROSSHAIRS_SIZE = 3
 const CROSSHAIRS_SPEED = 15
 
 const SHOOTMARKS_DECAY = 2000

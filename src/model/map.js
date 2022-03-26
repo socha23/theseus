@@ -78,11 +78,25 @@ export class BucketMap {
                 result = {
                     mapFeature: f
                 }
-                if (f.polygon.myOverlappingEdge(polygon) != null) {
-                    result.mapFeatureWall = f.polygon.myOverlappingEdge(polygon)
-                }
             }
         })
+        return result
+    }
+
+    detectWallCollision(polygon) {
+        let result = null
+        this
+            .getFeaturesIntersecting(polygon)
+            .filter(f => f.polygon.overlaps(polygon))
+            .forEach(f => {
+                result = {
+                    mapFeature: f,
+                    mapFeatureWall: f.polygon.myOverlappingEdge(polygon),
+                }
+            })
+        if (result && !result.mapFeatureWall) {
+            console.log("DETECT WALL COLLISION DETECTS NO WALLS")
+        }
         return result
     }
 

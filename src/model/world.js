@@ -87,7 +87,7 @@ const FISH_TEMPLATES = {
     GOAT_FISH: {
         id: "goat_fish",
         volume: new Volume(1, 1, 3, 0.2),
-        tailForce: 25 * 1000,
+        tailForce: 15 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: 1,
         color: "blue",
@@ -163,7 +163,9 @@ export function getStartingWorld(map) {
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
             ...createFish(map, FISH_TEMPLATES.FAT_FISH, 50, Point.ZERO, 400, 70),
             ...createFish(map, FISH_TEMPLATES.BIG_FISH, 15, Point.ZERO, 400, 70),
-            ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 40, Point.ZERO, 70),
+            ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 20, Point.ZERO, 400, 30),
+
+            //            ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 1, Point.ZERO, 20),
         ]
     )
 }

@@ -1,5 +1,5 @@
 import { Point, rectangle, vectorForPolar } from "./physics"
-import { planMoveToPoint, planAttack, planBackOff, planFastRotateToTheta, planStop } from "./agent"
+import { planMoveToPoint, planAttack, planBackOff, planStop, planRotateToTheta, planRotateToPoint } from "./agent"
 import { randomElem } from "../utils"
 import { STATISTICS } from "../stats"
 
@@ -23,6 +23,10 @@ export class Behavior {
         return this.params.name
     }
 
+    get targetPosition() {
+        return this.plan?.targetPosition
+    }
+
     priority(model) {
         return this.params.priority
     }
@@ -40,12 +44,16 @@ export class Behavior {
             this.plan = null
         }
     }
+
+    onActivate(model) {
+
+    }
 }
 
 class RandomMoveBehavior extends Behavior {
     constructor(entity, params={}) {
         super(entity, {
-            name: "Wandering",
+            name: "Random Wandering",
             priority: 10,
             ...params})
     }
@@ -84,7 +92,8 @@ class DontCrashIntoWalls extends Behavior {
                 const dTheta = sign * theta
                 const nSpeed = vectorForPolar(speed.length, speed.theta + dTheta)
                 if (!this.entity.body.willCrashIntoWall(model, this.params.timeS, nSpeed)) {
-                    return planFastRotateToTheta(this.entity, speed.theta + dTheta)
+                    const point = this.entity.position.plus(vectorForPolar(10, speed.theta + dTheta))
+                    return planRotateToPoint(this.entity, point)
                 }
             }
         }
@@ -92,18 +101,19 @@ class DontCrashIntoWalls extends Behavior {
     }
 }
 
-class AvoidWalls extends Behavior {
+class BackOffFromWalls extends Behavior {
     constructor(entity, params={}) {
         super(entity, {
-            name: "Avoiding walls",
+            name: "Backing off from walls",
             priority: 70,
             ...params})
         this.lastTheta = 0
         this.goodThetas = []
+        this._active = false
     }
 
     priority(model) {
-        if (this.closeToWall(model)) {
+        if (this._active || this.closeToWall(model)) {
             return this.params.priority
         }
         return 0
@@ -148,25 +158,32 @@ class AvoidWalls extends Behavior {
             result.push(7 * Math.PI / 4)
         }
 
-       if (result.length == 0 ) {
-           console.log("No good spots")
-       }
-
        return result
     }
 
     updateState(deltaMs, model) {
         this.goodThetas = this.findGoodThetas(model)
+        if (this.goodThetas.length == 0) {
+            this.entity.body.teleportOutOfCollision(model.map)
+        }
+
         if (!this.goodThetas.find(a => (a == this.lastTheta))) {
             this.plan = null
         }
         super.updateState(deltaMs, model)
+        if (this.plan == null) {
+            this._active = false
+        }
+    }
+
+    onActivate(model) {
+        this._active = true
     }
 
 
     nextPlan(model) {
         this.lastTheta = randomElem(this.goodThetas)
-        return planBackOff(this.entity, this.lastTheta, 3 * this,this.entity.radius)
+        return planBackOff(this.entity, this.lastTheta, 6 * this.entity.radius)
     }
 }
 
@@ -180,19 +197,25 @@ class TerritorialBehavior extends Behavior {
         this.position = position
         this.range = range
         this.timeSincePlanChange = 0
+        this.currentTarget = null
     }
 
     updateState(deltaMs, model) {
         super.updateState(deltaMs, model)
         this.timeSincePlanChange += deltaMs
-        if (this.timeSincePlanChange > 10 * 1000) {
+        if (this.timeSincePlanChange > 30 * 1000) {
             this.timeSincePlanChange = 0
             this.plan = null
         }
     }
 
     nextPlan(model) {
-        return planMoveToPoint(this.entity, randomPointInPerimeter(this.entity.position, model, this.position, this.range))
+        this.currentTarget = randomPointInPerimeter(this.entity.position, model, this.position, this.range)
+        if (this.currentTarget === null) {
+            this.currentTarget = randomPointInSight(this.entity.position, model, this.position, this.entity.sightRange)
+        }
+
+        return planMoveToPoint(this.entity, this.currentTarget)
     }
 }
 
@@ -230,7 +253,7 @@ export class FishAI {
         this._sinceLastBehaviorChange = 0
         this.behaviors = [
             new RandomMoveBehavior(entity),
-            new AvoidWalls(entity),
+            new BackOffFromWalls(entity),
             new DontCrashIntoWalls(entity),
         ]
 
@@ -246,10 +269,10 @@ export class FishAI {
     }
 
     get targetPosition() {
-        if (!this.currentBehavior?.plan) {
+        if (!this.currentBehavior) {
             return null
         }
-        return this.currentBehavior.plan.targetPosition
+        return this.currentBehavior.WtargetPosition
     }
 
     _updateBehavior(model) {
@@ -265,6 +288,8 @@ export class FishAI {
         })
         if (this.currentBehavior != nextBehavior) {
             this.currentBehavior = nextBehavior
+            this.currentBehavior.onActivate(model)
+
         }
     }
 
@@ -316,5 +341,5 @@ function lookForPointInSight(position, model, pointCreator=() => Point.ZERO) {
             return posToCheck
         }
     }
-    throw new Error("can't find point in sight")
+    return null
 }

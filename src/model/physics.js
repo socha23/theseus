@@ -40,6 +40,10 @@ export class Point {
     vectorTo(p) {
         return new Vector(p.x - this.x, p.y - this.y)
     }
+
+    get string() {
+        return `${this.x.toFixed(1)}, ${this.y.toFixed(1)}`
+    }
 }
 
 export class Vector {
@@ -92,6 +96,9 @@ export class Vector {
         return new Vector(this.x * multiplier, this.y * multiplier)
     }
 
+    withTheta(theta=0) {
+        return vectorForPolar(this.length, theta)
+    }
 
 }
 
@@ -167,6 +174,10 @@ export class Body {
         this._actingFixedOrientation = orientation
     }
 
+    get actingFixedOrientation() {
+        return this._actingFixedOrientation
+    }
+
 
     updateState(deltaMs, model, onCollision) {
         const deltaS = deltaMs / 1000
@@ -234,6 +245,23 @@ export class Body {
                 return true
             }
         }
+    }
+
+    teleportOutOfCollision(map) {
+        for (var dist = 0.5; dist < 100; dist += 0.5) {
+            for (var theta = 0; theta < 2 * Math.PI; theta += Math.PI / 8) {
+                const newPos = this.position.plus(vectorForPolar(dist, theta))
+                const projBox = rectangle(newPos, new Point(this.volume.length, this.volume.width)).rotate(this.orientation, newPos)
+                const collision = map.detectWallCollision(projBox)
+                if (!collision) {
+                    console.log("Teleported out of collision")
+                    this.position = newPos
+                    this.speed = Vector.ZERO
+                    this.rotationSpeed = 0
+                }
+            }
+        }
+        throw new Error("Can't teleport out of collision")
     }
 
     _projectSpeedAndPosition(deltaS, position, speed, orientation, actingForce=Vector.ZERO) {

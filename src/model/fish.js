@@ -22,7 +22,7 @@ const DEFAULT_FISH_TEMPALTE = {
     rotationalForce: 1 * 1000,
     rotationSpeed: 1,
     aggresive: false,
-    sightRange: 50,
+    sightRange: 30,
     attacks: [],
     color: "red",
     territoryRange: 0,

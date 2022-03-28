@@ -15,6 +15,7 @@ import { CheatBox } from "./subsystems/cheatbox"
 import { Storage } from "./subsystems/storage"
 import { MATERIALS } from "./materials"
 import { randomPolygon, setOfPolygons } from "./mapGeneration"
+import { Minimap } from "./subsystems/minimap"
 
 const WEAPON_TEMPLATES = {
     COILGUN: {
@@ -134,18 +135,14 @@ export function getStartingSub() {
     return new Sub(
         new Volume(2, 2, 10),
         [
-            new CheatBox(new Point(0, 0)),
-            new Weapon(new Point(0, 1), "coil", "Coilgun", WEAPON_TEMPLATES.COILGUN),
-            new Weapon(new Point(0, 2), "railgun", "Railgun", WEAPON_TEMPLATES.RAILGUN),
+            new Minimap(new Point(0, 0)),
+            new CheatBox(new Point(0, 2)),
 
             new Sonar(new Point(1, 0), "sonar", "Sonar", SONAR_TEMPLATES.BASIC_SONAR),
+            new Tracking(new Point(2, 3), "tracking_1", "Tracking", TRACKING_TEMPLATES.BASIC_TRACKING),
 
-            new SubStatusScreen(new Point(3, 0), "status_1", "Status"),
-            new Tracking(new Point(3, 1), "tracking_1", "Tracking", TRACKING_TEMPLATES.BASIC_TRACKING),
-
-            new Reactor(new Point(4, 0), "reactor", "Reactor", REACTOR_TEMPLATES.BASIC_REACTOR),
-            new Engine(new Point(4, 2), "engine_2", "Engine", ENGINE_TEMPLATES.BASIC_ENGINE),
-
+            new Weapon(new Point(3, 0), "coil", "Coilgun", WEAPON_TEMPLATES.COILGUN),
+            new Weapon(new Point(3, 1), "railgun", "Railgun", WEAPON_TEMPLATES.RAILGUN),
             new Pumps(new Point(3, 2), "pumps0", "Pumps", PUMP_TEMPLATES.BASIC_PUMP),
             new Storage(new Point(3, 3), "storage0", "Storage", {
                 [MATERIALS.SPARE_PARTS]: 20,
@@ -153,6 +150,12 @@ export function getStartingSub() {
                 [MATERIALS.KINETIC_AMMO]: 5,
                 [MATERIALS.FUEL_RODS]: 3,
             }),
+
+            new Reactor(new Point(4, 0), "reactor", "Reactor", REACTOR_TEMPLATES.BASIC_REACTOR),
+            new Engine(new Point(4, 2), "engine_2", "Engine", ENGINE_TEMPLATES.BASIC_ENGINE),
+            new SubStatusScreen(new Point(4, 3), "status_1", "Status"),
+
+
     ])
 }
 
@@ -162,8 +165,8 @@ export function getStartingWorld(map) {
 
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
-            ...createFish(map, FISH_TEMPLATES.FAT_FISH, 50, Point.ZERO, 400, 70),
-            ...createFish(map, FISH_TEMPLATES.BIG_FISH, 15, Point.ZERO, 400, 70),
+            //...createFish(map, FISH_TEMPLATES.FAT_FISH, 50, Point.ZERO, 400, 70),
+            //...createFish(map, FISH_TEMPLATES.BIG_FISH, 15, Point.ZERO, 400, 70),
             ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 20, Point.ZERO, 400, 30),
 
 //                        ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 10, Point.ZERO, 20),

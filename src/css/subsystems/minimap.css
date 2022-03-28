@@ -1,0 +1,10 @@
+.subsystem .minimap {
+    display: flex;
+    gap: 5px;
+}
+
+.subsystem .minimap .display {
+    opacity: 0.8;
+    border: 1px solid #a5d000;
+}
+

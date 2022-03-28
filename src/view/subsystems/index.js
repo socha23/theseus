@@ -9,6 +9,7 @@ import { Engine } from "./engine";
 import { Reactor } from "./reactor";
 import { Pumps } from "./pumps";
 import { Storage } from "./storage";
+import { Minimap } from "./minimap";
 import { SubsystemPowerButton } from "./power.js";
 
 import '../../css/subsystemBox.css';
@@ -55,6 +56,9 @@ function SubsystemMainTab({subsystem, actionController}) {
             }
             {
                 subsystem.isEngine && <Engine subsystem={subsystem}/>
+            }
+            {
+                subsystem.isMinimap && <Minimap subsystem={subsystem}/>
             }
         </div>
     </div>

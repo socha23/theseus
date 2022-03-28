@@ -7,6 +7,7 @@ import { AIM_LINE_TYPE, RANGE_CIRCLE_TYPE } from "../../model/subsystems/sonar";
 import { toDegrees } from "../../units";
 import { relativeAngle } from "../../utils";
 import { ActionButton } from "../widgets";
+import "../../css/subsystems/sonar.css"
 
 const SIZE_PX = 420//376
 
@@ -366,6 +367,14 @@ function Target({subPosition, subOrientation, target, scale}) {
 function Sonar({subsystem, actionController}) {
     const scale = SIZE_PX / (subsystem.range * 2)   // px per unit
     return <div className="sonar">
+        <div className="toggles">
+            {
+                subsystem.toggleActions.map(a => <ActionButton
+                    key={a.id}
+                    action={a}
+                    />)
+            }
+        </div>
         <div className="display" style={{width: SIZE_PX + 2, height: SIZE_PX + 2}}>
             {subsystem.on && <Stage width={SIZE_PX} height={SIZE_PX} >
                 <Layer>
@@ -393,14 +402,6 @@ function Sonar({subsystem, actionController}) {
 
                 </Layer>
             </Stage>}
-        </div>
-        <div className="toggles">
-            {
-                subsystem.toggleActions.map(a => <ActionButton
-                    key={a.id}
-                    action={a}
-                    />)
-            }
         </div>
     </div>
 }

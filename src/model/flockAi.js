@@ -26,7 +26,7 @@ class FlockBehavior extends Behavior {
     }
 
     nextPlan(model) {
-        return planMoveToPoint(this.entity, this.flock.center)
+        return planMoveToPoint(this.entity, this.flock.center, model.map5)
     }
 }
 

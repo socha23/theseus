@@ -14,7 +14,7 @@ import { Pumps } from "./subsystems/pumps"
 import { CheatBox } from "./subsystems/cheatbox"
 import { Storage } from "./subsystems/storage"
 import { MATERIALS } from "./materials"
-import { randomPolygon } from "./mapGeneration"
+import { randomPolygon, setOfPolygons } from "./mapGeneration"
 
 const WEAPON_TEMPLATES = {
     COILGUN: {
@@ -87,7 +87,7 @@ const FISH_TEMPLATES = {
     GOAT_FISH: {
         id: "goat_fish",
         volume: new Volume(1, 1, 3, 0.2),
-        tailForce: 15 * 1000,
+        tailForce: 5 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: 1,
         color: "blue",
@@ -96,7 +96,7 @@ const FISH_TEMPLATES = {
     FAT_FISH: {
         id: "fat_fish",
         volume: new Volume(2, 2, 3, 0.2),
-        tailForce: 25 * 1000,
+        tailForce: 15 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: 1,
         color: "#E08E45",
@@ -159,13 +159,14 @@ export function getStartingSub() {
 export function getStartingWorld(map) {
     return new World(
         [
+
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
             ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
             ...createFish(map, FISH_TEMPLATES.FAT_FISH, 50, Point.ZERO, 400, 70),
             ...createFish(map, FISH_TEMPLATES.BIG_FISH, 15, Point.ZERO, 400, 70),
             ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 20, Point.ZERO, 400, 30),
 
-            //            ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 1, Point.ZERO, 20),
+//                        ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 10, Point.ZERO, 20),
         ]
     )
 }
@@ -266,9 +267,10 @@ const DEFAULT_MAP_PARAMS = {
     featuresSpread: 200,
 }
 
-export function getStartingMap(subBoundingBox, params={}) {
+export function getStartingMaps(deltaSizes=[0], subBoundingBox, params={}) {
     params = {...DEFAULT_MAP_PARAMS, ...params}
-    const res = new BucketMap()
+
+    const result = deltaSizes.map(s => new BucketMap())
 
     //res.addFeature(rectangle(new Point(-25, 0), new Point(1, 70)))
     //res.addFeature(rectangle(new Point(25, 0), new Point(1, 70)))
@@ -277,21 +279,23 @@ export function getStartingMap(subBoundingBox, params={}) {
 
     for (var i = 0; i < params.featuresCount; i++) {
         while (true) {
+
             const position = new Point(
                 ((Math.random() * 2) - 1) * params.featuresSpread,
                 ((Math.random() * 2) - 1) * params.featuresSpread,
             )
             const width = 10 + Math.random() * 40
-            const height = width * Math.random()
+            const height = (0.5 + Math.random() * 0.5) * width
 
-            const poly = randomPolygon(position, width, height)
-            if (!poly.overlaps(subBoundingBox)) {
-                res.addFeature(poly)
+            const poly = setOfPolygons(deltaSizes, position, width, height)
+            if (!poly[0].overlaps(subBoundingBox)) {
+                for (var j = 0; j < deltaSizes.length; j++) {
+                    result[j].addFeature(poly[j])
+                }
                 break;
             }
         }
     }
-
-    return res
+    return result
 
 }

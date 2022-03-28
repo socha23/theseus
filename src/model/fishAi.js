@@ -20,7 +20,11 @@ export class Behavior {
     }
 
     get description() {
-        return this.params.name
+        const result = [this.params.name]
+        if (this.plan) {
+            result.push(...this.plan.description)
+        }
+        return result
     }
 
     get targetPosition() {
@@ -59,7 +63,11 @@ class RandomMoveBehavior extends Behavior {
     }
 
     nextPlan(model) {
-        return planMoveToPoint(this.entity, randomPointInSight(this.entity.position, model, 50))
+        var point = randomPointInSight(this.entity.position, model.map5, 50)
+        if (point == null) {
+            point = randomPointInSight(this.entity.position, model.map, 50)
+        }
+        return planMoveToPoint(this.entity, point, model.map)
     }
 }
 
@@ -74,24 +82,24 @@ class DontCrashIntoWalls extends Behavior {
     }
 
     priority(model) {
-        if (this.drivingIntoWall(model)) {
+        if (this.drivingIntoWall(model) || this.plan?.valid) {
             return this.params.priority
         }
         return 0
     }
 
     drivingIntoWall(model) {
-        const result = (this.entity.body.willCrashIntoWall(model, this.params.timeS, this.entity.speed) != null)
+        const result = (this.entity.body.willCrashIntoWall(model.map, this.params.timeS, this.entity.speed) != null)
         return result
     }
 
     nextPlan(model) {
         const speed = this.entity.speedVector
-        for (var theta = Math.PI / 6; theta < Math.PI; theta += Math.PI / 6) {
+        for (var theta = Math.PI / 4; theta < Math.PI; theta += Math.PI / 4) {
             for (var sign in [-1, 1]) {
                 const dTheta = sign * theta
                 const nSpeed = vectorForPolar(speed.length, speed.theta + dTheta)
-                if (!this.entity.body.willCrashIntoWall(model, this.params.timeS, nSpeed)) {
+                if (!this.entity.body.willCrashIntoWall(model.map10, this.params.timeS, nSpeed)) {
                     const point = this.entity.position.plus(vectorForPolar(10, speed.theta + dTheta))
                     return planRotateToPoint(this.entity, point)
                 }
@@ -120,7 +128,7 @@ class BackOffFromWalls extends Behavior {
     }
 
     closeToWall(model, deltaX = 0, deltaY = 0) {
-        const RADIUS_MUTLIPLIER = 3
+        const RADIUS_MUTLIPLIER = 2
         const boxSide = this.entity.radius * RADIUS_MUTLIPLIER
         const pos = new Point(this.entity.position.x + deltaX, this.entity.position.y + deltaY)
         const box = rectangle(pos, new Point(boxSide, boxSide))
@@ -183,7 +191,7 @@ class BackOffFromWalls extends Behavior {
 
     nextPlan(model) {
         this.lastTheta = randomElem(this.goodThetas)
-        return planBackOff(this.entity, this.lastTheta, 6 * this.entity.radius)
+        return planBackOff(this.entity, this.lastTheta, 4 * this.entity.radius, model.map)
     }
 }
 
@@ -209,13 +217,22 @@ class TerritorialBehavior extends Behavior {
         }
     }
 
+    get targetPosition() {
+        return this.currentTarget
+    }
+
     nextPlan(model) {
-        this.currentTarget = randomPointInPerimeter(this.entity.position, model, this.position, this.range)
+        this.currentTarget = randomPointInPerimeter(this.entity.position, model.map5, this.position, this.range)
         if (this.currentTarget === null) {
-            this.currentTarget = randomPointInSight(this.entity.position, model, this.position, this.entity.sightRange)
+            this.currentTarget = randomPointInPerimeter(this.entity.position, model.map, this.position, this.range)
+        }
+        if (this.currentTarget === null) {
+            this.currentTarget = randomPointInSight(this.entity.position, model.map, this.position, this.entity.sightRange)
         }
 
-        return planMoveToPoint(this.entity, this.currentTarget)
+        return planMoveToPoint(this.entity, this.currentTarget, model.map5,
+            {tailForce: 0.5 * this.entity.tailForce}
+            )
     }
 }
 
@@ -237,7 +254,7 @@ class AggresiveBehavior extends Behavior {
     }
 
     nextPlan(model) {
-        return planAttack(this.entity, model.sub)
+        return planAttack(this.entity, model.sub, model.map)
     }
 }
 
@@ -272,7 +289,7 @@ export class FishAI {
         if (!this.currentBehavior) {
             return null
         }
-        return this.currentBehavior.WtargetPosition
+        return this.currentBehavior.targetPosition
     }
 
     _updateBehavior(model) {
@@ -305,39 +322,36 @@ export class FishAI {
     }
 
     get planDescription() {
-        const result = []
-        if (this.currentBehavior) {
-            result.push(this.currentBehavior.description)
-        }
-        if (this.currentBehavior?.plan) {
-            result.push(this.currentBehavior.plan.name)
-        }
-        return result
+        return this.currentBehavior?.description ?? []
     }
 }
 
 
-function randomPointInPerimeter(position, model, perimeterCenter, perimeterRange) {
+function randomPointInPerimeter(position, map, perimeterCenter, perimeterRange) {
 
-    return lookForPointInSight(position,model,() => {
+    return lookForPointInSight(position,map,() => {
         const theta = Math.random() * 2 * Math.PI
         return perimeterCenter.plus(vectorForPolar(perimeterRange, theta))
     })
 }
 
 
-function randomPointInSight(position, model, sightRange) {
-    return lookForPointInSight(position,model,() => {
+function randomPointInSight(position, map, sightRange) {
+    return lookForPointInSight(position,map,() => {
         const theta = Math.random() * 2 * Math.PI
         const dist = Math.random() * sightRange
         return position.plus(vectorForPolar(dist, theta))
     })
 }
 
-function lookForPointInSight(position, model, pointCreator=() => Point.ZERO) {
+function lookForPointInSight(position, map, pointCreator=() => Point.ZERO) {
     for (var i = 0; i < 100; i++) {
         const posToCheck = pointCreator()
-        if (model.map.raycast(position, posToCheck) == null) {
+        const rect = rectangle(position, new Point(0.5, 0.5))
+        const collision = map.detectCollision(rect)
+        const cast = map.raycast(position, posToCheck)
+
+        if (collision == null && cast == null) {
             return posToCheck
         }
     }

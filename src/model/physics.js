@@ -235,12 +235,12 @@ export class Body {
         onCollision(collision)
     }
 
-    willCrashIntoWall(model, deltaS = 1, speed = this.speed) {
+    willCrashIntoWall(map, deltaS = 1, speed = this.speed) {
         for (var t = 0.1; t < deltaS; t += 0.1) {
             const moveVector = speed.times(deltaS)
             const projPos = this.position.plus(moveVector)
             const projBox = rectangle(projPos, new Point(this.volume.length, this.volume.width)).rotate(this.orientation, projPos)
-            const collision = model.map.detectWallCollision(projBox, moveVector, false)
+            const collision = map.detectWallCollision(projBox, moveVector, false)
             if (collision != null) {
                 return true
             }
@@ -248,8 +248,8 @@ export class Body {
     }
 
     teleportOutOfCollision(map) {
-        for (var dist = 0.5; dist < 100; dist += 0.5) {
-            for (var theta = 0; theta < 2 * Math.PI; theta += Math.PI / 8) {
+        for (var dist = 5; dist < 200; dist += 5) {
+            for (var theta = 0; theta < 2 * Math.PI; theta += Math.PI / 16) {
                 const newPos = this.position.plus(vectorForPolar(dist, theta))
                 const projBox = rectangle(newPos, new Point(this.volume.length, this.volume.width)).rotate(this.orientation, newPos)
                 const collision = map.detectWallCollision(projBox)

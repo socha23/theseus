@@ -1,5 +1,5 @@
 import { relativeAngle, transpose } from "../utils"
-import { vectorForPolar } from "./physics"
+import { Point, rectangle, vectorForPolar } from "./physics"
 
 function randomPointInSight(entity, model, sightRangeTo, sightRangeFrom = 0, relativeAngleMax = Math.PI, maxTries = 10) {
     for (var i = 0; i < maxTries; i++) {
@@ -24,11 +24,11 @@ export class AgentAction {
     constructor(entity, params = {}) {
         this.params = {description: "", ...params}
         this._done = false
-        this._entity = entity
+        this.entity = entity
     }
 
     get me() {
-        return this._entity
+        return this.entity
     }
 
     get finished() {
@@ -103,8 +103,8 @@ class _MoveAction extends AgentAction {
         if (this.finished) {
             return
         }
-        _adjustRotation(this._entity,  this._entity.position.vectorTo(this.targetPosition).theta, deltaMs)
-        _applyTail(this._entity, this.params.tailForce)
+        _adjustRotation(this.entity,  this.entity.position.vectorTo(this.targetPosition).theta, deltaMs)
+        _applyTail(this.entity, this.params.tailForce)
     }
 }
 
@@ -123,8 +123,8 @@ export class RotateToPoint extends _MoveAction {
     }
 
     canBeFinished(model) {
-        const targetVect = this._entity.position.vectorTo(this._point)
-        const relAngle = relativeAngle(this._entity.body.orientation, targetVect.theta)
+        const targetVect = this.entity.position.vectorTo(this._point)
+        const relAngle = relativeAngle(this.entity.body.orientation, targetVect.theta)
         return Math.abs(relAngle) < this.params.distanceTolerance
     }
 }
@@ -145,7 +145,7 @@ export class MoveToPointAction extends _MoveAction {
     }
 
     canBeFinished(model) {
-        const dist = this._entity.position.distanceTo(this.targetPosition)
+        const dist = this.entity.position.distanceTo(this.targetPosition)
         return dist <= this.params.distanceTolerance
     }
 }
@@ -165,7 +165,7 @@ export class FollowEntityAction extends _MoveAction {
     }
 
     canBeFinished(model) {
-        const dist = this._entity.position.distanceTo(this.targetPosition)
+        const dist = this.entity.position.distanceTo(this.targetPosition)
         return dist <= this.params.distanceTolerance
     }
 
@@ -193,7 +193,7 @@ export class GainDistanceAction extends _MoveAction {
     }
 
     canBeFinished(model) {
-        const dist = this._entity.position.distanceTo(this.targetPosition)
+        const dist = this.entity.position.distanceTo(this.targetPosition)
         return dist <= this.params.distanceTolerance
     }
 
@@ -229,31 +229,31 @@ class StopAction extends AgentAction {
     }
 
     canBeFinished(model) {
-        return this._entity.body.speed.length <= this.params.speedLimit
+        return this.entity.body.speed.length <= this.params.speedLimit
     }
 
     updateState(deltaMs, model) {
         super.updateState(deltaMs, model)
         if (!this.canBeFinished(model)) {
-            const me = this._entity
+            const me = this.entity
             const breakVect = me.body.speed.negative().withLength(me.tailForce)
             me.body.addActingForce(breakVect)
         }
     }
 }
 
-class BackOffAction extends AgentAction {
-    constructor(entity, params = {}) {
+class LateralMoveAction extends AgentAction {
+    constructor(entity, point, params = {}) {
         super(entity, {
-            distance: 10,
-            description: "Backing off",
+            description: "Lateral move",
+            distanceTolerance: 3,
             ...params})
-        this._from = entity.position
+        this.point = point
     }
 
     canBeFinished(model) {
-        const dist = this._entity.position.distanceTo(this._from)
-        return dist >= this.params.distance
+        const dist = this.entity.position.distanceTo(this.point)
+        return dist <= this.params.distanceTolerance
     }
 
     updateState(deltaMs, model) {
@@ -261,11 +261,8 @@ class BackOffAction extends AgentAction {
         if (this.finished) {
             return
         }
-
-        const me = this._entity
-
-        const dir = this.params.direction ?? (me.body.orientation + Math.PI)
-        const force = vectorForPolar(me.tailForce, dir)
+        const me = this.entity
+        const force = this.entity.position.vectorTo(this.point).withLength(me.tailForce)
         me.body.addActingForce(force)
     }
 }
@@ -282,7 +279,7 @@ export class AttackAction extends AgentAction {
 
     updateState(deltaMs, model) {
         super.updateState(deltaMs, model)
-        const me = this._entity
+        const me = this.entity
         me.attacks.forEach(a => {
             if (a.cooldown <= 0) {
                 a.attack(this.target)
@@ -317,6 +314,14 @@ export class Plan {
         return this._idx < this._actions.length
     }
 
+    get description() {
+        const result = [this.name]
+        if (this._idx < this._actions.length) {
+            result.push(this._actions[this._idx].description)
+        }
+        return result
+    }
+
     get targetPosition() {
         if (this._targetPosition) {
             return this._targetPosition
@@ -338,15 +343,17 @@ export class Plan {
     }
 }
 
-export function planBackOff(entity, direction = null, distance=entity.radius) {
+export function planBackOff(entity, direction = null, distance=entity.radius, map) {
+    const midPoint = entity.position.plus(vectorForPolar(distance / 2, direction))
+    const target = entity.position.plus(vectorForPolar(distance, direction))
     return new Plan(
         "Backoff",
-        entity.position.plus(vectorForPolar(distance, direction)),
-        new BackOffAction(entity, {distance: distance, direction: direction}),
-    )
+        target,
+        new LateralMoveAction(entity, target),
+        )
 }
 
-function rotateToPoint(entity, point) {
+function rotateToPoint(entity, point, map) {
     const targetVector = entity.position.vectorTo(point)
 
     const needed = Math.abs(relativeAngle(
@@ -354,13 +361,20 @@ function rotateToPoint(entity, point) {
         entity.position.vectorTo(point).theta
     ))
 
-    const veryClose = targetVector.length < entity.radius * 5
-    const close = targetVector.length < entity.radius * 15
+    const veryCloseRadius = entity.radius * 5
+    const closeRadius = entity.radius * 10
+
+    const veryClose = targetVector.length < veryCloseRadius
+    const close = targetVector.length < closeRadius
+
+    const obstaclesVeryClose = map.detectCollision(rectangle(entity.position, new Point(veryCloseRadius, veryCloseRadius))) != null
+    const obstaclesClose = map.detectCollision(rectangle(entity.position, new Point(closeRadius, closeRadius))) != null
+
 
     // can we do a flyby?
     if (
         (needed < Math.PI / 8) // almost straight ahead
-        || (needed < Math.PI / 4 && !close) // in front 90' and not close
+        || (needed < Math.PI / 4 && !close && !obstaclesClose) // in front 90' and not close
     ) {
         // flyby, no actions
         return []
@@ -369,12 +383,12 @@ function rotateToPoint(entity, point) {
     const result = []
 
     // do we need a full stop?
-    if (needed > Math.PI / 2 || veryClose) {
+    if ((obstaclesClose && (needed > Math.PI / 2)) || veryClose) {
         result.push(new StopAction(entity))
     }
 
-    // if close: do unpowered until almos straight
-    if (close) {
+    // if close: do unpowered until almost straight
+    if (close || obstaclesClose) {
         result.push(new RotateToPoint(entity, point, {
             tailForce: 0,
             distanceTolerance: Math.PI / 8
@@ -410,21 +424,21 @@ export function planRotateToPoint(entity, point) {
     )
 }
 
-export function planMoveToPoint(entity, p) {
+export function planMoveToPoint(entity, p, map, params) {
     return new Plan(
         `Move`,
         p,
-        ...rotateToPoint(entity, p),
-        new MoveToPointAction(entity, p),
+        ...rotateToPoint(entity, p, map, params),
+        new MoveToPointAction(entity, p, params),
     )
 }
 
-export function planAttack(entity, target) {
+export function planAttack(entity, target, map) {
     return new Plan(
         `Attack ${target.id}`,
         null,
         new WaitForReadyAttack(entity),
-        ...rotateToPoint(entity, target.position),
+        ...rotateToPoint(entity, target.position, map),
         new FollowEntityTillContactAction(entity, target),
         new AttackAction(entity, target),
         new GainDistanceAction(entity, 30),

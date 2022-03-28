@@ -75,7 +75,7 @@ export class Sonar extends Subsystem {
 
     _observeFeatures(model) {
         const viewPort = rectangle(this.position, new Point(3 * this.range, 3 * this.range)) // 3 is a range hack as above
-        const features = model.map.getFeaturesIntersecting(viewPort)
+        const features = model.map.getPolygonsIntersecting(viewPort)
         return features
     }
 

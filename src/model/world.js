@@ -9,12 +9,12 @@ import { Engine } from "./subsystems/engine"
 import { Weapon } from "./subsystems/weapons"
 import { Tracking } from "./subsystems/tracking"
 import { Sonar } from "./subsystems/sonar"
-import { BucketMap, LinearMap } from "./map"
+import { Map } from "./map"
 import { Pumps } from "./subsystems/pumps"
 import { CheatBox } from "./subsystems/cheatbox"
 import { Storage } from "./subsystems/storage"
 import { MATERIALS } from "./materials"
-import { randomPolygon, setOfPolygons } from "./mapGeneration"
+import { ellipsoid } from "./mapGeneration"
 import { Minimap } from "./subsystems/minimap"
 
 const WEAPON_TEMPLATES = {
@@ -259,46 +259,4 @@ function createFlock(map, template, count = 1, position=new Point(0, 0), spread 
 
     }
     return flock
-}
-
-
-
-
-const DEFAULT_MAP_PARAMS = {
-    position: new Point(0, 0),
-    featuresCount: 40,
-    featuresSpread: 200,
-}
-
-export function getStartingMaps(deltaSizes=[0], subBoundingBox, params={}) {
-    params = {...DEFAULT_MAP_PARAMS, ...params}
-
-    const result = deltaSizes.map(s => new BucketMap())
-
-    //res.addFeature(rectangle(new Point(-25, 0), new Point(1, 70)))
-    //res.addFeature(rectangle(new Point(25, 0), new Point(1, 70)))
-    //res.addFeature(rectangle(new Point(0, 30), new Point(70, 1)))
-    //res.addFeature(rectangle(new Point(0, -30), new Point(70, 1)))
-
-    for (var i = 0; i < params.featuresCount; i++) {
-        while (true) {
-
-            const position = new Point(
-                ((Math.random() * 2) - 1) * params.featuresSpread,
-                ((Math.random() * 2) - 1) * params.featuresSpread,
-            )
-            const width = 10 + Math.random() * 40
-            const height = (0.5 + Math.random() * 0.5) * width
-
-            const poly = setOfPolygons(deltaSizes, position, width, height)
-            if (!poly[0].overlaps(subBoundingBox)) {
-                for (var j = 0; j < deltaSizes.length; j++) {
-                    result[j].addFeature(poly[j])
-                }
-                break;
-            }
-        }
-    }
-    return result
-
 }

@@ -1,5 +1,5 @@
 import { Point, rectangle, vectorForPolar } from "./physics"
-import { planMoveToPoint, planAttack, planBackOff, planStop, planRotateToTheta, planRotateToPoint } from "./agent"
+import { planMoveToPoint, planAttack, planBackOff, planStop, planRotateToPoint } from "./agent"
 import { randomElem } from "../utils"
 import { STATISTICS } from "../stats"
 
@@ -63,11 +63,11 @@ class RandomMoveBehavior extends Behavior {
     }
 
     nextPlan(model) {
-        var point = randomPointInSight(this.entity.position, model.map5, 50)
+        var point = randomPointInSight(this.entity.position, model.map, 5, 50)
         if (point == null) {
-            point = randomPointInSight(this.entity.position, model.map, 50)
+            point = randomPointInSight(this.entity.position, model.map, 0, 50)
         }
-        return planMoveToPoint(this.entity, point, model.map)
+        return planMoveToPoint(this.entity, point, model.map, {mapSize: this.entity.radius * 2})
     }
 }
 
@@ -99,7 +99,7 @@ class DontCrashIntoWalls extends Behavior {
             for (var sign in [-1, 1]) {
                 const dTheta = sign * theta
                 const nSpeed = vectorForPolar(speed.length, speed.theta + dTheta)
-                if (!this.entity.body.willCrashIntoWall(model.map10, this.params.timeS, nSpeed)) {
+                if (!this.entity.body.willCrashIntoWall(model.map, this.params.timeS, nSpeed, 10)) {
                     const point = this.entity.position.plus(vectorForPolar(10, speed.theta + dTheta))
                     return planRotateToPoint(this.entity, point)
                 }
@@ -222,16 +222,16 @@ class TerritorialBehavior extends Behavior {
     }
 
     nextPlan(model) {
-        this.currentTarget = randomPointInPerimeter(this.entity.position, model.map5, this.position, this.range)
+        this.currentTarget = randomPointInPerimeter(this.entity.position, model.map, 5, this.position, this.range)
         if (this.currentTarget === null) {
-            this.currentTarget = randomPointInPerimeter(this.entity.position, model.map, this.position, this.range)
+            this.currentTarget = randomPointInPerimeter(this.entity.position, model.map, 0, this.position, this.range)
         }
         if (this.currentTarget === null) {
-            this.currentTarget = randomPointInSight(this.entity.position, model.map, this.position, this.entity.sightRange)
+            this.currentTarget = randomPointInSight(this.entity.position, model.map, 0, this.position, this.entity.sightRange)
         }
 
-        return planMoveToPoint(this.entity, this.currentTarget, model.map5,
-            {tailForce: 0.5 * this.entity.tailForce}
+        return planMoveToPoint(this.entity, this.currentTarget, model.map,
+            {tailForce: 0.5 * this.entity.tailForce, mapSize: 5}
             )
     }
 }
@@ -254,7 +254,7 @@ class AggresiveBehavior extends Behavior {
     }
 
     nextPlan(model) {
-        return planAttack(this.entity, model.sub, model.map)
+        return planAttack(this.entity, model.sub, model.map, {mapSize: this.entity.radius * 2})
     }
 }
 
@@ -327,29 +327,29 @@ export class FishAI {
 }
 
 
-function randomPointInPerimeter(position, map, perimeterCenter, perimeterRange) {
+function randomPointInPerimeter(position, map, mapSize, perimeterCenter, perimeterRange) {
 
-    return lookForPointInSight(position,map,() => {
+    return lookForPointInSight(position,map, mapSize, () => {
         const theta = Math.random() * 2 * Math.PI
         return perimeterCenter.plus(vectorForPolar(perimeterRange, theta))
     })
 }
 
 
-function randomPointInSight(position, map, sightRange) {
-    return lookForPointInSight(position,map,() => {
+function randomPointInSight(position, map, mapSize, sightRange) {
+    return lookForPointInSight(position,map,mapSize, () => {
         const theta = Math.random() * 2 * Math.PI
         const dist = Math.random() * sightRange
         return position.plus(vectorForPolar(dist, theta))
     })
 }
 
-function lookForPointInSight(position, map, pointCreator=() => Point.ZERO) {
+function lookForPointInSight(position, map, mapSize, pointCreator=() => Point.ZERO) {
     for (var i = 0; i < 100; i++) {
         const posToCheck = pointCreator()
         const rect = rectangle(position, new Point(0.5, 0.5))
-        const collision = map.detectCollision(rect)
-        const cast = map.raycast(position, posToCheck)
+        const collision = map.detectCollision(rect, mapSize)
+        const cast = map.raycast(position, posToCheck, mapSize)
 
         if (collision == null && cast == null) {
             return posToCheck

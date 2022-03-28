@@ -235,12 +235,12 @@ export class Body {
         onCollision(collision)
     }
 
-    willCrashIntoWall(map, deltaS = 1, speed = this.speed) {
+    willCrashIntoWall(map, deltaS = 1, speed = this.speed, mapSize=0) {
         for (var t = 0.1; t < deltaS; t += 0.1) {
             const moveVector = speed.times(deltaS)
             const projPos = this.position.plus(moveVector)
             const projBox = rectangle(projPos, new Point(this.volume.length, this.volume.width)).rotate(this.orientation, projPos)
-            const collision = map.detectWallCollision(projBox, moveVector, false)
+            const collision = map.detectWallCollision(projBox, moveVector, false, mapSize)
             if (collision != null) {
                 return true
             }
@@ -389,8 +389,13 @@ export class Edge {
     }
 }
 
+var autoinc = 0
+
 export class Polygon {
     constructor(points) {
+
+        this.id = "p" + autoinc++
+
         this.points = points
 
         var minX = Infinity

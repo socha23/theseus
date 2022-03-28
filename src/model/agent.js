@@ -353,7 +353,7 @@ export function planBackOff(entity, direction = null, distance=entity.radius, ma
         )
 }
 
-function rotateToPoint(entity, point, map) {
+function rotateToPoint(entity, point, map, params) {
     const targetVector = entity.position.vectorTo(point)
 
     const needed = Math.abs(relativeAngle(
@@ -367,8 +367,10 @@ function rotateToPoint(entity, point, map) {
     const veryClose = targetVector.length < veryCloseRadius
     const close = targetVector.length < closeRadius
 
-    const obstaclesVeryClose = map.detectCollision(rectangle(entity.position, new Point(veryCloseRadius, veryCloseRadius))) != null
-    const obstaclesClose = map.detectCollision(rectangle(entity.position, new Point(closeRadius, closeRadius))) != null
+    const obstaclesClose = map.detectCollision(
+        rectangle(entity.position, new Point(closeRadius, closeRadius)),
+        params.mapSize
+        ) != null
 
 
     // can we do a flyby?
@@ -408,6 +410,12 @@ function rotateToPoint(entity, point, map) {
     return result
 }
 
+
+const PLAN_PARAMS = {
+    mapSize: 0,
+}
+
+
 export function planStop(entity) {
     return new Plan(
         `Stop`,
@@ -425,6 +433,7 @@ export function planRotateToPoint(entity, point) {
 }
 
 export function planMoveToPoint(entity, p, map, params) {
+    params = {...PLAN_PARAMS, ...params}
     return new Plan(
         `Move`,
         p,
@@ -433,12 +442,13 @@ export function planMoveToPoint(entity, p, map, params) {
     )
 }
 
-export function planAttack(entity, target, map) {
+export function planAttack(entity, target, map, params) {
+    params = {...PLAN_PARAMS, ...params}
     return new Plan(
         `Attack ${target.id}`,
         null,
         new WaitForReadyAttack(entity),
-        ...rotateToPoint(entity, target.position, map),
+        ...rotateToPoint(entity, target.position, map, params),
         new FollowEntityTillContactAction(entity, target),
         new AttackAction(entity, target),
         new GainDistanceAction(entity, 30),

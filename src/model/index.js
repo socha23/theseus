@@ -1,5 +1,6 @@
 import { Point } from "./physics"
-import {getStartingSub, getStartingWorld, getStartingMaps} from "./world"
+import {getStartingSub, getStartingWorld} from "./world"
+import { getStartingMap } from "./mapGeneration"
 
 const MAX_TIME_FRAME_FOR_MODEL_UPDATE = 10
 
@@ -7,12 +8,7 @@ class GameModel {
     constructor() {
         this.sub = getStartingSub()
 
-        const maps = getStartingMaps([0, 5, 10], this.sub.boundingBox)
-
-
-        this.map = maps[0]
-        this.map5 = maps[1]
-        this.map10 = maps[2]
+        this.map = getStartingMap(this.sub.boundingBox)
 
         this.world = getStartingWorld(this.map)
         this.target = {

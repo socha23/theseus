@@ -19,7 +19,7 @@ function linePointsFromPolygon(polygon) {
 // FEATURES
 ///////////
 function Feature({feature}) {
-    return <Line points={linePointsFromPolygon(feature.polygon)} closed={true} fill="#444"/>
+    return <Line points={linePointsFromPolygon(feature)} closed={true} fill="#444"/>
 }
 
 export function Minimap({subsystem}) {

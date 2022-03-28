@@ -1,27 +1,8 @@
 import { Edge, Vector, SimpleRect, vectorForPolar } from "./physics"
 
-export const MAP_FEATURE_TYPE = {
-    DEFAULT: "default",
-}
-
-export class MapFeature {
-    constructor(id, polygon, type=MAP_FEATURE_TYPE.DEFAULT) {
-        this.id = id
-        this.polygon = polygon
-        this.type = type
-    }
-
-    get edges() {
-        return this.polygon.edges
-    }
-}
-
 const MAP_BUCKET_SIZE = 100
 
-var autoinc = 0
-
-export class BucketMap {
-
+class CollisionMap {
     constructor() {
         this.buckets = {}
     }
@@ -60,38 +41,71 @@ export class BucketMap {
         return result
     }
 
-    getFeaturesIntersecting(polygon) {
+    getPolygonsIntersecting(polygon) {
         return this._combineBuckets(this._bucketsOverlapping(polygon))
     }
 
-    addFeature(polygon, type =MAP_FEATURE_TYPE.DEFAULT) {
-        const feature = new MapFeature(("feature" + autoinc++), polygon, type)
+    add(polygon) {
         this._bucketsOverlapping(polygon).forEach(b => {
-            b.push(feature)
+            b.push(polygon)
         })
     }
+}
 
-    detectCollision(polygon) {
+export class Map {
+    constructor() {
+        this.polygonDefinitions = []
+        this.collisionMaps = {}
+    }
+
+    _getCollisionMap(deltaSize) {
+        const k = "s" + deltaSize
+        if (!(k in this.collisionMaps)) {
+            this.collisionMaps[k] = this._createCollisionMap(deltaSize)
+        }
+        return this.collisionMaps[k]
+    }
+
+    _createCollisionMap(deltaSize) {
+        const result = new CollisionMap()
+        this.polygonDefinitions.forEach(d => {
+            result.add(d.createPolygon(deltaSize))
+        })
+        return result
+    }
+
+    add(polygonDefinition) {
+        this.polygonDefinitions.push(polygonDefinition)
+    }
+
+
+    getPolygonsIntersecting(polygon, size=0) {
+        return this._getCollisionMap(size).getPolygonsIntersecting(polygon)
+    }
+
+
+    detectCollision(polygon, size=0) {
         let result = null
-        this.getFeaturesIntersecting(polygon).forEach(f => {
-            if (f.polygon.overlaps(polygon)) {
+        this._getCollisionMap(size).getPolygonsIntersecting(polygon).forEach(p => {
+            if (p.overlaps(polygon)) {
                 result = {
-                    mapFeature: f
+                    polygon: p
                 }
             }
         })
         return result
     }
 
-    detectWallCollision(polygon, speedVector=null, wallDetection=true) {
+    detectWallCollision(polygon, speedVector=null, wallDetection=true, size=0) {
         let result = null
         this
-            .getFeaturesIntersecting(polygon)
-            .filter(f => f.polygon.overlaps(polygon))
-            .forEach(f => {
+            ._getCollisionMap(size)
+            .getPolygonsIntersecting(polygon)
+            .filter(p => p.overlaps(polygon))
+            .forEach(p => {
                 result = {
-                    mapFeature: f,
-                    mapFeatureWall: f.polygon.myOverlappingEdge(polygon),
+                    polygon: p,
+                    mapFeatureWall: p.myOverlappingEdge(polygon),
                 }
                 if (speedVector && wallDetection && result.mapFeatureWall) {
                     result.angle = speedVector.theta - result.mapFeatureWall.theta
@@ -114,12 +128,12 @@ export class BucketMap {
 
             console.log("DETECT WALL COLLISION DETECTS NO WALLS")
             console.trace()
-            result.mapFeatureWall = result.mapFeature.polygon.edges[0]
+            result.mapFeatureWall = result.polygon.edges[0]
         }
         return result
     }
 
-    raycast(from, to) {
+    raycast(from, to, size=0) {
         const minX = Math.min(from.x, to.x)
         const minY = Math.min(from.y, to.y)
         const maxX = Math.max(from.x, to.x)
@@ -127,11 +141,11 @@ export class BucketMap {
 
 
         const box = new SimpleRect(minX, minY, maxX - minX, maxY - minY)
-        const features = this.getFeaturesIntersecting(box)
+        const polygons = this._getCollisionMap(size).getPolygonsIntersecting(box)
         const e = new Edge(from, to)
         var result = null
         var minDistance = Infinity
-        features.forEach(f => {
+        polygons.forEach(f => {
             f.edges.forEach(fEdge => {
                 const intersection = e.intersects(fEdge)
                 if (intersection && from.distanceTo(intersection) < minDistance) {
@@ -155,5 +169,5 @@ export class BucketMap {
         return result
 
     }
-}
 
+}

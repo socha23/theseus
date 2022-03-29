@@ -1,6 +1,9 @@
+import { STATISTICS } from "../stats"
 import { Edge, Vector, SimpleRect, vectorForPolar } from "./physics"
 
-const MAP_BUCKET_SIZE = 20
+const MAP_BUCKET_SIZE = 10
+
+var statAdd = 0
 
 class CollisionMap {
     constructor() {
@@ -12,7 +15,15 @@ class CollisionMap {
         if (!(key in this.buckets)) {
             this.buckets[key] = []
         }
-        return this.buckets[key]
+        const bucket = this.buckets[key]
+        if (statAdd == 10000) {
+            if (bucket.length > 0) {
+                STATISTICS.BUCKET_SIZE.add(bucket.length, true)
+            }
+            statAdd = 0
+        }
+        statAdd++
+        return bucket
     }
 
     _combineBuckets(buckets) {
@@ -45,9 +56,9 @@ class CollisionMap {
         return this._combineBuckets(this._bucketsOverlapping(polygon))
     }
 
-    add(polygon) {
+    add(polygon, item=polygon) {
         this._bucketsOverlapping(polygon).forEach(b => {
-            b.push(polygon)
+            b.push(item)
         })
     }
 }
@@ -59,6 +70,10 @@ export class Map {
         this.caves = []
         this.paths = []
         this._logicalPolygons = null
+
+        this.entityMap = new CollisionMap()
+        this.entities = []
+
     }
     // logical map
     getTopLeftCave() {
@@ -213,5 +228,31 @@ export class Map {
         return result
 
     }
+
+    // entities
+    addEntity(entity) {
+        this.entities.push(entity)
+        this.entityMap.add(entity.boundingBox, entity)
+    }
+
+    updateState() {
+        const newEntityMap = new CollisionMap()
+        const newEntities = []
+
+        this.entities.forEach(e => {
+            if (!e.deleted) {
+                newEntities.push(e)
+                newEntityMap.add(e.boundingBox, e)
+            }
+        })
+        this.entities = newEntities
+        this.entityMap = newEntityMap
+    }
+
+    getEntitiesAround(pos, radius) {
+        const poly = new SimpleRect(pos.x - radius, pos.y - radius, 2 * radius, 2 * radius)
+        return this.entityMap.getPolygonsIntersecting(poly)
+    }
+
 
 }

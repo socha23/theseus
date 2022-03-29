@@ -149,7 +149,7 @@ export class Sub extends Entity {
 
 
         if (actionController.targetEntityId != null) {
-            this.targetEntity = model.world.getEntity(actionController.targetEntityId)
+            this.targetEntity = model.getEntity(actionController.targetEntityId)
         }
         if (this.targetEntity?.deleted) {
             this.targetEntity = null

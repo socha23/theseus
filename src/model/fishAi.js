@@ -2,6 +2,7 @@ import { Point, rectangle, vectorForPolar } from "./physics"
 import { planMoveToPoint, planAttack, planBackOff, planStop, planRotateToPoint } from "./agent"
 import { randomElem } from "../utils"
 import { STATISTICS } from "../stats"
+import { Path } from "./mapGeneration"
 
 
 export function fishAI(fish) { return new FishAI(fish)}
@@ -52,6 +53,10 @@ export class Behavior {
     onActivate(model) {
 
     }
+
+    get valid() {
+        return this.plan == null
+    }
 }
 
 class RandomMoveBehavior extends Behavior {
@@ -72,6 +77,9 @@ class RandomMoveBehavior extends Behavior {
 }
 
 
+
+
+
 class DontCrashIntoWalls extends Behavior {
     constructor(entity, params={}) {
         super(entity, {
@@ -82,25 +90,26 @@ class DontCrashIntoWalls extends Behavior {
     }
 
     priority(model) {
-        if (this.drivingIntoWall(model) || this.plan?.valid) {
+        if (this.drivingIntoWall(model.map) || this.plan?.valid) {
             return this.params.priority
         }
         return 0
     }
 
-    drivingIntoWall(model) {
-        const result = (this.entity.body.willCrashIntoWall(model.map, this.params.timeS, this.entity.speed) != null)
-        return result
+    drivingIntoWall(map) {
+        const dstPoint = this.entity.position.plus(this.entity.speed * this.params.timeS)
+        const hitbox = new Path(this.entity.position, dstPoint, this.entity.radius * 2).polygon()
+        return map.getPolygonsIntersecting(hitbox).length > 0
     }
 
     nextPlan(model) {
-        const speed = this.entity.speedVector
         for (var theta = Math.PI / 4; theta < Math.PI; theta += Math.PI / 4) {
             for (var sign in [-1, 1]) {
                 const dTheta = sign * theta
-                const nSpeed = vectorForPolar(speed.length, speed.theta + dTheta)
-                if (!this.entity.body.willCrashIntoWall(model.map, this.params.timeS, nSpeed, 10)) {
-                    const point = this.entity.position.plus(vectorForPolar(10, speed.theta + dTheta))
+                const speed = vectorForPolar(this.entity.speedVector.length, speed.theta + dTheta)
+                const point = this.entity.position.plus(vectorForPolar(10, speed.theta + dTheta))
+                const hitbox = new Path(this.entity.position, point, this.entity.radius * 4).polygon()
+                if (model.map.getPolygonsIntersecting(hitbox).length === 0) {
                     return planRotateToPoint(this.entity, point)
                 }
             }

@@ -63,7 +63,7 @@ export class Sonar extends Subsystem {
     }
 
     _observeEntities(model) {
-        return model.world
+        return model.map
             .getEntitiesAround(this.position, this.range * 1.5) // todo range hack to account for square display
 
     }

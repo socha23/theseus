@@ -32,7 +32,7 @@ class EllipsoidPolygonDescription extends PolygonDescription {
     }
 }
 
-class BoxPolygonDescription extends PolygonDescription {
+export class BoxPolygonDescription extends PolygonDescription {
     constructor(position, width=10, height=width, theta=0) {
         super()
         this.width = width
@@ -193,8 +193,8 @@ function randomCaveDistancedFromExisting(params, caveParams, caves) {
 
 }
 
-class Path {
-    constructor(from, to, params) {
+export class Path {
+    constructor(from, to, width) {
         this.from = from
         this.to = to
         this.position = new Point(
@@ -203,7 +203,7 @@ class Path {
         )
         const pathVect = this.from.vectorTo(this.to)
 
-        this.width = transpose(Math.random(), 0, 1, params.pathWidthMin, params.pathWidthMax)
+        this.width = width
 
         this.width = Math.min(this.width, pathVect.length)
 
@@ -243,7 +243,8 @@ function generatePaths(caves, fromCave, params) {
                 }
             }
         }
-        result.push(new Path(srcCave.position, dstCave.position, params))
+        const width = transpose(Math.random(), 0, 1, params.pathWidthMin, params.pathWidthMax)
+        result.push(new Path(srcCave.position, dstCave.position, width))
         cavesLeft.splice(cavesLeft.indexOf(dstCave), 1)
         cavesProcessed.push(dstCave)
     }

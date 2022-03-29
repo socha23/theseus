@@ -1,5 +1,5 @@
 import { Point } from "./physics"
-import {getStartingSub} from "./world"
+import {getStartingSub} from "./startingSub"
 import { getStartingMap } from "./mapGeneration"
 import { generateFish } from "./fishGeneration"
 
@@ -12,13 +12,43 @@ class GameModel {
         const startCave = this.map.getBottomLeftCave()
         startCave.startingArea = true
         const subPos = startCave.position
-
         this.sub = getStartingSub(subPos)
-        this.world = new World(generateFish(this.map))
+
+        this.entities = []
+        this.entitiesById = {}
+
+
+        generateFish(this.map).forEach(f => {
+            this.addEntity(f)
+        })
+
         this.target = {
             position: this.map.getTopRightCave().position,
             name: "Goal"
         }
+    }
+
+    addEntity(e) {
+        this.entities.push(e)
+        this.entitiesById[e.id] = e
+        this.map.addEntity(e)
+    }
+
+    getEntity(id) {
+        return this.entitiesById[id]
+    }
+
+    _updateEntities(deltaMs) {
+        const newEntities = []
+        this.entities.forEach(e => {
+            e.updateState(deltaMs, this)
+            if (e.deleted) {
+                delete this.entitiesById[e.id]
+            } else {
+                newEntities.push(e)
+            }
+        })
+        this.entities = newEntities
     }
 
     updateState(deltaMs, actionController) {
@@ -34,8 +64,10 @@ class GameModel {
 
     _updateInner(deltaMs, actionController) {
         this.sub.updateState(deltaMs, this, actionController)
-        this.world.updateState(deltaMs, this)
-        if (actionController.targetEntityId && !this.world.entitiesById[actionController.targetEntityId]) {
+        this._updateEntities(deltaMs)
+        this.map.updateState()
+
+        if (actionController.targetEntityId && !this.entitiesById[actionController.targetEntityId]) {
             actionController.targetEntityId = null
         }
         actionController.reset()
@@ -58,42 +90,5 @@ class GameModel {
         }
     }
 }
-
-
-
-class World {
-    constructor(entities = []) {
-        this.entitiesById = {}
-        entities.forEach(e => this.entitiesById[e.id] = e)
-    }
-
-    getEntity(id) {
-        return this.entitiesById[id]
-    }
-
-    updateState(deltaMs, model) {
-        Object.values(this.entitiesById).forEach(e => {
-            e.updateState(deltaMs, model)
-        })
-        Object
-            .values(this.entitiesById)
-            .filter(e => e.deleted)
-            .forEach(e => {delete this.entitiesById[e.id]})
-
-
-    }
-
-    getEntitiesAround(pos, radius) {
-        return Object.values(this.entitiesById).filter(e => {
-            const deltaX = pos.x - e.position.x
-            const deltaY = pos.y - e.position.y
-            const r = radius + e.radius
-
-            return deltaX * deltaX + deltaY * deltaY <= r * r
-        })
-    }
-}
-
-
 
 export default GameModel;

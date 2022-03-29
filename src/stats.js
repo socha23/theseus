@@ -72,10 +72,15 @@ export const STATISTICS = {
         name: "Physics",
         unit: "ms"
     }),
+    BUCKET_SIZE: new Statistic({
+        name: "Bucket s",
+        unit: ""
+    }),
 }
 
 export function commitFrameStats() {
     STATISTICS.STATE_UPDATE_MS.commit()
     STATISTICS.RENDER_TIME_MS.commit()
     STATISTICS.PHYSICS_UPDATE.commit()
+    STATISTICS.BUCKET_SIZE.commit()
 }

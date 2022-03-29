@@ -28,6 +28,8 @@ export class Minimap extends Subsystem {
 
     updateState(deltaMs, model, ac) {
         super.updateState(deltaMs, model, ac)
+
+
         this._position = model.sub.position
         if (!this._features) {
             this._features = model.map.getPolygonsIntersecting(this._viewport)

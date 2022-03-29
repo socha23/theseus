@@ -6,5 +6,13 @@
 .subsystem .minimap .display {
     opacity: 0.8;
     border: 1px solid #a5d000;
+    position: relative;
 }
 
+.subsystem .minimap .dot {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: red;
+}

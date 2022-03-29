@@ -1,6 +1,6 @@
 import { Edge, Vector, SimpleRect, vectorForPolar } from "./physics"
 
-const MAP_BUCKET_SIZE = 100
+const MAP_BUCKET_SIZE = 20
 
 class CollisionMap {
     constructor() {

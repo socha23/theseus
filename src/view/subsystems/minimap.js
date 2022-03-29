@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import {Stage, Layer, Line, Circle, Rect, Group, Ellipse, Text} from 'react-konva'
 import "../../css/subsystems/minimap.css"
+import { jsonCompare, transpose } from "../../utils";
 
 
 const SIZE_PX = 224//376
@@ -22,27 +23,51 @@ function Feature({feature}) {
     return <Line points={linePointsFromPolygon(feature)} closed={true} fill="#444"/>
 }
 
+
+function _MinimapContents({sizePx, minX, maxX, minY, maxY, scale, features}) {
+    return <Stage width={sizePx} height={sizePx} >
+        <Layer>
+            <Rect
+                x={minX} width={maxX - minX}
+                y={minY} height={maxY - minY}
+                fill="black"
+                />
+            <Group offsetX={minX} offsetY={minY} scaleX={scale} scaleY={scale}>
+                {
+                    features.map(f => <Feature key={f.id} feature={f}/>)
+                }
+            </Group>
+        </Layer>
+    </Stage>
+}
+
+function compareMinimap(m1, m2) {
+    m1 = {...m1}
+    m2 = {...m2}
+    if (m1.features?.length != m2.features?.length) {
+        return false
+    }
+    m1.features = []
+    m2.features = []
+    return jsonCompare(m1, m2)
+}
+
+const MinimapContents = memo(_MinimapContents, compareMinimap)
+
 export function Minimap({subsystem}) {
     const scale = SIZE_PX / (subsystem.maxX - subsystem.minX)
-
-
     return <div className="minimap">
         <div className="display" style={{width: SIZE_PX + 2, height: SIZE_PX + 2}}>
-            {subsystem.on && <Stage width={SIZE_PX} height={SIZE_PX} >
-                <Layer>
-                    <Rect
-                        x={subsystem.minX} width={subsystem.maxX - subsystem.minX}
-                        y={subsystem.minY} height={subsystem.maxY - subsystem.minY}
-                        fill="black"
-                        />
-                    <Group offsetX={subsystem.minX} offsetY={subsystem.minY} scaleX={scale} scaleY={scale}>
-                        {
-                            subsystem.features.map(f => <Feature key={f.id} feature={f}/>)
-                        }
-                        <Circle x={subsystem.position.x} y={subsystem.position.y} radius={1 /scale} fill="red"/>
-                    </Group>
-                </Layer>
-            </Stage>}
+            {subsystem.on &&
+                    <MinimapContents sizePx={SIZE_PX} minX={subsystem.minX} maxX={subsystem.maxX} minY={subsystem.minY} maxY={subsystem.maxY} scale={scale} features={subsystem.features}/>
+            }
+            {
+                subsystem.on && <div className="dot" style={{
+                    left: transpose(subsystem.position.x, subsystem.minX, subsystem.maxX, 0, SIZE_PX) - 2,
+                    top: transpose(subsystem.position.y, subsystem.minY, subsystem.maxY, 0, SIZE_PX) - 2,
+                }}/>
+            }
         </div>
+
     </div>
 }

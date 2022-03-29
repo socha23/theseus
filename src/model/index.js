@@ -1,15 +1,20 @@
 import { Point } from "./physics"
-import {getStartingSub, getStartingWorld} from "./world"
+import {getStartingSub} from "./world"
 import { getStartingMap } from "./mapGeneration"
+import { generateFish } from "./fishGeneration"
 
 const MAX_TIME_FRAME_FOR_MODEL_UPDATE = 10
 
 class GameModel {
     constructor() {
         this.map = getStartingMap()
-        const subPos = this.map.getBottomLeftCave().position
+
+        const startCave = this.map.getBottomLeftCave()
+        startCave.startingArea = true
+        const subPos = startCave.position
+
         this.sub = getStartingSub(subPos)
-        this.world = getStartingWorld(this.map)
+        this.world = new World(generateFish(this.map))
         this.target = {
             position: this.map.getTopRightCave().position,
             name: "Goal"
@@ -53,5 +58,42 @@ class GameModel {
         }
     }
 }
+
+
+
+class World {
+    constructor(entities = []) {
+        this.entitiesById = {}
+        entities.forEach(e => this.entitiesById[e.id] = e)
+    }
+
+    getEntity(id) {
+        return this.entitiesById[id]
+    }
+
+    updateState(deltaMs, model) {
+        Object.values(this.entitiesById).forEach(e => {
+            e.updateState(deltaMs, model)
+        })
+        Object
+            .values(this.entitiesById)
+            .filter(e => e.deleted)
+            .forEach(e => {delete this.entitiesById[e.id]})
+
+
+    }
+
+    getEntitiesAround(pos, radius) {
+        return Object.values(this.entitiesById).filter(e => {
+            const deltaX = pos.x - e.position.x
+            const deltaY = pos.y - e.position.y
+            const r = radius + e.radius
+
+            return deltaX * deltaX + deltaY * deltaY <= r * r
+        })
+    }
+}
+
+
 
 export default GameModel;

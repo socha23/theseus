@@ -86,10 +86,6 @@ function boxoid(position, size=10, additionalCorners = 0, theta=0) {
 }
 
 
-
-
-
-
 const DEFAULT_MAP_PARAMS = {
     position: new Point(0, 0),
 
@@ -147,6 +143,7 @@ class Cave {
         this.position = position
         this.size = size
         this.definition = definition
+        this.startingArea = false
     }
 
     polygon(size = 0) {

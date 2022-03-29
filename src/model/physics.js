@@ -1,4 +1,5 @@
 import { STATISTICS } from "../stats"
+import { transpose } from "../utils"
 
 export function vectorForPolar(r, theta) {
     return new Vector(r * Math.cos(theta), r * Math.sin(theta))
@@ -409,6 +410,25 @@ export class Polygon {
             maxY = Math.max(maxY, p.y)
         })
         this._simpleBoundingBox = new SimpleRect(minX, minY, maxX - minX, maxY - minY)
+    }
+
+    randomPoint() {
+        for (var retry = 0; retry < 200; retry++) {
+            const size = 0.01
+            const b = this._simpleBoundingBox
+            const x = transpose(Math.random(), 0, 1, b.x, b.x + b.width)
+            const y = transpose(Math.random(), 0, 1, b.y, b.y + b.height)
+            const testPoly = new Polygon([
+                new Point(x, y),
+                new Point(x + size, y),
+                new Point(x + size, y + size),
+                new Point(x, y + size),
+            ])
+            if (this.overlaps(testPoly)) {
+                return new Point(x, y)
+            }
+        }
+        throw new Error("Can't find random point")
     }
 
     overlaps(other) {

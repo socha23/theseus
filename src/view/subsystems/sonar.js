@@ -329,7 +329,7 @@ function Target({subPosition, subOrientation, target, scale}) {
     const viewport = new SimpleRect(0, 0, SIZE_PX, SIZE_PX)
 
     if (viewport.contains(targetPosOnScreen)) {
-        mark = <Circle listening={false} stroke="#ebf100" radius={MARK_SIZE} opacity={0.5} position={targetPosOnScreen}/>
+        mark = <Circle listening={false} stroke="#00e1ff" radius={MARK_SIZE} opacity={1} position={targetPosOnScreen}/>
         labelAttrs = {width: SIZE_PX, height: SIZE_PX - 2 * LABEL_MARGIN, x: targetPosOnScreen.x - SIZE_PX / 2, y: targetPosOnScreen.y + LABEL_MARGIN, align: "center", verticalAlign: "top"}
     } else {
         var arrowPoints = []
@@ -354,12 +354,12 @@ function Target({subPosition, subOrientation, target, scale}) {
             arrowPoints = [x - MARK_SIZE, SIZE_PX - MARGIN - MARK_SIZE, x, SIZE_PX - MARGIN, x + MARK_SIZE, SIZE_PX - MARGIN - MARK_SIZE]
             labelAttrs = {width: SIZE_PX, height: SIZE_PX - 2 * LABEL_MARGIN, x: x - SIZE_PX / 2, y: LABEL_MARGIN, align: "center", verticalAlign: "bottom"}
         }
-        mark = <Line listening={false }stroke="#ebf100" closed={true} points={arrowPoints} opacity={0.5}/>
+        mark = <Line listening={false } stroke="#00e1ff" closed={true} points={arrowPoints} opacity={1}/>
     }
 
     return <Group>
         {mark}
-        <Text listening={false} {...labelAttrs} fontFamily="monospace" stroke="#ebf100" opacity={0.5} strokeWidth={1} text={labelText}/>
+        <Text listening={false} {...labelAttrs} fontFamily="monospace" fill="#00e1ff" opacity={1} strokeWidth={1} text={labelText}/>
     </Group>
 }
 

@@ -122,8 +122,8 @@ class PowerManagement {
 
 
 export class Sub extends Entity {
-    constructor(volume, subsystems = []) {
-        super("sub", new Body(new Point(0, 0), volume, Math.PI / 2))
+    constructor(position, volume, subsystems = []) {
+        super("sub", new Body(position, volume, 3 * Math.PI / 2))
         this.subsystems = subsystems
 
         this._engine = this._findSubsystem(Engine)

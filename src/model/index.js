@@ -6,15 +6,12 @@ const MAX_TIME_FRAME_FOR_MODEL_UPDATE = 10
 
 class GameModel {
     constructor() {
-        this.sub = getStartingSub()
-
-        this.map = getStartingMap(this.sub.boundingBox)
-
+        this.map = getStartingMap()
+        const subPos = this.map.getBottomLeftCave().position
+        this.sub = getStartingSub(subPos)
         this.world = getStartingWorld(this.map)
         this.target = {
-            position: new Point(
-                (Math.random() - 0.5) * 1000,
-                (Math.random() - 0.5) * 1000),
+            position: this.map.getTopRightCave().position,
             name: "Goal"
         }
     }

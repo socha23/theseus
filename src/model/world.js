@@ -9,12 +9,10 @@ import { Engine } from "./subsystems/engine"
 import { Weapon } from "./subsystems/weapons"
 import { Tracking } from "./subsystems/tracking"
 import { Sonar } from "./subsystems/sonar"
-import { Map } from "./map"
 import { Pumps } from "./subsystems/pumps"
 import { CheatBox } from "./subsystems/cheatbox"
 import { Storage } from "./subsystems/storage"
 import { MATERIALS } from "./materials"
-import { ellipsoid } from "./mapGeneration"
 import { Minimap } from "./subsystems/minimap"
 
 const WEAPON_TEMPLATES = {
@@ -131,8 +129,9 @@ const FISH_TEMPLATES = {
 
 }
 
-export function getStartingSub() {
+export function getStartingSub(position) {
     return new Sub(
+        position,
         new Volume(2, 2, 10),
         [
             new Minimap(new Point(0, 0)),
@@ -163,11 +162,11 @@ export function getStartingWorld(map) {
     return new World(
         [
 
-            ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
-            ...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
+            //...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
+            //...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
             //...createFish(map, FISH_TEMPLATES.FAT_FISH, 50, Point.ZERO, 400, 70),
             //...createFish(map, FISH_TEMPLATES.BIG_FISH, 15, Point.ZERO, 400, 70),
-            ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 20, Point.ZERO, 400, 30),
+            //...createFish(map, FISH_TEMPLATES.GOAT_FISH, 20, Point.ZERO, 400, 30),
 
 //                        ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 10, Point.ZERO, 20),
         ]

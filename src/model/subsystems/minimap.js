@@ -23,16 +23,16 @@ export class Minimap extends Subsystem {
         ])
         this._features = null
         this._position = Point.ZERO
+        this._target = Point.ZERO
         this.on = true
     }
 
     updateState(deltaMs, model, ac) {
         super.updateState(deltaMs, model, ac)
-
-
         this._position = model.sub.position
+        this._target = model.target.position
         if (!this._features) {
-            this._features = model.map.getPolygonsIntersecting(this._viewport)
+            this._features = model.map.logicalPolygons
         }
 
     }
@@ -47,6 +47,7 @@ export class Minimap extends Subsystem {
             maxY: this.maxY,
             isMinimap: true,
             position: this._position,
+            target: this._target,
         }
     }
 }

@@ -102,14 +102,34 @@ const DEFAULT_MAP_PARAMS = {
     boxSize: 10,
     boxAdditionalCorners: 8,
 
-    caveCorners: 8,
-    caveSizeMin: 5,
-    caveSizeMax: 90,
+    caves: [
+        {
+            sizeMin: 70,
+            sizeMax: 130,
+            count: 5,
+            corners: 16,
+            distance: 150,
+        },
+        {
+            sizeMin: 30,
+            sizeMax: 70,
+            count: 20,
+            corners: 8,
+            distance: 50,
+        },
+        {
+            sizeMin: 10,
+            sizeMax: 20,
+            count: 50,
+            corners: 4,
+            distance: 20,
+        },
+    ],
     caveMinDistance: 30,
-    caveCount: 50,
 
-    pathWidthMin: 15,
-    pathWidthMax: 50,
+    pathWidthMin: 30,
+    pathWidthMax: 60,
+    pathGenerationChaos: 60,
 }
 
 
@@ -120,7 +140,6 @@ const DEFAULT_MAP_PARAMS = {
 
 
 var autoinc = 0
-
 
 class Cave {
     constructor(position, size, definition) {
@@ -143,16 +162,16 @@ class Cave {
     }
 }
 
-function randomCave(params, position = null) {
-    const minX = params.minX + params.wallMargin + params.caveSizeMax / 2
-    const maxX = params.maxX - params.wallMargin - params.caveSizeMax / 2
+function randomCave(params, caveParams, position = null) {
+    const minX = params.minX + params.wallMargin + caveParams.sizeMax / 2
+    const maxX = params.maxX - params.wallMargin - caveParams.sizeMax / 2
 
-    const minY = params.minY + params.wallMargin + params.caveSizeMax / 2
-    const maxY = params.maxY - params.wallMargin - params.caveSizeMax / 2
+    const minY = params.minY + params.wallMargin + caveParams.sizeMax / 2
+    const maxY = params.maxY - params.wallMargin - caveParams.sizeMax / 2
 
 
-    var sizeX = transpose(Math.random(), 0, 1, params.caveSizeMin, params.caveSizeMax)
-    var sizeY = transpose(Math.random(), 0, 1, params.caveSizeMin, params.caveSizeMax)
+    var sizeX = transpose(Math.random(), 0, 1, caveParams.sizeMin, caveParams.sizeMax)
+    var sizeY = transpose(Math.random(), 0, 1, caveParams.sizeMin, caveParams.sizeMax)
 
     if (position == null) {
         position = new Point(
@@ -160,15 +179,15 @@ function randomCave(params, position = null) {
             transpose(Math.random(), 0, 1, minY, maxY)
         )
     }
-    const definition = ellipsoid(position, sizeX, sizeY, params.caveCorners)
+    const definition = ellipsoid(position, sizeX, sizeY, caveParams.corners)
     return new Cave(position, Math.max(sizeX, sizeY), definition)
 }
 
 
-function randomCaveDistancedFromExisting(params, caves) {
+function randomCaveDistancedFromExisting(params, caveParams, caves) {
     for (var caveRecount = 0; caveRecount < 100; caveRecount++) {
-        const cave = randomCave(params)
-        if (caves.some(c => cave.isWithinRange(c, params.caveMinDistance))) {
+        const cave = randomCave(params, caveParams)
+        if (caves.some(c => cave.isWithinRange(c, caveParams.distance))) {
             continue
         }
         return cave
@@ -185,11 +204,13 @@ class Path {
             (this.from.x + this.to.x) / 2,
             (this.from.y + this.to.y) / 2,
         )
-        this.width = transpose(Math.random(), 0, 1, params.pathWidthMin, params.pathWidthMax)
-
         const pathVect = this.from.vectorTo(this.to)
 
-        this.definition = new BoxPolygonDescription(this.position, pathVect.length, this.width, pathVect.theta)
+        this.width = transpose(Math.random(), 0, 1, params.pathWidthMin, params.pathWidthMax)
+
+        this.width = Math.min(this.width, pathVect.length)
+
+        this.definition = new BoxPolygonDescription(this.position, pathVect.length + this.width, this.width, pathVect.theta)
     }
 
     polygon(size = 0) {
@@ -199,9 +220,13 @@ class Path {
 
 
 
-function generatePaths(caves, params) {
-    const cavesLeft = [...caves]
-    const cavesProcessed = [cavesLeft.shift()]
+
+
+
+
+function generatePaths(caves, fromCave, params) {
+    const cavesLeft = caves.filter(c => c != fromCave)
+    const cavesProcessed = [fromCave]
     const result = []
 
     while (cavesLeft.length > 0) {
@@ -211,7 +236,9 @@ function generatePaths(caves, params) {
 
         for (var sI = 0; sI < cavesProcessed.length; sI++) {
             for (var sJ = 0; sJ < cavesLeft.length; sJ++) {
-                const dist = cavesProcessed[sI].distanceTo(cavesLeft[sJ])
+                var dist = cavesProcessed[sI].distanceTo(cavesLeft[sJ])
+                // let's add some chaos...
+                dist += Math.random() * params.pathGenerationChaos
                 if (dist < distance) {
                     distance = dist
                     srcCave = cavesProcessed[sI]
@@ -228,43 +255,64 @@ function generatePaths(caves, params) {
 
 
 function generateCaves(params) {
-    const caves = [randomCave(params, Point.ZERO)]
-
-    for (var i = 0; i < params.caveCount; i++) {
-        const newCave = randomCaveDistancedFromExisting(params, caves)
-        if (newCave != null) {
-            caves.push(newCave)
-        } else {
-            console.log("Couldn't place all caves")
-            break
+    const caves = []
+    params.caves.forEach(caveParams => {
+        for (var i = 0; i < caveParams.count; i++) {
+            const newCave = randomCaveDistancedFromExisting(params, caveParams, caves)
+            if (newCave != null) {
+                caves.push(newCave)
+            } else {
+                console.log("Couldn't place all caves")
+                break
+            }
         }
-    }
+    })
     return caves
 }
 
-export function getStartingMap(subBoundingBox, params={}) {
+export function getStartingMap(params={}) {
     params = {...DEFAULT_MAP_PARAMS, ...params}
 
     const result = new Map()
-
-    const caves = generateCaves(params)
-    const paths = generatePaths(caves, params)
-
     const mask = []
+    const caves = generateCaves(params)
     caves.forEach(c => {
+        result.caves.push(c)
         mask.push(c.polygon())
     })
-    paths.forEach(p => {
+
+    generatePaths(caves, result.getTopLeftCave(), params)
+        .forEach(p => {
+            result.paths.push(p)
+            mask.push(p.polygon())
+        })
+    generatePaths(caves, result.getBottomRightCave(), params)
+    .forEach(p => {
+        result.paths.push(p)
         mask.push(p.polygon())
     })
 
+    generatePaths(caves, result.getBottomLeftCave(), params)
+        .forEach(p => {
+            result.paths.push(p)
+            mask.push(p.polygon())
+        })
+        generatePaths(caves, result.getTopRightCave(), params)
+        .forEach(p => {
+            result.paths.push(p)
+            mask.push(p.polygon())
+        })
+
+
+    const margin = 10 * params.boxSize
+
     // fill with rocks
-    for (var x = params.minX; x < params.maxX; x+= params.boxSize) {
-        for (var y = params.minY; y < params.maxY; y+= params.boxSize) {
+    for (var x = params.minX - margin; x < params.maxX + margin; x+= params.boxSize) {
+        for (var y = params.minY - margin; y < params.maxY + margin; y+= params.boxSize) {
             const rockDef = boxoid(new Point(x, y), params.boxSize + 5, params.boxAdditionalCorners)
             const poly = rockDef.createPolygon(0)
             if (!mask.some(m => m.overlaps(poly))) {
-                result.add(rockDef)
+                result.addObstacle(rockDef)
             }
         }
     }

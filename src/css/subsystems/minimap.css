@@ -9,10 +9,18 @@
     position: relative;
 }
 
-.subsystem .minimap .dot {
+.subsystem .minimap .sub {
     position: absolute;
     width: 4px;
     height: 4px;
     border-radius: 2px;
     background-color: red;
+}
+
+.subsystem .minimap .target {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: #00e1ff;
 }

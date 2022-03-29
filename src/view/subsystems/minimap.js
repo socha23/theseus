@@ -20,7 +20,7 @@ function linePointsFromPolygon(polygon) {
 // FEATURES
 ///////////
 function Feature({feature}) {
-    return <Line points={linePointsFromPolygon(feature)} closed={true} fill="#444"/>
+    return <Line points={linePointsFromPolygon(feature)} closed={true} fill="black"/>
 }
 
 
@@ -30,7 +30,7 @@ function _MinimapContents({sizePx, minX, maxX, minY, maxY, scale, features}) {
             <Rect
                 x={minX} width={maxX - minX}
                 y={minY} height={maxY - minY}
-                fill="black"
+                fill="#444"
                 />
             <Group offsetX={minX} offsetY={minY} scaleX={scale} scaleY={scale}>
                 {
@@ -62,9 +62,15 @@ export function Minimap({subsystem}) {
                     <MinimapContents sizePx={SIZE_PX} minX={subsystem.minX} maxX={subsystem.maxX} minY={subsystem.minY} maxY={subsystem.maxY} scale={scale} features={subsystem.features}/>
             }
             {
-                subsystem.on && <div className="dot" style={{
+                subsystem.on && <div className="sub" style={{
                     left: transpose(subsystem.position.x, subsystem.minX, subsystem.maxX, 0, SIZE_PX) - 2,
                     top: transpose(subsystem.position.y, subsystem.minY, subsystem.maxY, 0, SIZE_PX) - 2,
+                }}/>
+            }
+            {
+                subsystem.on && <div className="target" style={{
+                    left: transpose(subsystem.target.x, subsystem.minX, subsystem.maxX, 0, SIZE_PX) - 2,
+                    top: transpose(subsystem.target.y, subsystem.minY, subsystem.maxY, 0, SIZE_PX) - 2,
                 }}/>
             }
         </div>

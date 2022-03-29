@@ -56,8 +56,53 @@ export class Map {
     constructor() {
         this.polygonDefinitions = []
         this.collisionMaps = {}
+        this.caves = []
+        this.paths = []
+        this._logicalPolygons = null
+    }
+    // logical map
+    getTopLeftCave() {
+        return this._getCaveMinimizing(c => c.position.x + c.position.y)
     }
 
+    getTopRightCave() {
+        return this._getCaveMinimizing(c => -c.position.x + c.position.y)
+    }
+
+    getBottomLeftCave() {
+        return this._getCaveMinimizing(c => c.position.x + -c.position.y)
+    }
+
+    getBottomRightCave() {
+        return this._getCaveMinimizing(c => -c.position.x + -c.position.y)
+    }
+
+
+    _getCaveMinimizing(fun) {
+        var dist = Infinity
+        var result = null
+        this.caves.forEach(c => {
+            const myDist = fun(c)
+            if (myDist < dist) {
+                result = c
+                dist = myDist
+            }
+
+        })
+        return result
+    }
+
+    get logicalPolygons() {
+        if (this._logicalPolygons === null) {
+            this._logicalPolygons = [
+                ...this.caves.map(c => c.polygon()),
+                ...this.paths.map(c => c.polygon()),
+            ]
+        }
+        return this._logicalPolygons
+    }
+
+    // collisions
     _getCollisionMap(deltaSize) {
         const k = "s" + deltaSize
         if (!(k in this.collisionMaps)) {
@@ -74,10 +119,9 @@ export class Map {
         return result
     }
 
-    add(polygonDefinition) {
+    addObstacle(polygonDefinition) {
         this.polygonDefinitions.push(polygonDefinition)
     }
-
 
     getPolygonsIntersecting(polygon, size=0) {
         return this._getCollisionMap(size).getPolygonsIntersecting(polygon)

@@ -21,8 +21,6 @@ export class Weapon extends Subsystem {
         this.range = this.template.range
         this.damage = this.template.damage
         this._target = null
-        this._targetDistance = 0
-        this._targetVisible = false
         this._mouseOver = false
         this._operator = false
         this._aim = new Aim(this)
@@ -75,14 +73,6 @@ export class Weapon extends Subsystem {
         if (this.ammo === 0) {
             c.push("Out of ammo")
         }
-        if (!this._target) {
-            c.push("No target")
-        } else if (!this._targetVisible) {
-            c.push("Target obscured")
-        } else if (this._target && this.range < this._targetDistance) {
-            c.push("Out of range")
-        }
-
     }
 
     aim(model) {
@@ -108,14 +98,8 @@ export class Weapon extends Subsystem {
             c.push("Unpowered")
         } else if (this.ammo === 0) {
             c.push("Out of ammo")
-        } else if (!this._target) {
-            c.push("No target")
         } else if (this._shotsLeft === 0) {
             c.push("Out of shots")
-        } else if (!this._targetVisible) {
-            c.push("Target obscured")
-        } else if (this.range < this._targetDistance) {
-            c.push("Out of range")
         }
     }
 
@@ -134,12 +118,6 @@ export class Weapon extends Subsystem {
         super.updateState(deltaMs, model, actionController)
         this._position = model.sub.position
         this._target = model.sub.targetEntity
-        if (this._target) {
-            this._targetDistance = this._target.position.distanceTo(model.sub.position) - this._target.radius
-            this._targetVisible = (model.map.raycast(model.sub.position, this._target.position) == null)
-        } else {
-            this._targetDistance = 0
-        }
 
         this._aim.updateState(deltaMs, model)
 
@@ -202,24 +180,28 @@ class Aim {
     constructor(weapon) {
         this._weapon = weapon
         this._sonarRange = 1
-        this._targetSize = 0
 
         this._aiming = false
         this._crosshairsPos = 0
         this._shootMarks = []
+
+        this._targets = []
     }
 
     updateState(deltaMs, model) {
         this._sonarRange = model.sub.sonarRange
+        const myPos = this._weapon._position
 
-        if (this._weapon._target != null) {
-
-
-            const sizeMultiplier = Math.max(0.1, 1 - this._weapon._targetDistance / this._sonarRange)
-            this._targetSize = this._weapon._target.radius * TARGET_SIZE * sizeMultiplier
-        } else {
-            this._targetSize = 0
-        }
+        this._targets = model.map
+            .getEntitiesAround(myPos, this._sonarRange)
+            .filter(e => e.position.distanceTo(myPos) <= this._sonarRange + e.radius)
+            .map(e => ({
+                entity: e,
+                size: e.radius * TARGET_SIZE *  Math.max(0.1, 1 - e.position.distanceTo(myPos) / this._sonarRange),
+                distance: e.position.distanceTo(myPos) - e.radius,
+                obscured: model.map.raycast(e.position, myPos) != null,
+                selected: e == model.sub.targetEntity,
+            }))
 
         if (this._aiming) {
             this._crosshairsPos = this._crosshairsPos + CROSSHAIRS_SPEED * deltaMs / 1000
@@ -243,34 +225,42 @@ class Aim {
     }
 
     shoot() {
-        var hit = false
-        if (this._weapon._target) {
-            hit = true
-            if (
-                (this._crosshairsPos + CROSSHAIRS_SIZE < this._weapon._targetDistance)
-            || (this._weapon._targetDistance + this._targetSize < this._crosshairsPos)) {
-                hit = false
-            }
-            this._shootMarks.push({
-                hit: hit,
-                pos: this._crosshairsPos,
-                size: CROSSHAIRS_SIZE,
-                time: Date.now()
-            })
+        var hitTarget = null
+
+        const targets = this._targets
+            .filter(t => !t.obscured)
+            .filter(t => t.distance < this._crosshairsPos + CROSSHAIRS_SIZE )
+            .filter(t => this._crosshairsPos < t.distance + t.size)
+
+        hitTarget = targets.find(t => t.selected)
+
+        if (!hitTarget && targets.length > 0) {
+            hitTarget = targets[0]
         }
-        return hit ? [this._weapon._target] : []
+        this._shootMarks.push({
+            hit: hitTarget != null,
+            pos: this._crosshairsPos,
+            size: CROSSHAIRS_SIZE,
+            time: Date.now()
+        })
+        return hitTarget ? [hitTarget.entity] : []
     }
 
     toViewState() {
+        const myPos = this._weapon._position
         return {
             on: this._weapon.on,
             targetObscured: (this._weapon._target && !this._weapon._targetVisible),
             rangePercent: percentize(this._weapon.range, this._sonarRange),
-            target: this._weapon._target ? {
-                alive: this._weapon._target.alive,
-                distancePercent: percentize(this._weapon._targetDistance, this._sonarRange),
-                sizePercent: percentize(this._targetSize, this._sonarRange),
-            } : null,
+            targets: this._targets.map(t => ({
+                id: t.entity.id,
+                alive: t.entity.alive,
+                distancePercent: percentize(t.distance, this._sonarRange),
+                sizePercent: percentize(t.size, this._sonarRange),
+                color: t.entity.color,
+                obscured: t.obscured,
+                selected: t.selected,
+            })),
             crosshairs: this._aiming ? {
                 distancePercent: percentize(this._crosshairsPos, this._sonarRange),
                 sizePercent: percentize(CROSSHAIRS_SIZE, this._sonarRange)

@@ -108,6 +108,14 @@ export function generateFish(map) {
         const r = Math.random()
 
         const aggresive = !c.startingArea
+
+        if (c.startingArea) {
+//            res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(4, 10)))
+//            res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(4, 10)))
+//            res.push(...fishesInCave(c, FISH_TEMPLATES.GOAT_FISH, flockSize(2, 5)))
+        }
+
+
         if (c.size < 20) {
             if (r < 0.3) {
                 res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(4, 10)))

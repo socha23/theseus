@@ -1,5 +1,7 @@
 import { ActionButton } from "../widgets"
 import "../../css/subsystems/weapons.css"
+import { useContext } from "react"
+import { ActionControllerCtx } from "../../actionController"
 
 function AmmoBullet({spent}) {
     return <span className='bullet'>
@@ -19,17 +21,33 @@ function AmmoBar({subsystem}) {
 }
 
 
-function AimBarSegment({segment, className}) {
-    return <div
-    className={className}
-    style={{
+function AimBarSegment({segment, className, color, onClick=()=>{}}) {
+    const style = {
         left: segment.distancePercent + "%",
         width: segment.sizePercent + "%",
-    }}
-/>
+    }
+    const innerStyle={}
+    if (color) {
+        style.borderColor = color
+        innerStyle.backgroundColor = color
+    }
+
+    return <div
+            className={className}
+            onClick={onClick}
+            style={style}
+        >
+        <div
+            className="inner "
+            onClick={onClick}
+            style={innerStyle}
+        />
+    </div>
 }
 
 function AimBar({aim}) {
+    const actionController = useContext(ActionControllerCtx)
+
     return <div className={"aimBar " + (aim.targetObscured ? "obscured " : "visible ")}>
         {   aim.on && <div className="aimBarInner">
             {
@@ -41,8 +59,17 @@ function AimBar({aim}) {
                 />
             }
             {
-                aim.target && <AimBarSegment segment={aim.target}
-                    className={"target " + (aim.target.alive ? "alive " : "dead ") }/>
+                aim.targets.map(t => <AimBarSegment key={t.id}
+                    onClick={() => {actionController.targetEntityId = t.id}}
+                    segment={t}
+                    color={t.color}
+                    className={"target "
+                        + (t.alive ? "alive " : "dead ")
+                        + (t.obscured ? "obscured " : "unobscured ")
+                        + (t.selected ? "selected " : "unselected ")
+                        }
+
+                />)
             }
             {
                 aim.crosshairs && <AimBarSegment segment={aim.crosshairs} className="crosshairs"/>
@@ -55,11 +82,6 @@ function AimBar({aim}) {
                 />)
             }
         </div>
-        }
-        {
-            (aim.on && aim.targetObscured) && <div className="obscuredMessage">
-                Target obscured
-            </div>
         }
     </div>
 }

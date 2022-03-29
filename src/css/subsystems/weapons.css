@@ -18,6 +18,7 @@
     background-color: #003b35;
     overflow: hidden;
     border: 1px solid #a5d000;
+    z-index: 100;
 }
 
 .subsystem.unpowered .weapon .aimBar {
@@ -30,41 +31,43 @@
     height: 100%;
 }
 
-
-.subsystem.powered .weapon .aimBar.obscured .aimBarInner {
-    opacity: 0.5;
-}
-
-.subsystem .weapon .aimBar .obscuredMessage {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    color: white;
-    font-weight: bold;
-    z-index: 100;
-}
-
-
 .subsystem .weapon .aimBar .target {
-    background-color: rgba(255, 0, 0, 0.4);
     border-left: 1px solid red;
     border-right: 1px solid red;
     position: absolute;
     height: 100%;
+    opacity: 0.3;
+    z-index: 900;
+}
+
+.subsystem .weapon .aimBar .target .inner {
+    height: 100%;
+    width: 100%;
+}
+
+.subsystem .weapon .aimBar .target.selected {
+    opacity: 1;
+    z-index: 1000;
+}
+
+.subsystem .weapon .aimBar .target.selected .inner{
+    opacity: 0.9;
+}
+
+
+.subsystem .weapon .aimBar .target.obscured {
+    opacity: 0.4;
 }
 
 .subsystem .weapon .aimBar .target.dead {
-    opacity: 0.5;
+    opacity: 0.2;
 }
 
 .subsystem .weapon .aimBar .range {
     background-color: rgba(71, 149, 40, 0.3);
-    border-right: 3px solid rgba(71, 149, 40, 0.7);
     position: absolute;
     height: 100%;
+    z-index: 0;
 }
 
 .subsystem .weapon .aimBar .shootMark.hit {

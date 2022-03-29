@@ -116,7 +116,7 @@ const DEFAULT_MAP_PARAMS = {
         {
             sizeMin: 10,
             sizeMax: 20,
-            count: 50,
+            count: 40,
             corners: 4,
             distance: 20,
         },

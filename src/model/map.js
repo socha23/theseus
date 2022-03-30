@@ -1,9 +1,6 @@
-import { STATISTICS } from "../stats"
 import { Edge, Vector, SimpleRect, vectorForPolar } from "./physics"
 
 const MAP_BUCKET_SIZE = 10
-
-var statAdd = 0
 
 class CollisionMap {
     constructor() {
@@ -11,29 +8,21 @@ class CollisionMap {
     }
 
     _getBucket(x, y) {
-        const key = x + "_" + y
+        const key = x * 100000 + y
         if (!(key in this.buckets)) {
-            this.buckets[key] = []
+            this.buckets[key] = new Set()
         }
-        const bucket = this.buckets[key]
-        if (statAdd == 10000) {
-            if (bucket.length > 0) {
-                STATISTICS.BUCKET_SIZE.add(bucket.length, true)
-            }
-            statAdd = 0
-        }
-        statAdd++
-        return bucket
+        return this.buckets[key]
     }
 
     _combineBuckets(buckets) {
-        const seen = {}
+        const seen = new Set()
         const result = []
         buckets.forEach(b => {
             b.forEach(f => {
-                if (!(f.id in seen)) {
+                if (!seen.has(f)) {
                     result.push(f)
-                    seen[f.id] = f
+                    seen.add(f)
 
                 }
             })
@@ -58,8 +47,15 @@ class CollisionMap {
 
     add(polygon, item=polygon) {
         this._bucketsOverlapping(polygon).forEach(b => {
-            b.push(item)
+            b.add(item)
         })
+    }
+
+    remove(polygon, item=polygon) {
+        this._bucketsOverlapping(polygon).forEach(b => {
+            b.delete(item)
+        })
+
     }
 }
 
@@ -143,7 +139,6 @@ export class Map {
     }
 
     detectCollision(polygon, size=0) {
-        const startTime = window.performance.now()
         let result = null
         this._getCollisionMap(size).getPolygonsIntersecting(polygon).forEach(p => {
             if (p.overlaps(polygon)) {
@@ -152,58 +147,46 @@ export class Map {
                 }
             }
         })
-        STATISTICS.DETECT_COLLISIONS.add(window.performance.now() - startTime)
         return result
     }
 
-    detectWallCollision(polygon, speedVector=null, wallDetection=true, size=0) {
-        const startTime = window.performance.now()
-
+    detectWallCollision(polygon, speedVector=null) {
         let result = null
         const polygons = this
-            ._getCollisionMap(size)
+            ._getCollisionMap(0)
             .getPolygonsIntersecting(polygon)
             .filter(p => p.overlaps(polygon))
 
         if (polygons.length > 0) {
             const p = polygons[0]
+            const wall = p.myOverlappingEdge(polygon)
+            if (wall == null) {
+                console.log("Can't find impact wall")
+                wall = p.edges[0]
+            }
+
+            const wallVect = wall.toVector()
+            const angle = speedVector.theta - wall.theta
+            const impactSpeed = Math.sin(angle) * speedVector.length
+            const impactTheta = (wall.theta - Math.PI / 2) % (2 * Math.PI)
+            const impactForce = vectorForPolar(impactSpeed, impactTheta).negative()
+            const wallNormal = wall.theta > speedVector.theta ? new Vector(wallVect.y, -wallVect.x) : new Vector(-wallVect.y, wallVect.x)
+
             result = {
                 polygon: p,
-                mapFeatureWall: p.myOverlappingEdge(polygon),
-            }
-            if (speedVector && wallDetection && result.mapFeatureWall) {
-                result.angle = speedVector.theta - result.mapFeatureWall.theta
-                result.impactSpeed = Math.sin(result.angle) * speedVector.length
-                result.impactTheta = (result.mapFeatureWall.theta - Math.PI / 2) % (2 * Math.PI)
-                result.impactForce = vectorForPolar(result.impactSpeed, result.impactTheta).negative()
-
-                const wallVect = result.mapFeatureWall.toVector()
-                result.wallNormal = null
-                if (result.mapFeatureWall.theta > speedVector.theta) {
-                    result.wallNormal = new Vector(wallVect.y, -wallVect.x)
-                } else {
-                    result.wallNormal = new Vector(-wallVect.y, wallVect.x)
-                }
-
+                mapFeatureWall: wall,
+                wallVect,
+                angle,
+                impactSpeed,
+                impactTheta,
+                impactForce,
+                wallNormal
             }
         }
-        if (result && wallDetection && !result.mapFeatureWall) {
-            // can't debug this
-
-            console.log("DETECT WALL COLLISION DETECTS NO WALLS")
-            console.trace()
-            result.mapFeatureWall = result.polygon.edges[0]
-        }
-
-        STATISTICS.DETECT_COLLISIONS.add(window.performance.now() - startTime)
-
         return result
     }
 
     raycast(from, to, size=0) {
-
-        const startTime = window.performance.now()
-
         const minX = Math.min(from.x, to.x)
         const minY = Math.min(from.y, to.y)
         const maxX = Math.max(from.x, to.x)
@@ -236,9 +219,6 @@ export class Map {
                 }
             })
         })
-
-        STATISTICS.RAYCAST.add(window.performance.now() - startTime)
-
         return result
 
     }
@@ -249,18 +229,19 @@ export class Map {
         this.entityMap.add(entity.boundingBox, entity)
     }
 
-    updateState() {
-        const newEntityMap = new CollisionMap()
-        const newEntities = []
+    removeEntity(entity) {
+        const idx = this.entities.indexOf(entity)
+        if (idx >= 0) {
+            this.entities.splice(idx, 1)
+            this.entityMap.remove(entity.boundingBox, entity)
+        }
+    }
 
-        this.entities.forEach(e => {
-            if (!e.deleted) {
-                newEntities.push(e)
-                newEntityMap.add(e.boundingBox, e)
-            }
-        })
-        this.entities = newEntities
-        this.entityMap = newEntityMap
+    updateEntity(entity, previousBoundingBox) {
+        if (previousBoundingBox != null) {
+            this.entityMap.remove(previousBoundingBox, entity)
+            this.entityMap.add(entity.boundingBox, entity)
+        }
     }
 
     getEntitiesAround(pos, radius) {

@@ -202,9 +202,7 @@ export class HasEffects {
 
     toViewState() {
         return {
-            effects: this.effects.map(e => {
-                return e.toViewState()
-            }),
+            effects: this.effectsViewState(),
         }
     }
 
@@ -225,6 +223,10 @@ export class HasEffects {
         var val = 1
         this.effects.forEach(e => {val *= e.param(paramName, 1)})
         return val
+    }
+
+    effectsViewState() {
+        return this.effects.map(e => e.toViewState())
     }
 
 }

@@ -148,7 +148,7 @@ class BackOffFromWalls extends Behavior {
 
     findGoodThetas(model) {
         const result = []
-        const DELTA = 2 * this.entity.radius
+        const DELTA = 3 * this.entity.radius
 
         if (!this.closeToWall(model, DELTA, 0)) {
             result.push(0)

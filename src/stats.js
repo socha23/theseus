@@ -68,29 +68,9 @@ export const STATISTICS = {
         name: "Render time",
         unit: "ms"
     }),
-    PHYSICS_UPDATE: new Statistic({
-        name: "Physics",
-        unit: "ms"
-    }),
-    DETECT_COLLISIONS: new Statistic({
-        name: "Detect col",
-        unit: "ms"
-    }),
-    RAYCAST: new Statistic({
-        name: "Raycast",
-        unit: "ms"
-    }),
-    BUCKET_SIZE: new Statistic({
-        name: "Bucket s",
-        unit: ""
-    }),
 }
 
 export function commitFrameStats() {
     STATISTICS.STATE_UPDATE_MS.commit()
     STATISTICS.RENDER_TIME_MS.commit()
-    STATISTICS.PHYSICS_UPDATE.commit()
-    STATISTICS.BUCKET_SIZE.commit()
-    STATISTICS.DETECT_COLLISIONS.commit()
-    STATISTICS.RAYCAST.commit()
 }

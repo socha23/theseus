@@ -84,7 +84,7 @@ export class Entity extends HasEffects {
 
     toViewState() {
         return {
-            ...super.toViewState(),
+            effects: this.effectsViewState(),
             id: this.id,
             position: this.body.position,
             color: this.color,

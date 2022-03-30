@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import {Stage, Layer, Line, Circle, Rect, Group, Ellipse, Text} from 'react-konva'
 import { rgbGradientValue } from "../../gradient";
 import { EFFECT_TYPES } from "../../model/effects";
@@ -247,9 +247,13 @@ function Features({features}) {
     </Group>
 }
 
-function Feature({feature}) {
+var renderCount = 0
+
+function _Feature({feature}) {
     return <Line points={linePointsFromPolygon(feature)} closed={true} fill="#444"/>
 }
+
+const Feature = memo(_Feature)
 
 ///////////
 // HITMARKS

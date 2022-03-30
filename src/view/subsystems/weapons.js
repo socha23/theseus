@@ -1,7 +1,8 @@
 import { ActionButton } from "../widgets"
 import "../../css/subsystems/weapons.css"
-import { useContext } from "react"
+import { useContext, useCallback, memo } from "react"
 import { ActionControllerCtx } from "../../actionController"
+import {jsonCompare} from "../../utils"
 
 function AmmoBullet({spent}) {
     return <span className='bullet'>
@@ -21,32 +22,63 @@ function AmmoBar({subsystem}) {
 }
 
 
-function AimBarSegment({segment, className, color, onClick=()=>{}}) {
-    const style = {
-        left: segment.distancePercent + "%",
-        width: segment.sizePercent + "%",
-    }
-    const innerStyle={}
-    if (color) {
-        style.borderColor = color
-        innerStyle.backgroundColor = color
-    }
+var render = 0
 
+
+function _InnerAimBarSegment({sizePercent, className, color}) {
+    console.log("RENDER", render++)
     return <div
             className={className}
-            onClick={onClick}
-            style={style}
+            //onClick={onClick}
+            style={{width: sizePercent + "%", borderColor: color}}
         >
         <div
             className="inner "
-            onClick={onClick}
-            style={innerStyle}
+            //onClick={onClick}
+            style={{backgroundColor: color}}
         />
     </div>
 }
 
-function AimBar({aim}) {
+const InnerAimBarSegment = memo(_InnerAimBarSegment)
+
+//const InnerAimBarSegment = _InnerAimBarSegment
+
+function AimBarSegment({distancePercent, sizePercent, className, color}) {
+    return <div style={{
+        height: "100%",
+        position: "absolute",
+        left: distancePercent + "%",
+        width: "100%",
+    }}>
+        <InnerAimBarSegment sizePercent={sizePercent} className={className} color={color}/>
+    </div>
+}
+
+function AimTarget({t}) {
     const actionController = useContext(ActionControllerCtx)
+    const onClick = useCallback(() => {actionController.targetEntityId = t.id}, [t.id])
+    return <div style={{
+        height: "100%",
+        position: "absolute",
+        width: "100%",
+        left: t.distancePercent + "%",
+    }}>
+        <InnerAimBarSegment
+            //onClick={onClick}
+            sizePercent={t.sizePercent}
+            color={t.color}
+            className={"target "
+                + (t.alive ? "alive " : "dead ")
+                + (t.obscured ? "obscured " : "unobscured ")
+                + (t.selected ? "selected " : "unselected ")
+                }
+        />
+    </div>
+
+}
+
+function AimBar({aim}) {
 
     return <div className={"aimBar " + (aim.targetObscured ? "obscured " : "visible ")}>
         {   aim.on && <div className="aimBarInner">
@@ -59,24 +91,19 @@ function AimBar({aim}) {
                 />
             }
             {
-                aim.targets.map(t => <AimBarSegment key={t.id}
-                    onClick={() => {actionController.targetEntityId = t.id}}
-                    segment={t}
-                    color={t.color}
-                    className={"target "
-                        + (t.alive ? "alive " : "dead ")
-                        + (t.obscured ? "obscured " : "unobscured ")
-                        + (t.selected ? "selected " : "unselected ")
-                        }
-
-                />)
+                aim.targets.map(t => <AimTarget key={t.id} t={t}/>)
             }
             {
-                aim.crosshairs && <AimBarSegment segment={aim.crosshairs} className="crosshairs"/>
+                aim.crosshairs && <AimBarSegment
+                    distancePercent={aim.crosshairs.distancePercent}
+                    sizePercent={aim.crosshairs.sizePercent}
+                    className="crosshairs"
+                />
             }
             {
                 aim.shootMarks.map(t => <AimBarSegment
-                    segment={t}
+                    distancePercent={t.distancePercent}
+                    sizePercent={t.sizePercent}
                     className={"shootMark " + (t.hit ? "hit " : "miss ")}
                     key={t.distancePercent}
                 />)

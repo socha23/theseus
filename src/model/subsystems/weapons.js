@@ -167,7 +167,7 @@ export class Weapon extends Subsystem {
 
 
 function percentize(val, total) {
-    return Math.floor(val / total * 1000) / 10
+    return Math.floor(val / total * 200) / 2
 }
 
 const TARGET_SIZE = 3
@@ -175,6 +175,8 @@ const CROSSHAIRS_SIZE = 3
 const CROSSHAIRS_SPEED = 15
 
 const SHOOTMARKS_DECAY = 2000
+
+const TARGETS_UPDATE_MS = 30
 
 class Aim {
     constructor(weapon) {
@@ -186,13 +188,16 @@ class Aim {
         this._shootMarks = []
 
         this._targets = []
+        this._sinceLastUpdate = TARGETS_UPDATE_MS
     }
 
     updateState(deltaMs, model) {
         this._sonarRange = model.sub.sonarRange
         const myPos = this._weapon._position
 
-        this._targets = model.map
+        if (this._sinceLastUpdate >= TARGETS_UPDATE_MS) {
+            this._sinceLastUpdate = 0
+            this._targets = model.map
             .getEntitiesAround(myPos, this._sonarRange)
             .filter(e => e.position.distanceTo(myPos) <= this._sonarRange + e.radius)
             .map(e => ({
@@ -202,6 +207,11 @@ class Aim {
                 obscured: model.map.raycast(e.position, myPos) != null,
                 selected: e == model.sub.targetEntity,
             }))
+        } else {
+            this._sinceLastUpdate += deltaMs
+        }
+
+
 
         if (this._aiming) {
             this._crosshairsPos = this._crosshairsPos + CROSSHAIRS_SPEED * deltaMs / 1000

@@ -126,16 +126,14 @@ export class Fish extends Entity {
     }
 
     toViewState() {
-        return {
-            ...super.toViewState(),
-            bloodPercent: Math.floor(this._blood * 1000) / 10,
-            bleedRate: this._bleedRate,
-            alive: this.alive,
-            targetPosition: this._ai.targetPosition,
-            planDescription: this._ai.planDescription,
-        }
+        const v = super.toViewState()
+        v.bloodPercent = Math.floor(this._blood * 1000) / 10
+        v.bleedRate = this._bleedRate
+        v.alive = this.alive
+        v.targetPosition = this._ai.targetPosition
+        v.planDescription = this._ai.planDescription
+        return v
     }
-
 }
 
 class FishAttack {

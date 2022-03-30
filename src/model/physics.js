@@ -1,4 +1,3 @@
-import { STATISTICS } from "../stats"
 import { transpose } from "../utils"
 
 export function vectorForPolar(r, theta) {
@@ -182,9 +181,6 @@ export class Body {
 
     updateState(deltaMs, model, onCollision) {
         const deltaS = deltaMs / 1000
-
-        const updateStart = window.performance.now()
-
         var projectedMove = this._projectMove(deltaS)
         var recounts = 0
         while (true) {
@@ -202,8 +198,6 @@ export class Body {
                 break
             }
         }
-        STATISTICS.PHYSICS_UPDATE.add(window.performance.now() - updateStart)
-
         this.position = projectedMove.position
         this.orientation = projectedMove.orientation
         this.speed = projectedMove.speed
@@ -241,7 +235,7 @@ export class Body {
             for (var theta = 0; theta < 2 * Math.PI; theta += Math.PI / 16) {
                 const newPos = this.position.plus(vectorForPolar(dist, theta))
                 const projBox = rectangle(newPos, new Point(this.volume.length, this.volume.width)).rotate(this.orientation, newPos)
-                const collision = map.detectWallCollision(projBox)
+                const collision = map.detectCollision(projBox)
                 if (!collision) {
                     console.log("Teleported out of collision")
                     this.position = newPos

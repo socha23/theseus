@@ -44,10 +44,14 @@ class GameModel {
         this.entities.forEach(e => {
 
             if (e.position.distanceTo(this.sub.position) < ENTITY_ACTIVATION_DISTANCE) {
+                this.map.removeEntity(e.bounding)
+                const prevBox = e.boundingBox
                 e.updateState(deltaMs, this)
+                this.map.updateEntity(e, prevBox)
             }
             if (e.deleted) {
                 delete this.entitiesById[e.id]
+                this.map.removeEntity(e)
             } else {
                 newEntities.push(e)
             }
@@ -69,7 +73,6 @@ class GameModel {
     _updateInner(deltaMs, actionController) {
         this.sub.updateState(deltaMs, this, actionController)
         this._updateEntities(deltaMs)
-        this.map.updateState()
 
         if (actionController.targetEntityId && !this.entitiesById[actionController.targetEntityId]) {
             actionController.targetEntityId = null

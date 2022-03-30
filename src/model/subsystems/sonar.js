@@ -1,6 +1,7 @@
 import {ToggleAction } from '../action'
 import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
 import {Point, rectangle, Volume} from "../physics"
+import { shootMiss } from '../effects'
 
 class SonarDebugAction extends ToggleAction {
     constructor(sonar) {
@@ -44,6 +45,8 @@ export class AimLine {
     }
 }
 
+const UPDATE_MS = 30
+
 export class Sonar extends Subsystem {
     constructor(gridPosition, id, name, template) {
         super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.SONAR, template)
@@ -53,6 +56,9 @@ export class Sonar extends Subsystem {
         this.subVolume = new Volume(1, 1, 1)
         this.blips = []
         this.features = []
+
+        this._sinceLastUpdate = UPDATE_MS
+
         this.sub = null
         this.target = null
         this._trackedId = null
@@ -83,15 +89,21 @@ export class Sonar extends Subsystem {
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
 
-        this._trackedId = model.sub.targetEntity?.id
+        if (this._sinceLastUpdate >= UPDATE_MS) {
+            this._sinceLastUpdate = 0
 
-        this.position = model.sub.body.position
-        this.orientation = model.sub.body.orientation
-        this.subVolume = model.sub.body.volume
-        this.blips = this._observeBlips(model)
-        this.features = this._observeFeatures(model)
-        this.sub = model.sub
-        this.target = model.target
+            this._trackedId = model.sub.targetEntity?.id
+            this.position = model.sub.body.position
+            this.orientation = model.sub.body.orientation
+            this.subVolume = model.sub.body.volume
+            this.blips = this._observeBlips(model)
+            this.features = this._observeFeatures(model)
+            this.sub = model.sub
+            this.target = model.target
+        } else {
+            this._sinceLastUpdate += deltaMs
+        }
+
     }
 
     toViewState() {

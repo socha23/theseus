@@ -1,8 +1,10 @@
 import { entityHit, HasEffects } from "./effects"
 
+var autoinc = 0
 export class Entity extends HasEffects {
     constructor(id, body) {
         super()
+        this.ordering = Math.random()
         this.id = id
         this.body = body
         this.deleted = false
@@ -12,7 +14,7 @@ export class Entity extends HasEffects {
         return this.body.volume.radius
     }
 
-    getWidth() {
+    get width() {
         return this.body.volume.width
     }
 

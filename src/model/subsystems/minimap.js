@@ -9,10 +9,10 @@ export class Minimap extends Subsystem {
             gridSize: new Point(1, 2),
         })
 
-        this.minX = -500
-        this.maxX = 500
-        this.minY = -500
-        this.maxY = 500
+        this.minX = -550
+        this.maxX = 550
+        this.minY = -550
+        this.maxY = 550
 
 
         this._viewport = new Polygon([

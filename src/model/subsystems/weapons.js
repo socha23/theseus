@@ -170,13 +170,15 @@ function percentize(val, total) {
     return Math.floor(val / total * 200) / 2
 }
 
-const TARGET_SIZE = 3
-const CROSSHAIRS_SIZE = 3
+const TARGET_SIZE = 1.5
+const CROSSHAIRS_SIZE = 1
 const CROSSHAIRS_SPEED = 15
 
 const SHOOTMARKS_DECAY = 2000
 
-const TARGETS_UPDATE_MS = 30
+const TARGETS_UPDATE_MS = 50
+
+const AIMBAR_MARGIN = 3
 
 class Aim {
     constructor(weapon) {
@@ -198,15 +200,25 @@ class Aim {
         if (this._sinceLastUpdate >= TARGETS_UPDATE_MS) {
             this._sinceLastUpdate = 0
             this._targets = model.map
-            .getEntitiesAround(myPos, this._sonarRange)
-            .filter(e => e.position.distanceTo(myPos) <= this._sonarRange + e.radius)
-            .map(e => ({
-                entity: e,
-                size: e.radius * TARGET_SIZE *  Math.max(0.1, 1 - e.position.distanceTo(myPos) / this._sonarRange),
-                distance: e.position.distanceTo(myPos) - e.radius,
-                obscured: model.map.raycast(e.position, myPos) != null,
-                selected: e == model.sub.targetEntity,
-            }))
+                .getEntitiesAround(myPos, this._sonarRange)
+                .filter(e => e.position.distanceTo(myPos) <= this._sonarRange + e.radius)
+                .filter(e => model.map.raycast(e.position, myPos) == null)
+                .map(e => {
+                    const sizeMultiplier = TARGET_SIZE *  Math.max(0.3, 1 - e.position.distanceTo(myPos) / this._sonarRange)
+                    return {
+                        entity: e,
+                        width: e.width * sizeMultiplier,
+                        size: e.length * sizeMultiplier,
+                        distance: e.position.distanceTo(myPos) - e.radius + AIMBAR_MARGIN,
+                        selected: e == model.sub.targetEntity,
+                    }
+                })
+            this._targets.sort((a, b) => {
+                const score = (t) =>
+                    (t.selected ? 1000 : 0)
+                    + (t.size)
+                return score(a) - score(b)
+            })
         } else {
             this._sinceLastUpdate += deltaMs
         }
@@ -265,10 +277,11 @@ class Aim {
             targets: this._targets.map(t => ({
                 id: t.entity.id,
                 alive: t.entity.alive,
+                ordering: t.entity.ordering,
+                widthPercent: percentize(t.width, this._sonarRange),
                 distancePercent: percentize(t.distance, this._sonarRange),
                 sizePercent: percentize(t.size, this._sonarRange),
                 color: t.entity.color,
-                obscured: t.obscured,
                 selected: t.selected,
             })),
             crosshairs: this._aiming ? {

@@ -4,6 +4,7 @@ import { getStartingMap } from "./mapGeneration"
 import { generateFish } from "./fishGeneration"
 
 const MAX_TIME_FRAME_FOR_MODEL_UPDATE = 10
+const ENTITY_ACTIVATION_DISTANCE = 200
 
 class GameModel {
     constructor() {
@@ -41,7 +42,10 @@ class GameModel {
     _updateEntities(deltaMs) {
         const newEntities = []
         this.entities.forEach(e => {
-            e.updateState(deltaMs, this)
+
+            if (e.position.distanceTo(this.sub.position) < ENTITY_ACTIVATION_DISTANCE) {
+                e.updateState(deltaMs, this)
+            }
             if (e.deleted) {
                 delete this.entitiesById[e.id]
             } else {

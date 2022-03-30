@@ -70,6 +70,11 @@
     z-index: 0;
 }
 
+.subsystem .weapon .aimBar .shootMark {
+    z-index: 1100;
+    opacity: 0.4;
+}
+
 .subsystem .weapon .aimBar .shootMark.hit {
     background-color: rgba(255, 0, 0, 0.8);
     position: absolute;

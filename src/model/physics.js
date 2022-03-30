@@ -420,6 +420,10 @@ export class Polygon {
     }
 
     overlaps(other) {
+        if (!this.simpleBoundingBox.overlaps(other.simpleBoundingBox)) {
+            return false
+        }
+
         for (var x = 0; x < 2; x++) {
             const polygon = (x === 0) ? this : other;
 
@@ -541,5 +545,14 @@ export class SimpleRect {
             && p.x <= this.x + this.width
             && this.y <= p.y
             && p.y <= this.y + this.height
+    }
+
+    overlaps(other) {
+        return !(
+            (this.x + this.width < other.x)
+            || (other.x + other.width < this.x)
+            || (this.y + this.height < other.y)
+            || (other.y + other.height < this.y)
+        )
     }
 }

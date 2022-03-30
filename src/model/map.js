@@ -142,8 +142,8 @@ export class Map {
         return this._getCollisionMap(size).getPolygonsIntersecting(polygon)
     }
 
-
     detectCollision(polygon, size=0) {
+        const startTime = window.performance.now()
         let result = null
         this._getCollisionMap(size).getPolygonsIntersecting(polygon).forEach(p => {
             if (p.overlaps(polygon)) {
@@ -152,36 +152,41 @@ export class Map {
                 }
             }
         })
+        STATISTICS.DETECT_COLLISIONS.add(window.performance.now() - startTime)
         return result
     }
 
     detectWallCollision(polygon, speedVector=null, wallDetection=true, size=0) {
+        const startTime = window.performance.now()
+
         let result = null
-        this
+        const polygons = this
             ._getCollisionMap(size)
             .getPolygonsIntersecting(polygon)
             .filter(p => p.overlaps(polygon))
-            .forEach(p => {
-                result = {
-                    polygon: p,
-                    mapFeatureWall: p.myOverlappingEdge(polygon),
-                }
-                if (speedVector && wallDetection && result.mapFeatureWall) {
-                    result.angle = speedVector.theta - result.mapFeatureWall.theta
-                    result.impactSpeed = Math.sin(result.angle) * speedVector.length
-                    result.impactTheta = (result.mapFeatureWall.theta - Math.PI / 2) % (2 * Math.PI)
-                    result.impactForce = vectorForPolar(result.impactSpeed, result.impactTheta).negative()
 
-                    const wallVect = result.mapFeatureWall.toVector()
-                    result.wallNormal = null
-                    if (result.mapFeatureWall.theta > speedVector.theta) {
-                        result.wallNormal = new Vector(wallVect.y, -wallVect.x)
-                    } else {
-                        result.wallNormal = new Vector(-wallVect.y, wallVect.x)
-                    }
+        if (polygons.length > 0) {
+            const p = polygons[0]
+            result = {
+                polygon: p,
+                mapFeatureWall: p.myOverlappingEdge(polygon),
+            }
+            if (speedVector && wallDetection && result.mapFeatureWall) {
+                result.angle = speedVector.theta - result.mapFeatureWall.theta
+                result.impactSpeed = Math.sin(result.angle) * speedVector.length
+                result.impactTheta = (result.mapFeatureWall.theta - Math.PI / 2) % (2 * Math.PI)
+                result.impactForce = vectorForPolar(result.impactSpeed, result.impactTheta).negative()
 
+                const wallVect = result.mapFeatureWall.toVector()
+                result.wallNormal = null
+                if (result.mapFeatureWall.theta > speedVector.theta) {
+                    result.wallNormal = new Vector(wallVect.y, -wallVect.x)
+                } else {
+                    result.wallNormal = new Vector(-wallVect.y, wallVect.x)
                 }
-            })
+
+            }
+        }
         if (result && wallDetection && !result.mapFeatureWall) {
             // can't debug this
 
@@ -189,10 +194,16 @@ export class Map {
             console.trace()
             result.mapFeatureWall = result.polygon.edges[0]
         }
+
+        STATISTICS.DETECT_COLLISIONS.add(window.performance.now() - startTime)
+
         return result
     }
 
     raycast(from, to, size=0) {
+
+        const startTime = window.performance.now()
+
         const minX = Math.min(from.x, to.x)
         const minY = Math.min(from.y, to.y)
         const maxX = Math.max(from.x, to.x)
@@ -225,6 +236,9 @@ export class Map {
                 }
             })
         })
+
+        STATISTICS.RAYCAST.add(window.performance.now() - startTime)
+
         return result
 
     }

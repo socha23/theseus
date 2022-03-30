@@ -292,6 +292,8 @@ export class FishAI {
                 range: entity.params.territoryRange,
             }))
         }
+
+        this._initialized = false
     }
 
     get targetPosition() {
@@ -302,7 +304,13 @@ export class FishAI {
     }
 
     _updateBehavior(model) {
-        this._sinceLastBehaviorChange = 0
+        if (this._initialized) {
+            this._sinceLastBehaviorChange = 0
+        } else {
+            // so not all beh checks happen at same time
+            this._sinceLastBehaviorChange = Math.random() * BEHAVIOR_CHECK_EVERY_MS
+            this._initialized = true
+        }
 
         var maxPriority = -Infinity
         var nextBehavior = null

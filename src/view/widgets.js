@@ -1,4 +1,4 @@
-import React, { memo, useContext } from "react";
+import React, { memo, useContext, useCallback } from "react";
 import ReactSlider from "react-slider";
 import { WithTooltip } from "./tooltip";
 import { MarkRequiredMaterialsOnHover, Materials } from "./materials";
@@ -6,27 +6,39 @@ import { ActionControllerCtx } from "../actionController";
 import { jsonCompare, transpose } from "../utils";
 
 
-export function VertSlider({
+function _VertSliderInner({
         id,
         enabled=true,
-        renderThumb = (props, state) => <div {...props}/>
+        value,
+        icon="fa-solid fa-atom"
     }) {
-    const ac = useContext(ActionControllerCtx)
+
+        const ac = useContext(ActionControllerCtx)
+        const onChange = useCallback((v, i) => ac.setValue(id, 1-(v / 100)))
 
     return <div className="vertSliderContainer">
-    <ReactSlider
-        className={"vertSlider " + (enabled ? "enabled " : "disabled ")}
-        renderThumb={renderThumb}
-        thumbClassName="sliderThumb"
-        trackClassName="sliderTrack"
-        min={0}
-        max={100}
-        disabled={!enabled}
-        orientation="vertical"
-        onChange={(v, i) => ac.setValue(id, 1-(v / 100))}
-        value={100 - (100 * ac.getValue(id, 0))}
-    />
+        <ReactSlider
+            className={"vertSlider " + (enabled ? "enabled " : "disabled ")}
+            renderThumb={(props) => <div {...props}>
+                <i className={"icon " + icon}/>
+            </div>}
+            thumbClassName="sliderThumb"
+            trackClassName="sliderTrack"
+            min={0}
+            max={100}
+            disabled={!enabled}
+            orientation="vertical"
+            onChange={onChange}
+            value={value}
+        />
     </div>
+}
+const VertSliderInner = memo(_VertSliderInner)
+
+export function VertSlider({id, enabled, icon}) {
+    const ac = useContext(ActionControllerCtx)
+    const value = 100 - (100 * ac.getValue(id, 0))
+    return <VertSliderInner id={id} enabled={enabled} value={value} icon={icon}/>
 }
 
 
@@ -61,8 +73,8 @@ export function _SegmentProgress({
     </div>
 }
 
-export const SegmentProgress = memo(_SegmentProgress)
-
+//export const SegmentProgress = memo(_SegmentProgress)
+export const SegmentProgress = _SegmentProgress
 
 
 function ActionTooltip({action, additionalContent=null}) {
@@ -132,4 +144,5 @@ function _ActionButton({action, className="default", additionalTooltip=null}) {
 
 }
 
-export const ActionButton = memo(_ActionButton, jsonCompare)
+//export const ActionButton = memo(_ActionButton, jsonCompare)
+export const ActionButton = _ActionButton

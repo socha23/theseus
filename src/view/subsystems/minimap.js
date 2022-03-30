@@ -42,14 +42,10 @@ function _MinimapContents({sizePx, minX, maxX, minY, maxY, scale, features}) {
 }
 
 function compareMinimap(m1, m2) {
-    m1 = {...m1}
-    m2 = {...m2}
     if (m1.features?.length != m2.features?.length) {
         return false
     }
-    m1.features = []
-    m2.features = []
-    return jsonCompare(m1, m2)
+    return true
 }
 
 const MinimapContents = memo(_MinimapContents, compareMinimap)

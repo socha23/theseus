@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import {VertSlider, ActionButton, SegmentProgress} from "../widgets"
 import {Stage, Layer, Line, Group, Rect, } from 'react-konva'
 
@@ -137,23 +137,21 @@ function ReactorFuel({subsystem}) {
     </div>
 }
 
+function ReactorPowerSlider({id, enabled}) {
+    return <VertSlider
+        id={id + "_control"}
+        enabled={enabled}
+        icon="fa-solid fa-atom"
+    />
+}
 
-
-export function Reactor({subsystem, actionController}) {
+export function Reactor({subsystem}) {
     const HIST_HEIGHT = 180
 
     return <div className='reactor'>
         <div className="topRow">
             <div className='controls'>
-                <VertSlider
-                    id={subsystem.id + "_control"}
-                    actionController={actionController}
-                    enabled={subsystem.on}
-                    height={HIST_HEIGHT}
-                    renderThumb={(props) => <div {...props}>
-                            <i className="icon fa-solid fa-atom"/>
-                        </div>}
-                />
+                <ReactorPowerSlider id={subsystem.id} enabled={subsystem.on}/>
             </div>
             <ReactorHistory subsystem={subsystem} height={HIST_HEIGHT}/>
             <ReactorHeat heatPercent={subsystem.heatPercent}/>

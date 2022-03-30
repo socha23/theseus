@@ -159,7 +159,7 @@ export class Map {
 
         if (polygons.length > 0) {
             const p = polygons[0]
-            const wall = p.myOverlappingEdge(polygon)
+            var wall = p.myOverlappingEdge(polygon)
             if (wall == null) {
                 console.log("Can't find impact wall")
                 wall = p.edges[0]

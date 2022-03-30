@@ -10,31 +10,27 @@ function AmmoBullet({spent}) {
     </span>
 }
 
-function AmmoBar({subsystem}) {
+function _AmmoBar({ammo, ammoMax}) {
     return <div className='ammo'>
         <span>Ammo: </span>
         {
-            new Array(subsystem.ammoMax).fill(0).map((key, idx) =>
-                 <AmmoBullet key={subsystem.i + "_ammo_" + idx} spent={idx >= subsystem.ammo}/>
+            new Array(ammoMax).fill(0).map((key, idx) =>
+                 <AmmoBullet key={"a" + idx} spent={idx >= ammo}/>
             )
         }
     </div>
 }
+const AmmoBar = memo(_AmmoBar)
 
-
-var render = 0
-
-
-function _InnerAimBarSegment({sizePercent, className, color}) {
-    console.log("RENDER", render++)
+function _InnerAimBarSegment({sizePercent, className, color, onClick}) {
     return <div
             className={className}
-            //onClick={onClick}
+            onClick={onClick}
             style={{width: sizePercent + "%", borderColor: color}}
         >
         <div
             className="inner "
-            //onClick={onClick}
+            onClick={onClick}
             style={{backgroundColor: color}}
         />
     </div>
@@ -65,7 +61,7 @@ function AimTarget({t}) {
         left: t.distancePercent + "%",
     }}>
         <InnerAimBarSegment
-            //onClick={onClick}
+            onClick={onClick}
             sizePercent={t.sizePercent}
             color={t.color}
             className={"target "
@@ -116,7 +112,7 @@ function AimBar({aim}) {
 
 export function Weapon({subsystem}) {
     return <div className="weapon">
-        <AmmoBar subsystem={subsystem}/>
+        <AmmoBar ammo={subsystem.ammo} ammoMax={subsystem.ammoMax}/>
         <div className="filler"/>
         <AimBar aim={subsystem.aim}/>
         <div className="actions">

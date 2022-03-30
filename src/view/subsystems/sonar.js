@@ -5,45 +5,59 @@ import { EFFECT_TYPES } from "../../model/effects";
 import { Point, SimpleRect, Vector } from "../../model/physics";
 import { AIM_LINE_TYPE, RANGE_CIRCLE_TYPE } from "../../model/subsystems/sonar";
 import { toDegrees } from "../../units";
-import { relativeAngle } from "../../utils";
+import { jsonCompare, relativeAngle } from "../../utils";
 import { ActionButton } from "../widgets";
 import "../../css/subsystems/sonar.css"
 
-const SIZE_PX = 420//376
+const SIZE_PX = 420
 
-
-function SonarBackground({position, scale}) {
-    const LINES_SPACING_U = 20
-    const LINES_SPACING_PX = scale * LINES_SPACING_U
-
+function _InnerSonarBackground({xFrom, xTo, yFrom, yTo, spacing, scale}) {
     const vertLines = []
-    for (var x = LINES_SPACING_PX -SIZE_PX - ((scale * position.x) % LINES_SPACING_PX); x < SIZE_PX; x += LINES_SPACING_PX) {
+    for (var x = xFrom; x <= xTo; x += spacing) {
         vertLines.push(x)
     }
     const horizLines = []
-    for (var y = LINES_SPACING_PX - SIZE_PX - ((scale * position.y) % LINES_SPACING_PX); y < SIZE_PX; y += LINES_SPACING_PX) {
+    for (var y = yFrom; y <= yTo; y += spacing) {
         horizLines.push(y)
     }
-
     return <Group>
-
-        <Rect listening={false} x={-SIZE_PX} y={-SIZE_PX} width={2 * SIZE_PX} height={2 * SIZE_PX} fill="black"/>
+        <Rect listening={false} x={xFrom} y={yFrom} width={xTo - xFrom} height={yTo - yFrom} fill="black"/>
         {
             vertLines.map(x => <Line key={"sonar-bg-v-" + x}
                 listening={false}
-                points={[x, -SIZE_PX, x, SIZE_PX]} stroke="#333333"
+                strokeWidth={1 / scale}
+                points={[x, yFrom, x, yTo]} stroke="#333333"
                 />)
         }
         {
             horizLines.map(y => <Line key={"sonar-bg-h-" + y}
                 listening={false}
-                points={[-SIZE_PX, y, SIZE_PX, y]} stroke="#333333"
+                strokeWidth={1 / scale}
+                points={[xFrom, y, xTo, y]} stroke="#333333"
                 />)
         }
 
     </Group>
-
 }
+
+const InnerSonarBackground = memo(_InnerSonarBackground, jsonCompare)
+
+function SonarBackground({position, scale}) {
+    const LINES_SPACING_U = 20
+    const LINES_SPACING_PX = scale * LINES_SPACING_U
+
+    const linesRadius = Math.floor(SIZE_PX / LINES_SPACING_PX)
+
+    const xFrom = position.x - (position.x % LINES_SPACING_U) - linesRadius * LINES_SPACING_U
+    const xTo = position.x - (position.x % LINES_SPACING_U) + linesRadius * LINES_SPACING_U
+
+    const yFrom = position.y - (position.y % LINES_SPACING_U) - linesRadius * LINES_SPACING_U
+    const yTo = position.y - (position.y % LINES_SPACING_U) + linesRadius * LINES_SPACING_U
+
+    return <InnerSonarBackground xFrom={xFrom} xTo={xTo} yFrom={yFrom} yTo={yTo} spacing={LINES_SPACING_U} scale={scale}/>
+}
+
+
 
 function ReferenceFrame({position, children}) {
     return <Group offsetX={-position.x} offsetY={-position.y}>
@@ -239,7 +253,7 @@ function linePointsFromPolygon(polygon) {
 // FEATURES
 ///////////
 
-function Features({features}) {
+function _Features({features}) {
     return <Group>
         {
             features.map(f => <Feature key={f.id} feature={f}/>)
@@ -247,13 +261,15 @@ function Features({features}) {
     </Group>
 }
 
-var renderCount = 0
-
-function _Feature({feature}) {
+function Feature({feature}) {
     return <Line points={linePointsFromPolygon(feature)} closed={true} fill="#444"/>
 }
 
-const Feature = memo(_Feature)
+const Features = memo(_Features, (a, b) => {
+    return jsonCompare(a.features.map(f => f.id), b.features.map(f => f.id))
+
+})
+//const Features = _Features
 
 ///////////
 // HITMARKS
@@ -384,8 +400,8 @@ function Sonar({subsystem, actionController}) {
                 <Layer>
                     <Group offsetX={-SIZE_PX / 2} offsetY={-SIZE_PX / 2}>
                         <Group rotation={toDegrees(-subsystem.orientation) - 90}>
-                            <SonarBackground position={subsystem.position} scale={scale}/>
                             <SubReferenceFrame position={subsystem.position} scale={scale}>
+                                <SonarBackground position={subsystem.position} scale={scale}/>
                                 <SubMarker subsystem={subsystem}/>
                                 <Features scale={scale} features={subsystem.features}/>
                                 <AimLines scale={scale} aimLines={subsystem.aimLines}/>

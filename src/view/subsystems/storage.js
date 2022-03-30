@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { memo, useContext } from "react";
 import "../../css/subsystems/storage.css"
 import { MATERIAL_DEFINITIONS } from "../../model/materials";
 import { RequiredInventory } from "../materials";
@@ -27,13 +27,14 @@ function InventoryItem({item}) {
     </div>
 }
 
-export function Storage({subsystem}) {
+function _Storage({inventoryCounts}) {
     return <div className={"storage "}>
         {
-            subsystem.inventoryCounts.map(c =>
+            inventoryCounts.map(c =>
                 <InventoryItem key={c.materialId} item={c}/>
             )
         }
         </div>
 }
 
+export const Storage = memo(_Storage)

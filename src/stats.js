@@ -61,11 +61,11 @@ export class Statistic {
 
 export const STATISTICS = {
     STATE_UPDATE_MS: new Statistic({
-        name: "State update",
+        name: "SU",
         unit: "ms"
     }),
     RENDER_TIME_MS: new Statistic({
-        name: "Render time",
+        name: "RT",
         unit: "ms"
     }),
 }

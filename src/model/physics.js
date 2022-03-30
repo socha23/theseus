@@ -392,6 +392,7 @@ export class Polygon {
             maxY = Math.max(maxY, p.y)
         })
         this._simpleBoundingBox = new SimpleRect(minX, minY, maxX - minX, maxY - minY)
+        this.edges = this._createEdges()
     }
 
     randomPoint() {
@@ -466,7 +467,7 @@ export class Polygon {
         return true
     }
 
-    get edges() {
+    _createEdges() {
         const res = []
         for (var i1 = 0; i1 < this.points.length; i1++) {
             var i2 = (i1 + 1) % this.points.length
@@ -477,19 +478,24 @@ export class Polygon {
 
     myOverlappingEdge(polygon) {
         var result = null
-        this.edges.forEach(e => {
-            polygon.edges.forEach(f => {
+        main:
+        for (var eIdx = 0; eIdx < this.edges.length; eIdx++) {
+            const e = this.edges[eIdx]
+            for (var fIdx = 0; fIdx < polygon.edges.length; fIdx++) {
+                const f = polygon.edges[fIdx]
                 if (e.intersects(f)) {
                     result = e
+                    break main
                 }
-            })
-        })
+            }
+        }
         return result
     }
 
     rotate(theta, origin=this._center()) {
         if (theta !== 0) {
-            this.points = this.points.map(p => p.rotate(theta, origin))
+            const points = this.points.map(p => p.rotate(theta, origin))
+            return new Polygon(points)
         }
         return this
     }

@@ -8,11 +8,11 @@ class Game {
     constructor() {
         this.actionController = new ActionController()
         this.gameModel = new GameModel()
-        this.lastStateUpate = Date.now()
+        this.lastStateUpate = window.performance.now()
     }
 
     updateState(state) {
-        var time = Date.now()
+        var time = window.performance.now()
         var delta = time - this.lastStateUpate
         if (delta === 0) {
             return

@@ -108,7 +108,8 @@ class DontCrashIntoWalls extends Behavior {
                 const dTheta = sign * theta
                 const speed = vectorForPolar(this.entity.speedVector.length, speed.theta + dTheta)
                 const point = this.entity.position.plus(vectorForPolar(10, speed.theta + dTheta))
-                const hitbox = new Path(this.entity.position, point, this.entity.radius * 4).polygon()
+                const hitboxWidth = this.entity.radius * 6
+                const hitbox = new Path(this.entity.position, point, this.entity.radius * hitboxWidth).polygon()
                 if (model.map.getPolygonsIntersecting(hitbox).length === 0) {
                     return planRotateToPoint(this.entity, point)
                 }
@@ -137,7 +138,7 @@ class BackOffFromWalls extends Behavior {
     }
 
     closeToWall(model, deltaX = 0, deltaY = 0) {
-        const RADIUS_MUTLIPLIER = 2
+        const RADIUS_MUTLIPLIER = 3
         const boxSide = this.entity.radius * RADIUS_MUTLIPLIER
         const pos = new Point(this.entity.position.x + deltaX, this.entity.position.y + deltaY)
         const box = rectangle(pos, new Point(boxSide, boxSide))

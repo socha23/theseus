@@ -2,26 +2,25 @@ import { ActionButton } from "../widgets"
 
 import "../../css/subsystems/power.css"
 import { WithTooltip } from "../tooltip"
+import { memo } from "react"
+import { jsonCompare } from "../../utils"
 
 
-export function PowerConsumption({subsystem}) {
-    const availablePower = subsystem.subPowerBalance
-    const nominalConsumption = subsystem.nominalPowerConsumption
+export function PowerConsumption({on, nominalConsumption, insufficientPower, powerConsumption, powerConsumptionMultiplier}) {
 
     var text = ""
     var className = ""
-    if (!subsystem.on) {
-        text = `Needs ${subsystem.nominalPowerConsumption.toFixed(2)} kW`
-        className = (nominalConsumption > availablePower) ? "insufficientPower " : "sufficientPower "
+    if (!on) {
+        text = `Needs ${nominalConsumption.toFixed(2)} kW`
+        className = (insufficientPower) ? "insufficientPower " : "sufficientPower "
     } else {
-        text = `Uses ${subsystem.powerConsumption.toFixed(2)} / ${nominalConsumption.toFixed(2)} kW`
+        text = `Uses ${powerConsumption.toFixed(2)} / ${nominalConsumption.toFixed(2)} kW`
     }
-
     return <div className="powerConsumption">
         <div className={"text " + className}>
             {text}
         </div>
-        { (subsystem.powerConsumptionMultiplier > 1) &&
+        { (powerConsumptionMultiplier > 1) &&
             <div className="extraPowerConsumption">
                 <hr/>
                 Extra power consumption
@@ -31,18 +30,24 @@ export function PowerConsumption({subsystem}) {
 }
 
 
-export function PowerTooltip({subsystem}) {
+export function PowerTooltip({on, disabled, name, nominalConsumption, powerOnErrors, insufficientPower, powerConsumption, powerConsumptionMultiplier}) {
     return <div className="powerButtonTooltip">
-        <div className={"name " + (subsystem.disabled ? "disabled " : "enabled ")}>
-            {subsystem.name + (subsystem.disabled ? " (disabled)" : "")}
+        <div className={"name " + (disabled ? "disabled " : "enabled ")}>
+            {name + (disabled ? " (disabled)" : "")}
         </div>
-        {(subsystem.nominalPowerConsumption > 0) && <PowerConsumption subsystem={subsystem}/>}
+        {(nominalConsumption > 0) && <PowerConsumption
+            on={on}
+            nominalConsumption={nominalConsumption}
+            insufficientPower={insufficientPower}
+            powerConsumption={powerConsumption}
+            powerConsumptionMultiplier={powerConsumptionMultiplier}
+            />}
 
-        { subsystem.powerOnErrors &&
+        { powerOnErrors &&
             <div className="errorConditions">
             <hr/>
             {
-                subsystem.powerOnErrors.map(c =>
+                powerOnErrors.map(c =>
                 <div className="condition" key={c}>{c}</div>)
             }
             </div>
@@ -52,12 +57,34 @@ export function PowerTooltip({subsystem}) {
 
 
 
-export function SubsystemPowerButton({subsystem}) {
+
+function _InnerSubsystemPowerButton(params) {
     return <div className='powerButton'>
-        <WithTooltip tooltip={<PowerTooltip subsystem={subsystem}/>}>
+        <WithTooltip tooltip={<PowerTooltip {...params}
+        />}>
             <ActionButton
-                action={subsystem.actionOn}
+                action={params.actionOn}
             />
         </WithTooltip>
     </div>
+}
+
+const InnerSubsystemPowerButton = memo(_InnerSubsystemPowerButton, jsonCompare)
+
+
+export function SubsystemPowerButton({subsystem}) {
+    const insufficientPower = subsystem.nominalPowerConsumption > subsystem.availablePower
+    return <InnerSubsystemPowerButton
+        on={subsystem.on}
+        disabled={subsystem.disabled}
+        name={subsystem.name}
+        nominalConsumption={subsystem.nominalPowerConsumption}
+        powerOnErrors={subsystem.powerOnErrors}
+        insufficientPower={insufficientPower}
+        actionOn={subsystem.actionOn}
+        powerConsumption={subsystem.powerConsumption}
+        powerConsumptionMultiplier={subsystem.powerConsumptionMultiplier}
+
+    />
+
 }

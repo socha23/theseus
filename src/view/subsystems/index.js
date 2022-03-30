@@ -43,16 +43,16 @@ function SubsystemMainTab({subsystem, actionController}) {
                 subsystem.showsSonar && <Sonar subsystem={subsystem} actionController={actionController}/>
             }
             {
-                subsystem.isCheatbox && <Cheatbox subsystem={subsystem}/>
+                subsystem.isCheatbox && <Cheatbox cheats={subsystem.cheats}/>
             }
             {
-                subsystem.isReactor && <Reactor subsystem={subsystem} actionController={actionController}/>
+                subsystem.isReactor && <Reactor subsystem={subsystem}/>
             }
             {
                 subsystem.isPumps && <Pumps subsystem={subsystem}/>
             }
             {
-                subsystem.isStorage && <Storage subsystem={subsystem}/>
+                subsystem.isStorage && <Storage inventoryCounts={subsystem.inventoryCounts}/>
             }
             {
                 subsystem.isEngine && <Engine subsystem={subsystem}/>

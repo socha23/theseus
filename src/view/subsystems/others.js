@@ -1,7 +1,8 @@
-import React from "react";
+import React, {memo} from "react";
 import { toDegrees } from '../../units.js'
 import { ActionButton} from "../widgets"
 import { STATISTICS } from "../../stats.js";
+import { jsonCompare } from "../../utils.js";
 
 ///////////////////////////////////
 
@@ -18,9 +19,6 @@ export function SubStatus({subsystem}) {
                 )
             }
         <hr/>
-
-
-
         <div className="infoRow">
             <span>Pos:</span>
             <span>{subsystem.position.x.toFixed(1)}, {subsystem.position.y.toFixed(1)}</span>
@@ -45,11 +43,12 @@ export function SubStatus({subsystem}) {
 
 
 ///////////////////////////////////
-
-export function Cheatbox({subsystem}) {
+function _Cheatbox({cheats}) {
     return <div className="cheatbox">
         {
-            subsystem.cheats.map(c => <ActionButton key={c.id} action={c}/>)
+            cheats.map(c => <ActionButton key={c.id} action={c}/>)
         }
     </div>
 }
+//export const Cheatbox = memo(_Cheatbox, (a, b) => a.cheats.length != b.cheats.length)
+export const Cheatbox = _Cheatbox

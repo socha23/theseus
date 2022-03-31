@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import React, { memo, useContext, useState } from "react";
 import {Stage, Layer, Line, Circle, Rect, Group, Ellipse, Text} from 'react-konva'
 import { rgbGradientValue } from "../../gradient";
 import { EFFECT_TYPES } from "../../model/effects";
@@ -8,10 +8,11 @@ import { toDegrees } from "../../units";
 import { jsonCompare, relativeAngle } from "../../utils";
 import { ActionButton } from "../widgets";
 import "../../css/subsystems/sonar.css"
+import { ActionControllerCtx } from "../../actionController";
 
 const SIZE_PX = 420
 
-function _InnerSonarBackground({xFrom, xTo, yFrom, yTo, spacing, scale}) {
+function InnerSonarBackground({xFrom, xTo, yFrom, yTo, spacing, scale}) {
     const vertLines = []
     for (var x = xFrom; x <= xTo; x += spacing) {
         vertLines.push(x)
@@ -39,8 +40,6 @@ function _InnerSonarBackground({xFrom, xTo, yFrom, yTo, spacing, scale}) {
 
     </Group>
 }
-
-const InnerSonarBackground = memo(_InnerSonarBackground, jsonCompare)
 
 function SonarBackground({position, scale}) {
     const LINES_SPACING_U = 20
@@ -109,6 +108,7 @@ function SonarBlipCircle({blip}) {
         rotation={toDegrees(blip.orientation)}
         fill={color}
         opacity={opacity}
+        listening={false}
     />
 }
 
@@ -117,6 +117,8 @@ function SonarBlip({blip, tracked, actionController, debug=false, scale}) {
     const force = blip.lastActingForce.div(blip.mass).multiply(5)
     return <ReferenceFrame position={blip.position}>
         <SonarBlipCircle blip={blip}/>
+
+
         {tracked && <Circle /* tracked overlay */
             listening={false}
             width={blip.radius * 2 + 15 / scale}
@@ -145,6 +147,7 @@ function SonarBlip({blip, tracked, actionController, debug=false, scale}) {
             height={blip.radius * 2 + 20 / scale}
             onClick={e => actionController.targetEntityId = blip.id}
         />
+
     </ReferenceFrame>
 }
 
@@ -253,7 +256,7 @@ function linePointsFromPolygon(polygon) {
 // FEATURES
 ///////////
 
-function _Features({features}) {
+function Features({features}) {
     return <Group>
         {
             features.map(f => <Feature key={f.id} feature={f}/>)
@@ -264,12 +267,6 @@ function _Features({features}) {
 function Feature({feature}) {
     return <Line points={linePointsFromPolygon(feature)} closed={true} fill="#444"/>
 }
-
-const Features = memo(_Features, (a, b) => {
-    return jsonCompare(a.features.map(f => f.id), b.features.map(f => f.id))
-
-})
-//const Features = _Features
 
 ///////////
 // HITMARKS
@@ -298,14 +295,14 @@ function HitMarks({hitMarks}) {
 // SUB MARKER
 ///////////
 
-function SubMarker({subsystem}){
-    const wPx = subsystem.subVolume.length
-    const hPx = subsystem.subVolume.width
+function SubMarker({subVolume, position, orientation}){
+    const wPx = subVolume.length
+    const hPx = subVolume.width
     const rPx = hPx / 2
     const color = "#777777"
 
-    return <ReferenceFrame position={subsystem.position}>
-        <Group rotation={toDegrees(subsystem.orientation)}>
+    return <ReferenceFrame position={position}>
+        <Group rotation={toDegrees(orientation)}>
             <Circle x={wPx / 2 - rPx} y={0} radius={rPx} fill={color}/>
             <Rect x={(-wPx / 2 + 2)} y={-hPx / 2} width={wPx - rPx - 2} height={hPx} fill={color}/>
             <Rect x={-wPx / 2} y={-hPx / 2 + 0.2} width={3} height={hPx - 0.4} fill={color}/>
@@ -383,49 +380,82 @@ function Target({subPosition, subOrientation, target, scale}) {
     </Group>
 }
 
-
-function Sonar({subsystem, actionController}) {
-    const scale = SIZE_PX / (subsystem.range * 2)   // px per unit
+var autoinc=0
+function _InnerSonar({
+    range,
+    toggleActions,
+    on,
+    subVolume,
+    position,
+    orientation,
+    features,
+    aimLines,
+    blips,
+    trackedBlipId,
+    debug,
+    ranges,
+    hitMarks,
+    target,
+}) {
+    const actionController = useContext(ActionControllerCtx)
+    const scale = SIZE_PX / (range * 2)   // px per unit
     return <div className="sonar">
         <div className="toggles">
             {
-                subsystem.toggleActions.map(a => <ActionButton
+                toggleActions.map(a => <ActionButton
                     key={a.id}
                     action={a}
                     />)
             }
         </div>
         <div className="display" style={{width: SIZE_PX + 2, height: SIZE_PX + 2}}>
-            {subsystem.on && <Stage width={SIZE_PX} height={SIZE_PX} >
+            {on && <Stage width={SIZE_PX} height={SIZE_PX} >
                 <Layer>
                     <Group offsetX={-SIZE_PX / 2} offsetY={-SIZE_PX / 2}>
-                        <Group rotation={toDegrees(-subsystem.orientation) - 90}>
-                            <SubReferenceFrame position={subsystem.position} scale={scale}>
-                                <SonarBackground position={subsystem.position} scale={scale}/>
-                                <SubMarker subsystem={subsystem}/>
-                                <Features scale={scale} features={subsystem.features}/>
-                                <AimLines scale={scale} aimLines={subsystem.aimLines}/>
-                                <SonarBlips blips={subsystem.blips} trackedBlipId={subsystem.trackedBlipId} actionController={actionController} scale={scale} debug={subsystem.debug}/>
-                                <Ranges position={subsystem.position} scale={scale} ranges={subsystem.ranges}/>
-                                <HitMarks hitMarks={subsystem.hitMarks}/>
-                                {/*<BoundingBox polygon={subsystem.subBoundingBox} scale={scale}/>*/}
+                        <Group rotation={toDegrees(-orientation) - 90}>
+                            <SubReferenceFrame position={position} scale={scale}>
+                                <SonarBackground position={position} scale={scale}/>
+                                <SubMarker position={position} orientation={orientation} subVolume={subVolume}/>
+                                <Features scale={scale} features={features}/>
+                                <AimLines scale={scale} aimLines={aimLines}/>
+                                <SonarBlips blips={blips} trackedBlipId={trackedBlipId} actionController={actionController} scale={scale} debug={debug}/>
+                                <Ranges position={position} scale={scale} ranges={ranges}/>
+                                <HitMarks hitMarks={hitMarks}/>
                             </SubReferenceFrame>
                         </Group>
                     </Group>
                     <Target
-                        subPosition={subsystem.position}
-                        subOrientation={subsystem.orientation}
-                        target={subsystem.target}
+                        subPosition={position}
+                        subOrientation={orientation}
+                        target={target}
                         scale={scale}
                     />
-
-
                 </Layer>
             </Stage>}
         </div>
     </div>
 }
 
+const InnerSonar = memo(_InnerSonar)
+//const InnerSonar = _InnerSonar
 
+function Sonar({subsystem}) {
+    return <InnerSonar
+    range={subsystem.range}
+    toggleActions={subsystem.toggleActions}
+    on={subsystem.on}
+    position={subsystem.position}
+    orientation={subsystem.orientation}
+    features={subsystem.features}
+    aimLines={subsystem.aimLines}
+    blips={subsystem.blips}
+    trackedBlipId={subsystem.trackedBlipId}
+    debug={subsystem.debug}
+    ranges={subsystem.ranges}
+    hitMarks={subsystem.hitMarks}
+    target={subsystem.target}
+    subVolume={subsystem.subVolume}
+    />
+}
 
 export default Sonar;

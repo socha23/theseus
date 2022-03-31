@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import Sonar from "./sonar.js";
 import { ActionButton} from "../widgets"
 import { Weapon } from "./weapons"
@@ -14,6 +14,7 @@ import { SubsystemPowerButton } from "./power.js";
 
 import '../../css/subsystemBox.css';
 import '../../css/subsystemStatus.css';
+import { ActionControllerCtx } from "../../actionController.js";
 
 
 ///////////////////////////////////
@@ -25,7 +26,7 @@ const TABS = {
 }
 
 
-function SubsystemMainTab({subsystem, actionController}) {
+function SubsystemMainTab({subsystem}) {
     return <div className="tab" onDragStart={e => false}>
         <div className='body'
             onMouseDown={e => {e.preventDefault(); return false}} /* disable drag & drop */
@@ -40,7 +41,7 @@ function SubsystemMainTab({subsystem, actionController}) {
                 subsystem.isTracking && <Tracking subsystem={subsystem}/>
             }
             {
-                subsystem.showsSonar && <Sonar subsystem={subsystem} actionController={actionController}/>
+                subsystem.isSonar && <Sonar subsystem={subsystem}/>
             }
             {
                 subsystem.isCheatbox && <Cheatbox cheats={subsystem.cheats}/>
@@ -169,10 +170,10 @@ function StatusTabIcon({subsystem, active, onClick}) {
 }
 
 
-export function Subsystem({subsystem, actionController}) {
+export function Subsystem({subsystem}) {
 
-    var [activeTab, setActiveTab] = useState(TABS.MAIN)
-
+    const actionController = useContext(ActionControllerCtx)
+    const [activeTab, setActiveTab] = useState(TABS.MAIN)
 
     function toggleActiveTab() {
         if (activeTab === TABS.MAIN) {
@@ -201,10 +202,10 @@ export function Subsystem({subsystem, actionController}) {
                     {subsystem.name}
             </span></span>
             <StatusTabIcon subsystem={subsystem} active={activeTab === TABS.STATUS} onClick={e=> {toggleActiveTab()}}/>
-            <SubsystemPowerButton subsystem={subsystem} actionController={actionController}/>
+            <SubsystemPowerButton subsystem={subsystem}/>
         </div>
         {
-            (activeTab === TABS.MAIN) && <SubsystemMainTab subsystem={subsystem} actionController={actionController}/>
+            (activeTab === TABS.MAIN) && <SubsystemMainTab subsystem={subsystem} />
         }
         {
             (activeTab === TABS.STATUS) && <StatusTab subsystem={subsystem} setActiveTab={setActiveTab}/>

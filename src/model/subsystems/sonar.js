@@ -50,37 +50,30 @@ const UPDATE_MS = 30
 export class Sonar extends Subsystem {
     constructor(gridPosition, id, name, template) {
         super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.SONAR, template)
-        this.position = Point.ZERO
         this.range = template.range
-        this.orientation = 0
-        this.subVolume = new Volume(1, 1, 1)
-        this.blips = []
-        this.features = []
 
         this._sinceLastUpdate = UPDATE_MS
-
-        this.sub = null
-        this.target = null
-        this._trackedId = null
-
         this.debugAction = new SonarDebugAction(this)
-
         this.actions.push(this.debugAction)
+
+        this._sinceLastUpdate = 0
+        this._viewState = {}
     }
 
     _observeEntities(model) {
         return model.map
-            .getEntitiesAround(this.position, this.range * 1.5) // todo range hack to account for square display
+            .getEntitiesAround(model.sub.position, this.range * 1.5) // todo range hack to account for square display
 
     }
 
     _observeBlips(model) {
         return this._observeEntities(model)
+            .sort((a, b) => a.ordering - b.ordering)
             .map(e => e.toViewState())
     }
 
     _observeFeatures(model) {
-        const viewPort = rectangle(this.position, new Point(3 * this.range, 3 * this.range)) // 3 is a range hack as above
+        const viewPort = rectangle(model.sub.position, new Point(3 * this.range, 3 * this.range)) // 3 is a range hack as above
         const features = model.map.getPolygonsIntersecting(viewPort)
         return features
     }
@@ -90,16 +83,28 @@ export class Sonar extends Subsystem {
         super.updateState(deltaMs, model, actionController)
 
         if (this._sinceLastUpdate >= UPDATE_MS) {
-            this._sinceLastUpdate = 0
+            this._sinceLastUpdate = this._sinceLastUpdate % UPDATE_MS
 
-            this._trackedId = model.sub.targetEntity?.id
-            this.position = model.sub.body.position
-            this.orientation = model.sub.body.orientation
-            this.subVolume = model.sub.body.volume
-            this.blips = this._observeBlips(model)
-            this.features = this._observeFeatures(model)
-            this.sub = model.sub
-            this.target = model.target
+            const sub = model.sub
+
+            this._viewState = {
+                isSonar: true,
+                range: this.range,
+                position: sub.position,
+                orientation: sub.orientation,
+                blips: this._observeBlips(model),
+                trackedBlipId: sub.targetEntity?.id,
+                subVolume: sub.body.volume,
+                debug: this.debugAction.value,
+                ranges: sub.ranges ?? [],
+                aimLines: sub.aimLines ?? [],
+                features: this._observeFeatures(model) ?? [],
+                sub: model.sub,
+                toggleActions: [this.debugAction.toViewState()],
+                hitMarks: sub.hitMarksViewState() ?? [],
+                target: model.target,
+            }
+
         } else {
             this._sinceLastUpdate += deltaMs
         }
@@ -109,22 +114,7 @@ export class Sonar extends Subsystem {
     toViewState() {
         return {
             ...super.toViewState(),
-            showsSonar: true,
-            range: this.range,
-            position: this.position,
-            orientation: this.orientation,
-            blips: this.blips,
-            trackedBlipId: this._trackedId,
-            subVolume: this.subVolume,
-            debug: this.debugAction.value,
-            sub: this.sub,
-            ranges: this.sub?.ranges ?? [],
-            aimLines: this.sub?.aimLines ?? [],
-            features: this.features ?? [],
-            subBoundingBox: this.sub?.boundingBox ?? [],
-            toggleActions: [this.debugAction.toViewState()],
-            hitMarks: this.sub?.hitMarksViewState() ?? [],
-            target: this.target,
+            ...this._viewState,
 
         }
     }

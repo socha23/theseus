@@ -174,8 +174,6 @@ const TARGET_SIZE = 1.5
 const CROSSHAIRS_SIZE = 1
 const CROSSHAIRS_SPEED = 15
 
-const SHOOTMARKS_DECAY = 2000
-
 const TARGETS_UPDATE_MS = 50
 
 const AIMBAR_MARGIN = 3
@@ -187,17 +185,18 @@ class Aim {
 
         this._aiming = false
         this._crosshairsPos = 0
-        this._shootMarks = []
 
         this._targets = []
         this._sinceLastUpdate = TARGETS_UPDATE_MS
+
+        this._cachedViewState = {}
     }
 
     updateState(deltaMs, model) {
         this._sonarRange = model.sub.sonarRange
         const myPos = this._weapon._position
 
-        if (this._sinceLastUpdate >= TARGETS_UPDATE_MS) {
+        if (this._sinceLastUpdate >= TARGETS_UPDATE_MS || this._aiming) {
             this._sinceLastUpdate = 0
             this._targets = model.map
                 .getEntitiesAround(myPos, this._sonarRange)
@@ -219,20 +218,17 @@ class Aim {
                     + (t.size)
                 return score(a) - score(b)
             })
+
+            this._cachedViewState = this._toViewState()
         } else {
             this._sinceLastUpdate += deltaMs
         }
-
-
-
         if (this._aiming) {
             this._crosshairsPos = this._crosshairsPos + CROSSHAIRS_SPEED * deltaMs / 1000
             if (this._crosshairsPos > this._weapon.range) {
                 this.onFinishAim(model)
             }
         }
-
-        this._shootMarks = this._shootMarks.filter(s => (Date.now() - s.time) < SHOOTMARKS_DECAY)
     }
 
     onFinishAim(model) {
@@ -259,20 +255,17 @@ class Aim {
         if (!hitTarget && targets.length > 0) {
             hitTarget = targets[0]
         }
-        this._shootMarks.push({
-            hit: hitTarget != null,
-            pos: this._crosshairsPos,
-            size: CROSSHAIRS_SIZE,
-            time: Date.now()
-        })
         return hitTarget ? [hitTarget.entity] : []
     }
 
     toViewState() {
+        return this._cachedViewState
+    }
+
+    _toViewState() {
         const myPos = this._weapon._position
         return {
             on: this._weapon.on,
-            targetObscured: (this._weapon._target && !this._weapon._targetVisible),
             rangePercent: percentize(this._weapon.range, this._sonarRange),
             targets: this._targets.map(t => ({
                 id: t.entity.id,
@@ -288,14 +281,6 @@ class Aim {
                 distancePercent: percentize(this._crosshairsPos, this._sonarRange),
                 sizePercent: percentize(CROSSHAIRS_SIZE, this._sonarRange)
             } : null,
-            shootMarks: this._shootMarks.map(m => {
-                return {
-                    hit: m.hit,
-                    distancePercent: percentize(m.pos, this._sonarRange),
-                    sizePercent: percentize(m.size, this._sonarRange),
-                }
-            })
-
         }
     }
 }

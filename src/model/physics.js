@@ -31,6 +31,9 @@ export class Point {
     }
 
     rotate(theta, origin=Point.ZERO) {
+        if (theta == 0) {
+            return this
+        }
         return new Point(
             Math.cos(theta) * (this.x - origin.x) - Math.sin(theta) * (this.y - origin.y) + origin.x,
             Math.sin(theta) * (this.x - origin.x) + Math.cos(theta) * (this.y - origin.y) + origin.y,

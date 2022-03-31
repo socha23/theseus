@@ -271,7 +271,7 @@ function generateCaves(params) {
 export function getStartingMap(params={}) {
     params = {...DEFAULT_MAP_PARAMS, ...params}
 
-    const result = new Map()
+    const result = new Map(new Point(params.minX, params.minY), new Point(params.maxX, params.maxY))
     const mask = []
     const caves = generateCaves(params)
     caves.forEach(c => {

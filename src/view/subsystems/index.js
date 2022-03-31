@@ -58,7 +58,16 @@ function SubsystemMainTab({subsystem, actionController}) {
                 subsystem.isEngine && <Engine subsystem={subsystem}/>
             }
             {
-                subsystem.isMinimap && <Minimap subsystem={subsystem}/>
+                subsystem.isMinimap && <Minimap
+                    minX={subsystem.minX}
+                    maxX={subsystem.maxX}
+                    minY={subsystem.minY}
+                    maxY={subsystem.maxY}
+                    on={subsystem.on}
+                    target={subsystem.target}
+                    position={subsystem.position}
+                    features={subsystem.features}
+                />
             }
         </div>
     </div>

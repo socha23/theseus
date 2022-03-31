@@ -2,6 +2,8 @@ import { Subsystem, SUBSYSTEM_CATEGORIES } from "."
 import { Polygon, rectangle } from "../physics"
 import { Point } from "../physics"
 
+const VIEW_STATE_UPDATE_EVERY = 500
+
 export class Minimap extends Subsystem {
     constructor(gridPosition) {
         super(gridPosition, "minimap", "Minimap", SUBSYSTEM_CATEGORIES.NAVIGATION, {
@@ -14,40 +16,40 @@ export class Minimap extends Subsystem {
         this.minY = -550
         this.maxY = 550
 
-
-        this._viewport = new Polygon([
-            new Point(this.minX, this.minY),
-            new Point(this.maxX, this.minY),
-            new Point(this.maxX, this.maxY),
-            new Point(this.minX, this.maxY),
-        ])
-        this._features = null
-        this._position = Point.ZERO
-        this._target = Point.ZERO
         this.on = true
+
+        this._sinceViewStateUpdate = 0
+        this._viewState = {}
     }
 
     updateState(deltaMs, model, ac) {
         super.updateState(deltaMs, model, ac)
-        this._position = model.sub.position
-        this._target = model.target.position
-        if (!this._features) {
-            this._features = model.map.logicalPolygons
-        }
 
+        this._sinceViewStateUpdate += deltaMs
+
+        if (this._sinceViewStateUpdate >= VIEW_STATE_UPDATE_EVERY) {
+            this._sinceViewStateUpdate = 0
+            this._updateViewState(model)
+        }
     }
 
-    toViewState() {
-        return {
-            ...super.toViewState(),
-            features: this._features ?? [],
+    _updateViewState(model) {
+        this._viewState = {
+            features: model.map.logicalPolygons,
             minX: this.minX,
             maxX: this.maxX,
             minY: this.minY,
             maxY: this.maxY,
             isMinimap: true,
-            position: this._position,
-            target: this._target,
+            position: model.sub.position,
+            target: model.target.position,
+        }
+    }
+
+    toViewState() {
+        return {
+            ...super.toViewState(),
+            ...this._viewState,
         }
     }
 }

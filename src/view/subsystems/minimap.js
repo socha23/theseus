@@ -41,35 +41,30 @@ function _MinimapContents({sizePx, minX, maxX, minY, maxY, scale, features}) {
     </Stage>
 }
 
-function compareMinimap(m1, m2) {
-    if (m1.features?.length != m2.features?.length) {
-        return false
-    }
-    return true
-}
+const MinimapContents = _MinimapContents
 
-const MinimapContents = memo(_MinimapContents, compareMinimap)
-
-export function Minimap({subsystem}) {
-    const scale = SIZE_PX / (subsystem.maxX - subsystem.minX)
+function _Minimap({position, minX, maxX, minY, maxY, on, target, features}) {
+    const scale = SIZE_PX / (maxX - minX)
     return <div className="minimap">
         <div className="display" style={{width: SIZE_PX + 2, height: SIZE_PX + 2}}>
-            {subsystem.on &&
-                    <MinimapContents sizePx={SIZE_PX} minX={subsystem.minX} maxX={subsystem.maxX} minY={subsystem.minY} maxY={subsystem.maxY} scale={scale} features={subsystem.features}/>
+            {on &&
+                    <MinimapContents sizePx={SIZE_PX} minX={minX} maxX={maxX} minY={minY} maxY={maxY} scale={scale} features={features}/>
             }
             {
-                subsystem.on && <div className="sub" style={{
-                    left: transpose(subsystem.position.x, subsystem.minX, subsystem.maxX, 0, SIZE_PX) - 2,
-                    top: transpose(subsystem.position.y, subsystem.minY, subsystem.maxY, 0, SIZE_PX) - 2,
+                on && <div className="sub" style={{
+                    left: transpose(position.x, minX, maxX, 0, SIZE_PX) - 2,
+                    top: transpose(position.y, minY, maxY, 0, SIZE_PX) - 2,
                 }}/>
             }
             {
-                subsystem.on && <div className="target" style={{
-                    left: transpose(subsystem.target.x, subsystem.minX, subsystem.maxX, 0, SIZE_PX) - 2,
-                    top: transpose(subsystem.target.y, subsystem.minY, subsystem.maxY, 0, SIZE_PX) - 2,
+                on && <div className="target" style={{
+                    left: transpose(target.x, minX, maxX, 0, SIZE_PX) - 2,
+                    top: transpose(target.y, minY, maxY, 0, SIZE_PX) - 2,
                 }}/>
             }
         </div>
 
     </div>
 }
+
+export const Minimap = memo(_Minimap)

@@ -2,17 +2,32 @@ import { Edge, Vector, SimpleRect, vectorForPolar } from "./physics"
 
 const MAP_BUCKET_SIZE = 10
 
+const BUCKET_MARGIN = 20
+
 class CollisionMap {
-    constructor() {
-        this.buckets = {}
+    constructor(from, to) {
+        this.minX = Math.floor(from.x / MAP_BUCKET_SIZE) - BUCKET_MARGIN
+        this.minY = Math.floor(from.y / MAP_BUCKET_SIZE) - BUCKET_MARGIN
+
+
+        const maxX = Math.floor(to.x / MAP_BUCKET_SIZE) + BUCKET_MARGIN
+        const maxY = Math.floor(to.y / MAP_BUCKET_SIZE) + BUCKET_MARGIN
+
+        this.width = maxX - this.minX + 1
+        this.height = maxY - this.minY + 1
+
+
+        this.buckets = []
+
+        for (var i = 0; i < this.width * this.height; i++) {
+            this.buckets.push(new Set)
+        }
+
     }
 
     _getBucket(x, y) {
-        const key = x * 100000 + y
-        if (!(key in this.buckets)) {
-            this.buckets[key] = new Set()
-        }
-        return this.buckets[key]
+        const bucketIdx = (y - this.minY) * this.width + (x - this.minX)
+        return this.buckets[bucketIdx]
     }
 
     _combineBuckets(buckets) {
@@ -60,15 +75,18 @@ class CollisionMap {
 }
 
 export class Map {
-    constructor() {
+    constructor(from, to) {
         this.polygonDefinitions = []
         this.collisionMaps = {}
         this.caves = []
         this.paths = []
         this._logicalPolygons = null
 
-        this.entityMap = new CollisionMap()
+        this.entityMap = new CollisionMap(from, to)
         this.entities = []
+
+        this.from = from
+        this.to = to
 
     }
     // logical map
@@ -123,7 +141,7 @@ export class Map {
     }
 
     _createCollisionMap(deltaSize) {
-        const result = new CollisionMap()
+        const result = new CollisionMap(this.from, this.to)
         this.polygonDefinitions.forEach(d => {
             result.add(d.createPolygon(deltaSize))
         })

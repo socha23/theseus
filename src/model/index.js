@@ -41,8 +41,8 @@ class GameModel {
 
     _updateEntities(deltaMs) {
         const newEntities = []
-        this.entities.forEach(e => {
-
+        for (var eIdx = 0; eIdx < this.entities.length; eIdx++) {
+            const e = this.entities[eIdx]
             if (e.position.distanceTo(this.sub.position) < ENTITY_ACTIVATION_DISTANCE) {
                 this.map.removeEntity(e.bounding)
                 const prevBox = e.boundingBox
@@ -55,7 +55,7 @@ class GameModel {
             } else {
                 newEntities.push(e)
             }
-        })
+        }
         this.entities = newEntities
     }
 

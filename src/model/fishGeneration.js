@@ -102,7 +102,6 @@ function flockInCave(c, template, count) {
 
 export function generateFish(map) {
     const res = []
-
     map.caves.forEach(c => {
 
         const r = Math.random()

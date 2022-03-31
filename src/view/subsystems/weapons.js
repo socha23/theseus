@@ -61,7 +61,7 @@ function _AimTarget2({target, aimBarWidth, aimBarHeight, actionController}) {
 //const AimTarget2 = memo(_AimTarget2, (a, b) => jsonCompare(a.target, b.target))
 const AimTarget2 = _AimTarget2
 
-function AimBar2({aim, on}) {
+function _AimBar2({aim, on}) {
     const width = 228
     const height = 30
 
@@ -93,15 +93,13 @@ function AimBar2({aim, on}) {
                         />
                 }
                 <Rect x={rangeWidth} y={0} width={2} height={height} fill="white" opacity={0.5}/>
-
             </Layer>
         </Stage>
         }
     </div>
-
-
 }
 
+const AimBar2 = memo(_AimBar2)
 
 export function Weapon({subsystem}) {
     return <div className="weapon">

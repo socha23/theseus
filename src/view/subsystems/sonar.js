@@ -9,6 +9,7 @@ import { jsonCompare, relativeAngle } from "../../utils";
 import { ActionButton } from "../widgets";
 import "../../css/subsystems/sonar.css"
 import { ActionControllerCtx } from "../../actionController";
+import { DArea, DEllipse } from "../divGraphics";
 
 const SIZE_PX = 420
 
@@ -432,6 +433,10 @@ function _InnerSonar({
                     />
                 </Layer>
             </Stage>}
+            {/*
+            <DArea>
+                <DEllipse position={new Point(20, 20)}/>
+        </DArea>*/}
         </div>
     </div>
 }

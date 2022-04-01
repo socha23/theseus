@@ -25,66 +25,17 @@
     border-color: #469528;
 }
 
-.subsystem .weapon .aimBar .crosshairs {
-    background-color: rgba(255, 255, 255, 0.5);
-    position: absolute;
-    height: 100%;
-}
-
-.subsystem .weapon .aimBar .target {
-    border-left: 1px solid red;
-    border-right: 1px solid red;
-    position: absolute;
-    height: 100%;
-    opacity: 0.3;
-    z-index: 900;
-}
-
 .subsystem .weapon .aimBar .target .inner {
     height: 100%;
     width: 100%;
 }
 
 .subsystem .weapon .aimBar .target.selected {
-    opacity: 1;
     z-index: 1000;
 }
 
-.subsystem .weapon .aimBar .target.selected .inner{
-    opacity: 0.9;
-}
-
-
-.subsystem .weapon .aimBar .target.obscured {
-    opacity: 0.4;
-}
-
-.subsystem .weapon .aimBar .target.dead {
-    opacity: 0.2;
-}
-
-.subsystem .weapon .aimBar .range {
-    background-color: rgba(71, 149, 40, 0.3);
-    position: absolute;
-    height: 100%;
-    z-index: 0;
-}
-
-.subsystem .weapon .aimBar .shootMark {
-    z-index: 1100;
-    opacity: 0.4;
-}
-
-.subsystem .weapon .aimBar .shootMark.hit {
-    background-color: rgba(255, 0, 0, 0.8);
-    position: absolute;
-    height: 100%;
-}
-
-.subsystem .weapon .aimBar .shootMark.miss {
-    background-color: rgba(0, 0, 0, 0.4);
-    position: absolute;
-    height: 100%;
+.subsystem .weapon .aimBar .target .selectedMark {
+    border: 1px dashed rgba(255,255,255,0.8);
 }
 
 .subsystem .weapon .filler {

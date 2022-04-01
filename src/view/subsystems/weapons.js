@@ -2,8 +2,9 @@ import { ActionButton } from "../widgets"
 import "../../css/subsystems/weapons.css"
 import { useContext, useCallback, memo } from "react"
 import { ActionControllerCtx } from "../../actionController"
-import {jsonCompare, transpose} from "../../utils"
-import { Circle, Layer, Rect, Stage, Ellipse, Line, Group } from "react-konva"
+import { transpose } from "../../utils"
+import { DArea, DRect, DEllipse, DCircle } from "../divGraphics"
+import { Point } from "../../model/physics"
 
 function AmmoBullet({spent}) {
     return <span className='bullet'>
@@ -23,86 +24,88 @@ function _AmmoBar({ammo, ammoMax}) {
 }
 const AmmoBar = memo(_AmmoBar)
 
-function _AimTarget2({target, aimBarWidth, aimBarHeight, actionController}) {
+function AimTarget({target, aimBarWidth, aimBarHeight}) {
     const targetSize = Math.max(2, target.sizePercent / 100 * aimBarWidth)
     const targetWidth = Math.max(1, target.widthPercent / 100 * aimBarWidth) * 1.5
     const myX = target.distancePercent / 100 * aimBarWidth
     const myY = transpose(target.ordering, 0, 1, 2 + targetWidth / 2, aimBarHeight - 2 - targetWidth / 2)
 
-    return <Group>
+    var className = "target "
+    if (target.selected) {
+        className += "selected "
+    }
 
-        {target.selected && <Circle /* tracked overlay */
-            listening={false}
-            radius={(targetSize / 2) + 4}
-            x={myX + targetSize / 2}
-            y={myY}
-            stroke="#ddd"
-            strokeWidth={1}
-            dash={[6, 3]}
-        />}
+    const center = new Point(myX + targetSize / 2, myY)
 
-            <Ellipse
-                listening={false}
-                x={myX + targetSize / 2}
-                y={myY}
-                opacity={target.alive ? 1 : 0.5}
-                radius={{x: targetSize / 2, y: targetWidth / 2}}
-                fill={target.color}
+    const actionController = useContext(ActionControllerCtx)
+    const onClick = useCallback(() => {actionController.targetEntityId = target.id})
+
+    return <div className={className}>
+    {
+            /* tracked overlay */
+            target.selected && <DCircle
+                radius={(targetSize / 2) + 4}
+                position={center}
+                className="selectedMark"
             />
-        <Circle /* click overlay */
-            x={myX + targetSize / 2}
-            y={myY}
-            radius={(targetSize / 2) + 2}
-            onClick={() => {actionController.targetEntityId = target.id}}
+        }
+        <DEllipse
+            position={center}
+            opacity={target.alive ? 1 : 0.5}
+            width={targetSize}
+            height={targetWidth}
+            color={target.color}
         />
-        </Group>
+        {
+            /* click overlay */
+            <DCircle
+                position={center}
+                radius={(targetSize / 2) + 2}
+                onClick={onClick}
+            />
+        }
+        </div>
 }
 
-//const AimTarget2 = memo(_AimTarget2, (a, b) => jsonCompare(a.target, b.target))
-const AimTarget2 = _AimTarget2
-
-function AimBar2({aim, on}) {
+function AimBar({aim, on}) {
     const width = 228
     const height = 30
 
     const rangeWidth = aim.rangePercent / 100 * width
-    const actionController = useContext(ActionControllerCtx)
 
     return <div className={"aimBar "}>
         {
-            on && <Stage width={width} height={height}>
-            <Layer>
-                <Rect x={0} y={0} width={width} height={height} fill="black"/>
+            on && <DArea width={width} height={height}>
+                <DRect width={width} height={height} color="black"/>
                 {
-                    aim.targets.map(t => <AimTarget2
+                    aim.targets.map(t => <AimTarget
                         key={t.id}
-                        actionController={actionController}
                         target={t}
                         aimBarWidth={width}
                         aimBarHeight={height}/>)
                 }
                 {
                     aim.crosshairs &&
-                        <Rect
-                            x={aim.crosshairs.distancePercent / 100 * width}
-                            y={0}
+                        <DRect
+                            position={new Point(
+                                aim.crosshairs.distancePercent / 100 * width,
+                                0
+                            )}
                             width={aim.crosshairs.sizePercent / 100 * width}
                             height={height}
-                            fill="white"
+                            color="white"
                             opacity={0.7}
                         />
                 }
-                <Rect x={rangeWidth} y={0} width={2} height={height} fill="white" opacity={0.5}/>
-            </Layer>
-        </Stage>
+                <DRect position={new Point(rangeWidth, 0)} width={2} height={height} color="white" opacity={0.5}/>
+        </DArea>
         }
     </div>
 }
-
 function _Weapon({subsystem}) {
     return <div className="weapon">
         <AmmoBar ammo={subsystem.ammo} ammoMax={subsystem.ammoMax}/>
-        <AimBar2 on={subsystem.on} aim={subsystem.aim}/>
+        <AimBar on={subsystem.on} aim={subsystem.aim}/>
         <div className="actions">
             {subsystem.weaponActions.map(a =>
             <ActionButton key={a.id}

@@ -368,6 +368,7 @@ export class Sub extends Entity {
         return this.effects
             .filter(e => e.type === HIT_MARK_STATUS)
             .map(h => ({
+                id: h.id,
                 position: h.params.position.rotate(this.orientation).plus(new Vector(this.x, this.y)),
                 strength: h.params.strength,
             }))
@@ -379,7 +380,7 @@ const HIT_MARK_STATUS = "hitMark"
 function hitMarkStatus(position, strength = 10) {
     return new Effect({
         type: HIT_MARK_STATUS,
-        durationMs: 1000,
+        durationMs:  1000,
         position,
         strength,
     })

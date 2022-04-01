@@ -48,7 +48,7 @@ export class Sonar extends Subsystem {
     constructor(gridPosition, id, name, template) {
         super(gridPosition, id, name, {
             ...template,
-            viewRefreshMs: 30,
+            viewRefreshMs: 20,
         })
         this.range = template.range
         this.debugAction = new SonarDebugAction(this)

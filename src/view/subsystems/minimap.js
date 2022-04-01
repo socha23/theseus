@@ -1,44 +1,33 @@
 import React, { memo } from "react";
-import {Stage, Layer, Line, Rect, Group } from 'react-konva'
 import "../../css/subsystems/minimap.css"
+import { Point } from "../../model/physics";
 import { transpose } from "../../utils";
+import { DArea, DPolygon, DRect, DReferenceFrame } from "../divGraphics";
 
 
 const SIZE_PX = 224//376
 
-
-function linePointsFromPolygon(polygon) {
-    const points = []
-    polygon.points.forEach(p => {
-        points.push(p.x, p.y)
-    })
-    return points
-
-}
-
 ///////////
 // FEATURES
 ///////////
-function Feature({feature}) {
-    return <Line points={linePointsFromPolygon(feature)} closed={true} fill="black"/>
-}
-
 
 function _MinimapContents({sizePx, minX, maxX, minY, maxY, scale, features}) {
-    return <Stage width={sizePx} height={sizePx} >
-        <Layer>
-            <Rect
-                x={minX} width={maxX - minX}
-                y={minY} height={maxY - minY}
-                fill="#444"
-                />
-            <Group offsetX={minX} offsetY={minY} scaleX={scale} scaleY={scale}>
+    const dx = -minX
+    const dy = -minY
+    return <DArea width={sizePx} height={sizePx}>
+              {  <DRect className="background" position={new Point(sizePx / 2, sizePx / 2)} width={sizePx} height={sizePx}/>}
                 {
-                    features.map(f => <Feature key={f.id} feature={f}/>)
+                    <DReferenceFrame scale={scale} position={new Point(dx, dy)}>
+                    {
+                        features.map(f => <DPolygon
+                            key={f.id}
+                            className={"feature"}
+                            polygon={f}
+                        />)
+                    }
+                    </DReferenceFrame>
                 }
-            </Group>
-        </Layer>
-    </Stage>
+            </DArea>
 }
 
 const MinimapContents = _MinimapContents

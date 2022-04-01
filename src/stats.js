@@ -1,7 +1,7 @@
 
 const DEFAULT_PARAMS = {
     name: "Statistic",
-    retentionTime: 1000,
+    retentionTime: 500,
     unit: "",
     minFrameDistance: 0,
 }

@@ -160,11 +160,11 @@ class Cave {
 }
 
 function randomCave(params, caveParams, position = null) {
-    const minX = params.minX + params.wallMargin + caveParams.sizeMax / 2
-    const maxX = params.maxX - params.wallMargin - caveParams.sizeMax / 2
+    const minX = params.minX + params.wallMargin + caveParams.sizeMax
+    const maxX = params.maxX - params.wallMargin - caveParams.sizeMax
 
-    const minY = params.minY + params.wallMargin + caveParams.sizeMax / 2
-    const maxY = params.maxY - params.wallMargin - caveParams.sizeMax / 2
+    const minY = params.minY + params.wallMargin + caveParams.sizeMax
+    const maxY = params.maxY - params.wallMargin - caveParams.sizeMax
 
 
     var sizeX = transpose(Math.random(), 0, 1, caveParams.sizeMin, caveParams.sizeMax)

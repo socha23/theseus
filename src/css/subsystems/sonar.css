@@ -3,6 +3,10 @@
     gap: 5px;
 }
 
+/*
+ * TOGGLES
+ */
+
 .subsystem .sonar .toggles {
     flex-grow: 1;
     display: flex;
@@ -24,10 +28,120 @@
     display: none;
 }
 
+/*
+ * DISPLAY
+ */
 
-.subsystem .sonar .display {
+ .subsystem .sonar .display {
     opacity: 0.8;
     border: 1px solid #a5d000;
     position: relative;
+    overflow: hidden;
 }
 
+
+
+
+/*
+ * BLIPS
+ */
+
+.subsystem .sonar .selectedMark {
+    border: 3px dashed rgba(255,255,255,0.8);
+}
+
+.subsystem .sonar .debug .orientation {
+    background-color: yellow;
+}
+
+.subsystem .sonar .entity .target {
+    border: 6px solid #197dff;
+}
+
+
+/*
+ * TARGET MARKS
+ */
+
+.subsystem .sonar .targetMark {
+    color: #00e1ff;
+    font-size: 10pt;
+    pointer-events: none;
+}
+
+.subsystem .sonar .targetMark .circle {
+    border: 1px solid #00e1ff;
+}
+.subsystem .sonar .targetMark .arrow {
+    background-color: #00e1ff;
+}
+
+/*
+ * HITMARKS
+ */
+
+
+.subsystem .sonar .hitMark {
+    background-color: red;
+}
+
+/*
+ * RANGES
+ */
+
+.subsystem .sonar .ranges {
+    pointer-events: none;
+}
+
+.subsystem .sonar .range {
+    border: 6px solid rgba(0, 104, 22, 0.4);
+}
+
+.subsystem .sonar .range.hover {
+    border: 6px solid rgba(0, 104, 22, 0.8);
+}
+
+
+.subsystem .sonar .ranges {
+    pointer-events: none;
+}
+
+/*
+ * AIMLINES
+ */
+ .subsystem .sonar .aimLines {
+    pointer-events: none;
+}
+
+.subsystem .sonar .aimLine {
+    background-color: white;
+    opacity: 0.6;
+}
+
+/*
+ * MARKER
+ */
+ .subsystem .sonar .subMarker {
+    background-color: #777
+}
+
+/*
+ * FEATURES
+ */
+ .subsystem .sonar .feature {
+    background-color: #444
+}
+
+
+/*
+ * background
+ */
+ .subsystem .sonar .background {
+    background-color: black
+}
+
+
+ .subsystem .sonar .gridLine {
+    background-color: white;
+    opacity: 0.3;
+}

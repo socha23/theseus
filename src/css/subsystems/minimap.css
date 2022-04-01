@@ -24,3 +24,11 @@
     border-radius: 2px;
     background-color: #00e1ff;
 }
+
+.subsystem .minimap .background {
+    background-color: #444;
+}
+
+.subsystem .minimap .feature {
+    background-color: black;
+}

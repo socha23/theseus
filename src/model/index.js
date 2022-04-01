@@ -1,4 +1,4 @@
-import { Point } from "./physics"
+import { Point, Vector } from "./physics"
 import {getStartingSub} from "./startingSub"
 import { getStartingMap } from "./mapGeneration"
 import { generateFish } from "./fishGeneration"

@@ -76,7 +76,7 @@ function AimBar({aim, on}) {
     return <div className={"aimBar "}>
         {
             on && <DArea width={width} height={height}>
-                <DRect width={width} height={height} color="black"/>
+                <DRect position={new Point(width / 2, height / 2)} width={width} height={height} color="black"/>
                 {
                     aim.targets.map(t => <AimTarget
                         key={t.id}
@@ -88,8 +88,8 @@ function AimBar({aim, on}) {
                     aim.crosshairs &&
                         <DRect
                             position={new Point(
-                                aim.crosshairs.distancePercent / 100 * width,
-                                0
+                                (aim.crosshairs.distancePercent + aim.crosshairs.sizePercent / 2 ) / 100 * width,
+                                height / 2
                             )}
                             width={aim.crosshairs.sizePercent / 100 * width}
                             height={height}
@@ -97,7 +97,7 @@ function AimBar({aim, on}) {
                             opacity={0.7}
                         />
                 }
-                <DRect position={new Point(rangeWidth, 0)} width={2} height={height} color="white" opacity={0.5}/>
+                <DRect position={new Point(rangeWidth, height / 2)} width={2} height={height} color="white" opacity={0.5}/>
         </DArea>
         }
     </div>

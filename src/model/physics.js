@@ -47,6 +47,10 @@ export class Point {
     get string() {
         return `${this.x.toFixed(1)}, ${this.y.toFixed(1)}`
     }
+
+    scale(scale = 1) {
+        return new Point(this.x * scale, this.y * scale)
+    }
 }
 
 export class Vector {
@@ -101,6 +105,10 @@ export class Vector {
 
     withTheta(theta=0) {
         return vectorForPolar(this.length, theta)
+    }
+
+    scale(scale = 1) {
+        return this.multiply(scale)
     }
 
 }
@@ -515,6 +523,10 @@ export class Polygon {
             maxY = Math.max(maxY, p.y)
         })
         return new Point((minX + maxX) / 2, (minY + maxY) / 2)
+    }
+
+    scale(scale = 1) {
+        return new Polygon(this.points.map(p => p.scale(scale)))
     }
 
     get simpleBoundingBox() {

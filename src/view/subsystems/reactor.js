@@ -145,7 +145,7 @@ function ReactorPowerSlider({id, enabled}) {
     />
 }
 
-export function Reactor({subsystem}) {
+function _Reactor({subsystem}) {
     const HIST_HEIGHT = 180
 
     return <div className='reactor'>
@@ -163,3 +163,5 @@ export function Reactor({subsystem}) {
         </div>
     </div>
 }
+
+export const Reactor = memo(_Reactor)

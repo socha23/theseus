@@ -1,3 +1,4 @@
+import { memo } from "react";
 import "../../css/subsystems/pumps.css"
 import { WithTooltip } from "../tooltip";
 
@@ -16,7 +17,7 @@ function PumpPowerBoxTooltip({subsystem}) {
 }
 
 
-export function Pumps({subsystem}) {
+function _Pumps({subsystem}) {
     return <div className={"pumps " +  (subsystem.pumping ? "active " : "inactive ") }>
         <div className="mainPane">
             <div className="topRow">
@@ -36,3 +37,4 @@ export function Pumps({subsystem}) {
     </div>
 }
 
+export const Pumps = memo(_Pumps)

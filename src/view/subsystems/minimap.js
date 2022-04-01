@@ -1,7 +1,7 @@
-import React, { memo, useState } from "react";
-import {Stage, Layer, Line, Circle, Rect, Group, Ellipse, Text} from 'react-konva'
+import React, { memo } from "react";
+import {Stage, Layer, Line, Rect, Group } from 'react-konva'
 import "../../css/subsystems/minimap.css"
-import { jsonCompare, transpose } from "../../utils";
+import { transpose } from "../../utils";
 
 
 const SIZE_PX = 224//376

@@ -1,13 +1,13 @@
 import { MATERIALS } from '../materials'
 import { BrokenDown, IncreasedPowerConsumption, RandomShutdown } from './damage'
-import { Subsystem, SUBSYSTEM_CATEGORIES, SubsystemDamage, DAMAGE_CATEGORY } from './index'
+import { Subsystem, SubsystemDamage, DAMAGE_CATEGORY } from './index'
 
 
 const STANDBY_CONSUMPTION = 0.05
 
 export class Pumps extends Subsystem {
     constructor(gridPosition, id, name, template) {
-        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.DEFAULT, template)
+        super(gridPosition, id, name, template)
         this.pumping = true
         this.waterLevel = 0
         this.waterFlow = 0
@@ -65,6 +65,7 @@ export class Pumps extends Subsystem {
         this.statusEffects.filter(s => s instanceof ReducedPumpPower).forEach(s => {
             this._pumpPowerMultiplier *= s.multiplier
         })
+
         if (this.pumping && !this.on) {
             this.pumping = false
         } else if (!this.pumping && this.on && (this.engagesAt <= model.sub.waterLevel)) {
@@ -80,9 +81,8 @@ export class Pumps extends Subsystem {
         return super.leak - (this.activePumpPower)
     }
 
-    toViewState() {
+    createViewState(model) {
         return {
-            ...super.toViewState(),
             pumpPower: this.pumpPower,
             activePumpPower: this.activePumpPower,
             pumpPowerMultiplier: this.pumpPowerMultiplier,

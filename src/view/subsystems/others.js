@@ -6,7 +6,7 @@ import { jsonCompare } from "../../utils.js";
 
 ///////////////////////////////////
 
-export function SubStatus({subsystem}) {
+function _SubStatus({subsystem}) {
     return <div className='subStatus'>
         {subsystem.on && <div>
             {
@@ -40,6 +40,7 @@ export function SubStatus({subsystem}) {
         </div>}
     </div>
 }
+export const SubStatus = memo(_SubStatus)
 
 
 ///////////////////////////////////
@@ -50,5 +51,5 @@ function _Cheatbox({cheats}) {
         }
     </div>
 }
-//export const Cheatbox = memo(_Cheatbox, (a, b) => a.cheats.length != b.cheats.length)
-export const Cheatbox = _Cheatbox
+
+export const Cheatbox = memo(_Cheatbox)

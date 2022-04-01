@@ -1,7 +1,6 @@
 import {ToggleAction } from '../action'
-import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
-import {Point, rectangle, Volume} from "../physics"
-import { shootMiss } from '../effects'
+import { Subsystem } from './index'
+import {Point, rectangle} from "../physics"
 
 class SonarDebugAction extends ToggleAction {
     constructor(sonar) {
@@ -45,24 +44,24 @@ export class AimLine {
     }
 }
 
-const UPDATE_MS = 30
-
 export class Sonar extends Subsystem {
     constructor(gridPosition, id, name, template) {
-        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.SONAR, template)
+        super(gridPosition, id, name, {
+            ...template,
+            viewRefreshMs: 30,
+        })
         this.range = template.range
-
-        this._sinceLastUpdate = UPDATE_MS
         this.debugAction = new SonarDebugAction(this)
         this.actions.push(this.debugAction)
+    }
 
-        this._sinceLastUpdate = 0
-        this._viewState = {}
+    viewPort(model) {
+        return rectangle(model.sub.position, new Point(2 * this.range, 2 * this.range), model.sub.orientation)
     }
 
     _observeEntities(model) {
         return model.map
-            .getEntitiesAround(model.sub.position, this.range * 1.5) // todo range hack to account for square display
+            .getEntitiesIntersecting(model.sub.position, this.viewPort(model))
 
     }
 
@@ -73,21 +72,13 @@ export class Sonar extends Subsystem {
     }
 
     _observeFeatures(model) {
-        const viewPort = rectangle(model.sub.position, new Point(3 * this.range, 3 * this.range)) // 3 is a range hack as above
-        const features = model.map.getPolygonsIntersecting(viewPort)
-        return features
+        return model.map.getPolygonsIntersecting(this.viewPort(model))
     }
 
 
-    updateState(deltaMs, model, actionController) {
-        super.updateState(deltaMs, model, actionController)
-
-        if (this._sinceLastUpdate >= UPDATE_MS) {
-            this._sinceLastUpdate = this._sinceLastUpdate % UPDATE_MS
-
-            const sub = model.sub
-
-            this._viewState = {
+    createViewState(model) {
+        const sub = model.sub
+        return {
                 isSonar: true,
                 range: this.range,
                 position: sub.position,
@@ -99,23 +90,9 @@ export class Sonar extends Subsystem {
                 ranges: sub.ranges ?? [],
                 aimLines: sub.aimLines ?? [],
                 features: this._observeFeatures(model) ?? [],
-                sub: model.sub,
                 toggleActions: [this.debugAction.toViewState()],
                 hitMarks: sub.hitMarksViewState() ?? [],
                 target: model.target,
-            }
-
-        } else {
-            this._sinceLastUpdate += deltaMs
-        }
-
-    }
-
-    toViewState() {
-        return {
-            ...super.toViewState(),
-            ...this._viewState,
-
         }
     }
 }

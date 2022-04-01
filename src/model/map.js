@@ -31,18 +31,14 @@ class CollisionMap {
     }
 
     _combineBuckets(buckets) {
-        const seen = new Set()
-        const result = []
+        const result = new Set()
         buckets.forEach(b => {
             b.forEach(f => {
-                if (!seen.has(f)) {
-                    result.push(f)
-                    seen.add(f)
-
-                }
+                result.add(f)
             })
         })
-        return result
+
+        return [...result]
     }
 
     _bucketsOverlapping(polygon) {
@@ -260,6 +256,10 @@ export class Map {
             this.entityMap.remove(previousBoundingBox, entity)
             this.entityMap.add(entity.boundingBox, entity)
         }
+    }
+
+    getEntitiesIntersecting(pos, polygon) {
+        return this.entityMap.getPolygonsIntersecting(polygon)
     }
 
     getEntitiesAround(pos, radius) {

@@ -4,20 +4,12 @@ import { Effect, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffec
 import { Point } from '../physics.js'
 import { MATERIALS } from '../materials'
 
-export const SUBSYSTEM_CATEGORIES = {
-    DEFAULT: "DEFAULT",
-    WEAPON: "WEAPON",
-    STATUS: "STATUS",
-    NAVIGATION: "NAVIGATION",
-    SONAR: "SONAR",
-
-}
-
 const DEFAULT_TEMPLATE = {
     powerConsumption: 0,
     gridSize: new Point(1, 1),
     takesDamage: true,
     waterResistant: false,
+    viewRefreshMs: 50,
 }
 
 
@@ -38,15 +30,14 @@ class TogglePowerAction extends ToggleAction {
 }
 
 export class Subsystem extends HasEffects {
-    constructor(gridPosition, id, name, category, template={}) {
+    constructor(gridPosition, id, name, template={}) {
         super()
         this.template={...DEFAULT_TEMPLATE, ...template}
+
         this.id = id
         this.name = name
-        this.category = category
         this.actions = []
         this._powerConsumption = this.template.powerConsumption
-        this._subPowerBalance = 0
 
         this._actionOn = new TogglePowerAction(this)
         this.actions.push(this._actionOn)
@@ -60,6 +51,13 @@ export class Subsystem extends HasEffects {
 
         this._powerOnErrors = []
         this._on = false
+
+        this._viewState = this._commonViewState(null)
+        this._sinceLastViewRefresh = Math.random() * this.template.viewRefreshMs
+    }
+
+    get viewRefreshMs() {
+        return this.template.viewRefreshMs
     }
 
     __updatePowerOnErrors(model) {
@@ -84,30 +82,61 @@ export class Subsystem extends HasEffects {
     }
 
 
+    createViewState(model) {
+
+    }
+
+    _commonViewState(model) {
+        return {
+            id: this.id,
+            name: this.name,
+
+            gridPosition: this.gridPosition,
+            gridSize: this.gridSize,
+
+            disabled: this.disabled,
+            on: this.on,
+            actionOn: this._actionOn.toViewState(),
+            powerOnErrors: this._powerOnErrors,
+
+            statusEffects: this.statusEffects.map(e => e.toViewState()),
+
+            powerConsumption: this.powerConsumption,
+            powerConsumptionMultiplier: this._powerConsumptionMultiplier,
+            nominalPowerConsumption: this.nominalPowerConsumption,
+            subPowerBalance: model ? Math.floor(model.sub.power.balance) : 0,
+
+            effects: this.effectsViewState(),
+        }
+    }
+
+    _createViewState(model) {
+        return {
+            ...this._commonViewState(model),
+            ...this.createViewState(model),
+        }
+    }
+
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
         this.actions.forEach(a => a.updateState(deltaMs, model, actionController))
-
         if (this.on && this.disabled) {
             this.on = false
         }
-
         this.__updatePowerOnErrors(model)
-
         this._statusEffects = this.effects
             .filter(e => e.statusEffect)
             .sort((a, b) =>
                 (b.damageCategory * 100 + b.leak)
             - (a.damageCategory * 100 + a.leak))
-
-
-        this._powerConsumptionMultiplier = 1
-        this._statusEffects.forEach(e => {
-            this._powerConsumptionMultiplier *= e.powerConsumptionMultiplier
-        })
-
+        this._powerConsumptionMultiplier = this.multiplicativeEffect("powerConsumptionMultiplier")
         this._updateUnderWater(deltaMs, model)
-        this._subPowerBalance = model.sub.power.balance
+
+        this._sinceLastViewRefresh += deltaMs
+        if (this._sinceLastViewRefresh > this.viewRefreshMs) {
+            this._sinceLastViewRefresh %= this.viewRefreshMs
+            this._viewState = this._createViewState(model)
+        }
     }
 
     get powerConsumptionMultiplier() {
@@ -129,24 +158,7 @@ export class Subsystem extends HasEffects {
     }
 
     toViewState() {
-        return {
-            ...super.toViewState(),
-            id: this.id,
-            name: this.name,
-            category: this.category,
-            actions: this.actions.map(a => a.toViewState()),
-            actionOn: this._actionOn.toViewState(),
-            on: this.on,
-            gridPosition: this.gridPosition,
-            gridSize: this.gridSize,
-            statusEffects: this.statusEffects.map(e => e.toViewState()),
-            powerConsumption: this.powerConsumption,
-            powerConsumptionMultiplier: this._powerConsumptionMultiplier,
-            nominalPowerConsumption: this.nominalPowerConsumption,
-            subPowerBalance: this._subPowerBalance,
-            disabled: this.disabled,
-            powerOnErrors: this._powerOnErrors,
-        }
+        return this._viewState
     }
 
     isEngine() {

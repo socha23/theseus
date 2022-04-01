@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, memo } from "react";
 import Sonar from "./sonar.js";
 import { ActionButton} from "../widgets"
 import { Weapon } from "./weapons"
@@ -170,8 +170,7 @@ function StatusTabIcon({subsystem, active, onClick}) {
 }
 
 
-export function Subsystem({subsystem}) {
-
+function _Subsystem({subsystem}) {
     const actionController = useContext(ActionControllerCtx)
     const [activeTab, setActiveTab] = useState(TABS.MAIN)
 
@@ -214,3 +213,5 @@ export function Subsystem({subsystem}) {
 
     </div>
 }
+
+export const Subsystem = memo(_Subsystem)

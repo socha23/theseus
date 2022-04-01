@@ -12,7 +12,7 @@ function Effect({effect}) {
     </div>
 }
 
-function _TrackedEntity({id, alive, bloodPercent, effects, planDescription}) {
+function TrackedEntity({id, alive, bloodPercent, effects, planDescription}) {
     return <div className="trackedEntity">
         <div>
             {id} {alive ? "" : " (dead)"}
@@ -39,9 +39,7 @@ function _TrackedEntity({id, alive, bloodPercent, effects, planDescription}) {
     </div>
 }
 
-const TrackedEntity = memo(_TrackedEntity)
-
-export function Tracking({subsystem}) {
+function _Tracking({subsystem}) {
     const e = subsystem.tracking
     return <div className='tracking'>
 
@@ -57,3 +55,4 @@ export function Tracking({subsystem}) {
     </div>
 }
 
+export const Tracking = memo(_Tracking)

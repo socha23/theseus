@@ -1,4 +1,4 @@
-import { Subsystem, SUBSYSTEM_CATEGORIES } from "."
+import { Subsystem } from "."
 import { randomElem } from "../../utils"
 import { Engine } from "./engine"
 import { action } from "../action"
@@ -7,7 +7,7 @@ import { Pumps } from "./pumps"
 
 export class CheatBox extends Subsystem {
     constructor(gridPosition) {
-        super(gridPosition, "cheatbox", "Cheatbox", SUBSYSTEM_CATEGORIES.WEAPON, {takesDamage: false})
+        super(gridPosition, "cheatbox", "Cheatbox", {takesDamage: false})
 
         this.cheats = [
             action({
@@ -83,12 +83,10 @@ export class CheatBox extends Subsystem {
         this.on = true
     }
 
-    toViewState() {
+    createViewState(model) {
         return {
-            ...super.toViewState(),
             cheats: this.cheats.map(c => c.toViewState()),
             isCheatbox: true,
-
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
+import { Subsystem } from './index'
 import "../../css/subsystems/reactor.css"
 import { Statistic } from '../../stats'
 import { Point } from '../physics'
@@ -29,7 +29,7 @@ const DEFAULT_REACTOR = {
 
 export class Reactor extends Subsystem {
     constructor(gridPosition, id, name, template) {
-        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.NAVIGATION, {...DEFAULT_REACTOR, ...template})
+        super(gridPosition, id, name, {...DEFAULT_REACTOR, ...template})
 
         this.maxOutput = template.maxOutput
 
@@ -176,11 +176,8 @@ export class Reactor extends Subsystem {
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
-
         this._statistics.powerProduction.add(this.output, true)
         this._statistics.powerConsumption.add(model.sub.power.consumption, true)
-
-
         this._updateReaction(deltaMs, model)
         this._updateControl(actionController)
     }
@@ -189,9 +186,8 @@ export class Reactor extends Subsystem {
         return this.on ? this.output : 0
     }
 
-   toViewState() {
+   createViewState(model) {
         return {
-            ...super.toViewState(),
             fuel: this._fuel,
             control: this._control,
             reactionPower: this._reactionPower,

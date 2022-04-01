@@ -1,13 +1,13 @@
 import { MATERIALS } from '../materials'
 import { BrokenDown, IncreasedPowerConsumption, RandomShutdown } from './damage'
-import { Subsystem, SUBSYSTEM_CATEGORIES, SubsystemDamage, DAMAGE_CATEGORY } from './index'
+import { Subsystem, SubsystemDamage, DAMAGE_CATEGORY } from './index'
 
 const THRUST_THROTTLE_CHANGE_SPEED = 1
 const ROT_THROTTLE_CHANGE_SPEED = 5
 
 export class Engine extends Subsystem {
     constructor(gridPosition, id, name, template) {
-        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.DEFAULT, template)
+        super(gridPosition, id, name, template)
 
         this._nominalThrust = template.force
         this._thrustForceMultiplier = 1
@@ -50,13 +50,8 @@ export class Engine extends Subsystem {
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
 
-        this._rotForceMultiplier = 1
-        this._thrustForceMultiplier = 1
-        this.statusEffects.filter(e => e instanceof ReducedPower).forEach(e => {
-            this._rotForceMultiplier *= e.rotationMultiplier
-            this._thrustForceMultiplier *= e.thrustMultiplier
-        })
-
+        this._rotForceMultiplier = this.multiplicativeEffect("rotationMultiplier")
+        this._thrustForceMultiplier = this.multiplicativeEffect("thrustMultiplier")
         this._activeSpeed = model.sub.body.speed.length
 
         if (this.on) {
@@ -90,10 +85,8 @@ export class Engine extends Subsystem {
         }
     }
 
-    toViewState() {
+    createViewState(model) {
         return {
-            ...super.toViewState(),
-
             isEngine: true,
 
             thrustThrottlePercent: (Math.floor(this._activeThrustThrottle * this._thrustForceMultiplier * 100)),

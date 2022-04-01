@@ -1,5 +1,5 @@
 import {action } from '../action'
-import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
+import { Subsystem } from './index'
 import { AimLine, AIM_LINE_TYPE, RangeCircle, RANGE_CIRCLE_TYPE } from './sonar'
 import { EFFECT_TYPES, shootHit, shootMiss } from '../effects'
 import { MATERIALS, MATERIAL_DEFINITIONS } from '../materials'
@@ -15,7 +15,11 @@ const DEFAULT_WEAPON_PARAMS = {
 
 export class Weapon extends Subsystem {
     constructor(gridPosition, id, name, template) {
-        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.WEAPON, {...DEFAULT_WEAPON_PARAMS, ...template})
+        super(gridPosition, id, name, {
+            ...DEFAULT_WEAPON_PARAMS,
+            ...template,
+            viewRefreshMs: 30
+        })
         this.ammo = this.template.ammoMax
         this.ammoMax = this.template.ammoMax
         this.range = this.template.range
@@ -128,13 +132,12 @@ export class Weapon extends Subsystem {
         this._mouseOver = actionController.isMouseOverSubsystem(this)
     }
 
-    toViewState() {
+    createViewState(model) {
         return {
-            ...super.toViewState(),
             usesAmmo: true,
             ammo: this.ammo,
             ammoMax: this.ammoMax,
-            aim: this._aim.toViewState(),
+            aim: this._aim.createViewState(model),
             isWeapon: true,
             weaponActions: this.weaponActions.filter(a => a.visible).map(a => a.toViewState()),
         }
@@ -174,8 +177,6 @@ const TARGET_SIZE = 1.5
 const CROSSHAIRS_SIZE = 1
 const CROSSHAIRS_SPEED = 15
 
-const TARGETS_UPDATE_MS = 50
-
 const AIMBAR_MARGIN = 3
 
 class Aim {
@@ -187,42 +188,10 @@ class Aim {
         this._crosshairsPos = 0
 
         this._targets = []
-        this._sinceLastUpdate = TARGETS_UPDATE_MS
-
-        this._cachedViewState = {}
     }
 
     updateState(deltaMs, model) {
-        this._sonarRange = model.sub.sonarRange
-        const myPos = this._weapon._position
-
-        if (this._sinceLastUpdate >= TARGETS_UPDATE_MS || this._aiming) {
-            this._sinceLastUpdate = 0
-            this._targets = model.map
-                .getEntitiesAround(myPos, this._sonarRange)
-                .filter(e => e.position.distanceTo(myPos) <= this._sonarRange + e.radius)
-                .filter(e => model.map.raycast(e.position, myPos) == null)
-                .map(e => {
-                    const sizeMultiplier = TARGET_SIZE *  Math.max(0.3, 1 - e.position.distanceTo(myPos) / this._sonarRange)
-                    return {
-                        entity: e,
-                        width: e.width * sizeMultiplier,
-                        size: e.length * sizeMultiplier,
-                        distance: e.position.distanceTo(myPos) - e.radius + AIMBAR_MARGIN,
-                        selected: e == model.sub.targetEntity,
-                    }
-                })
-            this._targets.sort((a, b) => {
-                const score = (t) =>
-                    (t.selected ? 1000 : 0)
-                    + (t.size)
-                return score(a) - score(b)
-            })
-
-            this._cachedViewState = this._toViewState()
-        } else {
-            this._sinceLastUpdate += deltaMs
-        }
+        this._updateTargets(model)
         if (this._aiming) {
             this._crosshairsPos = this._crosshairsPos + CROSSHAIRS_SPEED * deltaMs / 1000
             if (this._crosshairsPos > this._weapon.range) {
@@ -242,6 +211,34 @@ class Aim {
         this._crosshairsPos = 0
     }
 
+    _updateTargets(model) {
+        const myPos = this._weapon._position
+        this._sonarRange = model.sub.sonarRange
+
+
+        this._targets = model.map
+            .getEntitiesAround(myPos, this._sonarRange)
+            .filter(e => e.position.distanceTo(myPos) <= this._sonarRange + e.radius)
+            .filter(e => model.map.raycast(e.position, myPos) == null)
+            .map(e => {
+                const sizeMultiplier = TARGET_SIZE *  Math.max(0.3, 1 - e.position.distanceTo(myPos) / this._sonarRange)
+                return {
+                    entity: e,
+                    width: e.width * sizeMultiplier,
+                    size: e.length * sizeMultiplier,
+                    distance: e.position.distanceTo(myPos) - e.radius + AIMBAR_MARGIN,
+                    selected: e == model.sub.targetEntity,
+                }
+            })
+        this._targets.sort((a, b) => {
+            const score = (t) =>
+                (t.selected ? 1000 : 0)
+                + (t.size)
+            return score(a) - score(b)
+        })
+
+    }
+
     shoot() {
         var hitTarget = null
 
@@ -258,11 +255,7 @@ class Aim {
         return hitTarget ? [hitTarget.entity] : []
     }
 
-    toViewState() {
-        return this._cachedViewState
-    }
-
-    _toViewState() {
+    createViewState(model) {
         const myPos = this._weapon._position
         return {
             on: this._weapon.on,

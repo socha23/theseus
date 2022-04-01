@@ -1,14 +1,14 @@
-import { Subsystem, SUBSYSTEM_CATEGORIES } from "."
-import { Polygon, rectangle } from "../physics"
+import { Subsystem } from "."
 import { Point } from "../physics"
 
 const VIEW_STATE_UPDATE_EVERY = 500
 
 export class Minimap extends Subsystem {
     constructor(gridPosition) {
-        super(gridPosition, "minimap", "Minimap", SUBSYSTEM_CATEGORIES.NAVIGATION, {
+        super(gridPosition, "minimap", "Minimap", {
             takesDamage: false,
             gridSize: new Point(1, 2),
+            viewRefreshMs: VIEW_STATE_UPDATE_EVERY,
         })
 
         this.minX = -550
@@ -17,24 +17,10 @@ export class Minimap extends Subsystem {
         this.maxY = 550
 
         this.on = true
-
-        this._sinceViewStateUpdate = 0
-        this._viewState = {}
     }
 
-    updateState(deltaMs, model, ac) {
-        super.updateState(deltaMs, model, ac)
-
-        this._sinceViewStateUpdate += deltaMs
-
-        if (this._sinceViewStateUpdate >= VIEW_STATE_UPDATE_EVERY) {
-            this._sinceViewStateUpdate = 0
-            this._updateViewState(model)
-        }
-    }
-
-    _updateViewState(model) {
-        this._viewState = {
+    createViewState(model) {
+        return {
             features: model.map.logicalPolygons,
             minX: this.minX,
             maxX: this.maxX,
@@ -43,13 +29,6 @@ export class Minimap extends Subsystem {
             isMinimap: true,
             position: model.sub.position,
             target: model.target.position,
-        }
-    }
-
-    toViewState() {
-        return {
-            ...super.toViewState(),
-            ...this._viewState,
         }
     }
 }

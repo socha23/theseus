@@ -1,10 +1,10 @@
 import { MATERIALS, MATERIAL_DEFINITIONS } from '../materials'
-import { Subsystem, SUBSYSTEM_CATEGORIES } from './index'
+import { Subsystem } from './index'
 
 
 export class Storage extends Subsystem {
     constructor(gridPosition, id, name, startingInventory = {}) {
-        super(gridPosition, id, name, SUBSYSTEM_CATEGORIES.DEFAULT, {powerConsumption: 0})
+        super(gridPosition, id, name, {powerConsumption: 0})
         this.inventory = startingInventory
 
     }
@@ -41,14 +41,10 @@ export class Storage extends Subsystem {
         return result
     }
 
-    updateState(deltaMs, model, actionController) {
-        super.updateState(deltaMs, model, actionController)
-    }
-
-    toViewState() {
-        const res = super.toViewState()
-        res.inventoryCounts = this.getCounts()
-        res.isStorage = true
-        return res
+    createViewState(model) {
+        return {
+            isStorage: true,
+            inventoryCounts: this.getCounts()
+        }
     }
 }

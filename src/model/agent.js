@@ -66,7 +66,7 @@ function _adjustRotation(fish, theta, deltaMs, rotateSpeed = true) {
         * deltaMs / 1000
     var orientation = fish.orientation + rotation
 
-    if (Math.abs(orientation - theta) < Math.PI / 100) {
+    if (Math.abs(orientation - theta) < Math.PI / 50) {
         orientation = theta
     }
 
@@ -125,7 +125,8 @@ export class RotateToPoint extends _MoveAction {
     canBeFinished(model) {
         const targetVect = this.entity.position.vectorTo(this._point)
         const relAngle = relativeAngle(this.entity.body.orientation, targetVect.theta)
-        return Math.abs(relAngle) < this.params.distanceTolerance
+        const result = Math.abs(relAngle) < this.params.distanceTolerance
+        return result
     }
 }
 
@@ -251,6 +252,10 @@ class LateralMoveAction extends AgentAction {
         this.point = point
     }
 
+    get targetPosition() {
+        return this.point
+    }
+
     canBeFinished(model) {
         const dist = this.entity.position.distanceTo(this.point)
         return dist <= this.params.distanceTolerance
@@ -343,9 +348,7 @@ export class Plan {
     }
 }
 
-export function planBackOff(entity, direction = null, distance=entity.radius, map) {
-    const midPoint = entity.position.plus(vectorForPolar(distance / 2, direction))
-    const target = entity.position.plus(vectorForPolar(distance, direction))
+export function planBackOff(entity, target) {
     return new Plan(
         "Backoff",
         target,
@@ -439,6 +442,16 @@ export function planMoveToPoint(entity, p, map, params) {
         p,
         ...rotateToPoint(entity, p, map, params),
         new MoveToPointAction(entity, p, params),
+    )
+}
+
+
+export function planFollow(entity, target, map, params) {
+    params = {...PLAN_PARAMS, ...params}
+    return new Plan(
+        `Follow ${target.id}`,
+        null,
+        new FollowEntityAction(entity, target, params),
     )
 }
 

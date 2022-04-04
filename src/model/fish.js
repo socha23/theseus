@@ -48,6 +48,10 @@ export class Fish extends Entity {
         )
     }
 
+    get species() {
+        return this.template.id
+    }
+
     get color() {
         return this.template.color
     }

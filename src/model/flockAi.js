@@ -1,60 +1,65 @@
-import { planMoveToPoint } from "./agent"
+import { toHaveStyle } from "@testing-library/jest-dom/dist/matchers"
+import { paramValue, randomElem } from "../utils"
+import { planFollow, planMoveToPoint } from "./agent"
 import { Behavior, FishAI, randomPointInSight } from "./fishAi"
 import { Point } from "./physics"
 
-export function flockAI(flock) {
-    return (entity => new FlockAI(entity, flock))
+export function flockAI() {
+    return (entity => new FlockAI(entity))
 }
 
 class FlockBehavior extends Behavior {
-    constructor(entity, flock, params = {}) {
+    constructor(entity, params = {}) {
         super(entity, {
             name: "Flocking",
             priority: 20,
-            flockRange: 15,
+            flockRange: 10,
+            flockSatisfyTime: {from: 1000, to: 5000},
             ...params
         })
-        this.flock = flock
+        this.satisfactionMs = paramValue(this.params.flockSatisfyTime)
     }
 
     priority(model) {
-        if (this.entity.distanceTo(this.flock.center) >= this.params.flockRange) {
+        if (this.satisfactionMs < 0) {
             return this.params.priority
         } else {
             return 0
         }
     }
 
+    _perceivedPals(model) {
+        return model.map
+            .getEntitiesAround(this.entity.position, this.entity.sightRange)
+            .filter(e => e != this.entity && e.species === this.entity.species && e.alive)
+
+    }
+
     nextPlan(model) {
-        return planMoveToPoint(this.entity, this.flock.center, model.map, {mapSize: 5})
+        const pals = this._perceivedPals(model)
+        if (pals.length > 0) {
+            return planFollow(this.entity, randomElem(pals), {distanceTolerance: paramValue(this.params.flockRange)})
+        } else {
+            const dest = randomPointInSight(this.entity.position, model.map, this.entity.radius, this.entity.sightRange)
+            return planMoveToPoint(this.entity, dest, model.map, {mapSize: this.entity.radius})
+        }
+    }
+
+
+    onPlanFinished(model) {
+        this.satisfactionMs = paramValue(this.params.flockSatisfyTime)
+    }
+
+    updateState(deltaMs, model) {
+        super.updateState(deltaMs, model)
+        this.satisfactionMs -= deltaMs
     }
 }
 
 class FlockAI extends FishAI {
-    constructor(entity, flock) {
+    constructor(entity) {
         super(entity)
-        this.behaviors.push(new FlockBehavior(entity, flock))
+        this.behaviors.push(new FlockBehavior(entity))
     }
 }
 
-export class Flock {
-    constructor() {
-        this.entities = []
-    }
-
-    addEntity(entity) {
-        this.entities.push(entity)
-    }
-
-    get center() {
-        let x = 0
-        let y = 0
-        let count = 0
-        this.entities.forEach(e => {
-            x += e.position.x
-            y += e.position.y
-            count++
-        })
-        return new Point(x / count, y / count)
-    }
-}

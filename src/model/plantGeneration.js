@@ -1,37 +1,6 @@
-import { randomElem, randomVal, transpose } from "../utils"
+import { randomElem, paramColorValue, paramValue, paramFromValue } from "../utils"
 import { Point, rectangle, SimpleRect, vectorForPolar } from "./physics"
 import {plant} from "./plant"
-
-
-function paramValue(param) {
-    if (typeof(param) == "number") {
-        return param
-    } else if (param.from || param.to) {
-        return randomVal(param.from, param.to)
-    } else {
-        return param
-    }
-}
-
-function paramFromValue(param) {
-    if (typeof(param) == "number") {
-        return param
-    } else {
-        return param.from
-    }
-}
-
-function paramColorValue(param) {
-    if (typeof(param) == "string") {
-        return param
-    } else {
-        const h = Math.floor(paramValue(param.h))
-        const s = Math.floor(paramValue(param.s))
-        const l = Math.floor(paramValue(param.l))
-        return `hsl(${h}, ${s}%, ${l}%)`
-    }
-
-}
 
 const PLANTS = {
     GREEN_PLANT: {

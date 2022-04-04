@@ -1,8 +1,9 @@
-import { Point, rectangle, vectorForPolar } from "./physics"
+import { Point, rectangle, Vector, vectorForPolar } from "./physics"
 import { planMoveToPoint, planAttack, planBackOff, planStop, planRotateToPoint } from "./agent"
 import { randomElem } from "../utils"
 import { STATISTICS } from "../stats"
 import { Path } from "./mapGeneration"
+import { toHaveStyle } from "@testing-library/jest-dom/dist/matchers"
 
 
 export function fishAI(fish) { return new FishAI(fish)}
@@ -18,6 +19,11 @@ export class Behavior {
         this.params = {...DEFAULT_BEHAVIOR_PARAMS, ...params}
         this.entity = entity
         this.plan = null
+        this._active = false
+    }
+
+    get active() {
+        return this._active
     }
 
     get description() {
@@ -41,13 +47,35 @@ export class Behavior {
     }
 
     updateState(deltaMs, model) {
-        if (!this.plan) {
-            this.plan = this.nextPlan(model)
+        if (this.active) {
+            if (!this.plan) {
+                this.plan = this.nextPlan(model)
+            }
+            this.plan.updateState(deltaMs, model)
+            if (!this.plan.valid) {
+                this.onPlanFinished()
+                this.plan = null
+                this.deactivate(model)
+            }
         }
-        this.plan.updateState(deltaMs, model)
-        if (!this.plan.valid) {
-            this.plan = null
-        }
+    }
+
+    deactivate(model) {
+        this._active = false
+        this.onDeactivate(model)
+    }
+
+    activate(model) {
+        this._active = true
+        this.onActivate(model)
+    }
+
+    onPlanFinished(model) {
+
+    }
+
+    onDeactivate(model) {
+
     }
 
     onActivate(model) {
@@ -126,84 +154,54 @@ class BackOffFromWalls extends Behavior {
             name: "Backing off from walls",
             priority: 70,
             ...params})
-        this.lastTheta = 0
-        this.goodThetas = []
-        this._active = false
+
+        this.target = null
     }
 
     priority(model) {
-        if (this._active || this.closeToWall(model)) {
+        if (this.active || this.closeToWall(model)) {
             return this.params.priority
         }
         return 0
     }
 
     closeToWall(model, deltaX = 0, deltaY = 0) {
-        const RADIUS_MUTLIPLIER = 3
-        const boxSide = this.entity.radius * RADIUS_MUTLIPLIER
+        const boxSide = this.entity.radius * 4
         const pos = new Point(this.entity.position.x + deltaX, this.entity.position.y + deltaY)
         const box = rectangle(pos, new Point(boxSide, boxSide))
         const collision = model.map.detectCollision(box)
-
         return (collision != null)
     }
 
-    findGoodThetas(model) {
-        const result = []
-        const DELTA = 3 * this.entity.radius
+    _findGoodTarget(model) {
+        const fallbackLength = this.entity.radius * 10
+        const fallbackWidth = this.entity.radius * 1.1
 
-        if (!this.closeToWall(model, DELTA, 0)) {
-            result.push(0)
+        var theta = (this.entity.orientation + Math.PI) % (2 * Math.PI)
+        for (var i = 0; i < 100; i++) {
+            const pos = this.entity.position.plus(vectorForPolar(fallbackLength, theta))
+            const p = new Path(this.entity.position, pos, fallbackWidth).polygon()
+            if (!model.map.detectCollision(p)) {
+                return pos
+            }
+            theta = Math.random() * 2 * Math.PI
         }
-        if (!this.closeToWall(model, DELTA, DELTA)) {
-           result.push(Math.PI / 4)
-        }
-        if (!this.closeToWall(model, 0, DELTA)) {
-            result.push(Math.PI / 2)
-        }
-        if (!this.closeToWall(model, -DELTA, DELTA)) {
-            result.push(3 * Math.PI / 4)
-        }
-       if (!this.closeToWall(model, -DELTA, 0)) {
-            result.push(Math.PI)
-       }
-       if (!this.closeToWall(model, -DELTA, -DELTA)) {
-            result.push(5 * Math.PI / 4)
-        }
-        if (!this.closeToWall(model, 0, -DELTA)) {
-            result.push(6 * Math.PI / 4)
-        }
-        if (!this.closeToWall(model, DELTA, -DELTA)) {
-            result.push(7 * Math.PI / 4)
-        }
-
-       return result
+        return null
     }
-
-    updateState(deltaMs, model) {
-        this.goodThetas = this.findGoodThetas(model)
-        if (this.goodThetas.length == 0) {
-            this.entity.body.teleportOutOfCollision(model.map)
-        }
-
-        if (!this.goodThetas.find(a => (a == this.lastTheta))) {
-            this.plan = null
-        }
-        super.updateState(deltaMs, model)
-        if (this.plan == null) {
-            this._active = false
-        }
-    }
-
-    onActivate(model) {
-        this._active = true
-    }
-
 
     nextPlan(model) {
-        this.lastTheta = randomElem(this.goodThetas)
-        return planBackOff(this.entity, this.lastTheta, 4 * this.entity.radius, model.map)
+        const target = this._findGoodTarget(model)
+        if (target == null) {
+            console.log("TELEPORT OUT")
+            this.entity.body.teleportOutOfCollision(model.map)
+        }
+        return planBackOff(this.entity, target)
     }
+
+    onPlanFinished(model) {
+        this.deactivate(model)
+    }
+
 }
 
 
@@ -323,8 +321,11 @@ export class FishAI {
             }
         })
         if (this.currentBehavior != nextBehavior) {
+            if (this.currentBehavior != null) {
+                this.currentBehavior.deactivate(model)
+            }
             this.currentBehavior = nextBehavior
-            this.currentBehavior.onActivate(model)
+            this.currentBehavior.activate(model)
 
         }
     }
@@ -335,7 +336,7 @@ export class FishAI {
             if (!this.currentBehavior || (this._sinceLastBehaviorChange > BEHAVIOR_CHECK_EVERY_MS)) {
                 this._updateBehavior(model)
             }
-            this.currentBehavior.updateState(deltaMs, model)
+            this.behaviors.forEach(b => b.updateState(deltaMs, model))
         }
 
     }
@@ -355,7 +356,7 @@ function randomPointInPerimeter(position, map, mapSize, perimeterCenter, perimet
 }
 
 
-function randomPointInSight(position, map, mapSize, sightRange) {
+export function randomPointInSight(position, map, mapSize, sightRange) {
     return lookForPointInSight(position,map,mapSize, () => {
         const theta = Math.random() * 2 * Math.PI
         const dist = Math.random() * sightRange

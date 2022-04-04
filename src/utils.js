@@ -28,3 +28,33 @@ export function relativeAngle(from, to) {
     }
     return delta
 }
+
+export function paramValue(param) {
+    if (typeof(param) == "number") {
+        return param
+    } else if (param.from || param.to) {
+        return randomVal(param.from, param.to)
+    } else {
+        return param
+    }
+}
+
+export function paramFromValue(param) {
+    if (typeof(param) == "number") {
+        return param
+    } else {
+        return param.from
+    }
+}
+
+export function paramColorValue(param) {
+    if (typeof(param) == "string") {
+        return param
+    } else {
+        const h = Math.floor(paramValue(param.h))
+        const s = Math.floor(paramValue(param.s))
+        const l = Math.floor(paramValue(param.l))
+        return `hsl(${h}, ${s}%, ${l}%)`
+    }
+
+}

@@ -1,7 +1,7 @@
 import { Body, Point, rectangle, vectorForPolar, Volume, Polygon } from "./physics"
 import { randomElem, transpose } from "../utils"
 import { Fish } from "./fish"
-import { Flock, flockAI} from "./flockAi"
+import { flockAI} from "./flockAi"
 import { fishAI } from "./fishAi"
 
 
@@ -91,10 +91,8 @@ function fishesInCave(c, template, count) {
 
 function flockInCave(c, template, count) {
     const result = []
-    const flock = new Flock()
     for (var i = 0; i < count; i++) {
-        const f = fishInCave(c, template, flockAI(flock))
-        flock.addEntity(f)
+        const f = fishInCave(c, template, flockAI())
         result.push(f)
     }
     return result

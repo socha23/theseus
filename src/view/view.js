@@ -42,7 +42,15 @@ function Sub({sub, actionController}) {
 function GameView({model, actionController, onNewGame}) {
     const availableInventory = useContext(AvailableInventory)
     const requiredInventory = useContext(RequiredInventory)
+
+    // heisenbug on firefox - somehow sometimes there is no model
+    if (!model || !model.sub) {
+        console.log("Model issue in GameView", model)
+        return <div/>
+    }
+
     availableInventory.values = model.sub.inventory
+
     return <div className="gameView">
         <ActionControllerCtx.Provider value={actionController}>
             <AvailableInventory.Provider value={availableInventory}>

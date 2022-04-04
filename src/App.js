@@ -40,9 +40,10 @@ function RunningGameView({game, onNewGame}) {
             lastUpdate = window.performance.now()
             commitFrameStats()
         }, TICK_DELAY_MS)
-        return () => clearInterval(interval)
-    })
-
+        return () => {
+            clearInterval(interval)
+        }
+    }, [game])
     return (
         <div
             tabIndex={0}
@@ -61,7 +62,7 @@ function App() {
         <div className="app">
             <RunningGameView game={game} onNewGame={e => {setGame(new Game())}}/>
         </div>
-    );
+    )
 }
 
 export default App;

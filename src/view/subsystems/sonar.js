@@ -31,6 +31,7 @@ function InnerSonarBackground({xFrom, xTo, yFrom, yTo, spacing, scale}) {
             vertLines.map(x => <DSegment key={"sonar-bg-v-" + x}
                 from={new Point(x, yFrom)}
                 to={new Point(x, yTo)}
+                width={1 / scale * SCALE_MULTIPLIER}
                 className="gridLine"
             />)
         }
@@ -38,6 +39,7 @@ function InnerSonarBackground({xFrom, xTo, yFrom, yTo, spacing, scale}) {
             horizLines.map(y => <DSegment key={"sonar-bg-h-" + y}
                 from={new Point(xFrom, y)}
                 to={new Point(xTo, y)}
+                width={1 / scale * SCALE_MULTIPLIER}
                 className="gridLine"
             />)
         }

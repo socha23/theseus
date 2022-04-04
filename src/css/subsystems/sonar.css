@@ -58,6 +58,11 @@
     border: 6px solid #197dff;
 }
 
+.subsystem .sonar .plants .blip {
+    opacity: 0.8;
+}
+
+
 
 /*
  * TARGET MARKS

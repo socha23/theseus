@@ -2,6 +2,7 @@ import { Point, Vector } from "./physics"
 import {getStartingSub} from "./startingSub"
 import { getStartingMap } from "./mapGeneration"
 import { generateFish } from "./fishGeneration"
+import { generatePlants } from "./plantGeneration"
 
 const MAX_TIME_FRAME_FOR_MODEL_UPDATE = 10
 const ENTITY_ACTIVATION_DISTANCE = 200
@@ -10,6 +11,8 @@ class GameModel {
     constructor() {
         this.map = getStartingMap()
 
+
+
         const startCave = this.map.getBottomLeftCave()
         startCave.startingArea = true
         const subPos = startCave.position
@@ -17,11 +20,15 @@ class GameModel {
 
         this.entities = []
         this.entitiesById = {}
-
-
         generateFish(this.map).forEach(f => {
             this.addEntity(f)
         })
+
+        this.plantsById = {}
+        generatePlants(this.map).forEach(f => {
+            this.plantsById[f.id] = f
+        })
+
 
         this.target = {
             position: this.map.getTopRightCave().position,
@@ -36,7 +43,7 @@ class GameModel {
     }
 
     getEntity(id) {
-        return this.entitiesById[id]
+        return this.entitiesById[id] || this.plantsById[id]
     }
 
     _updateEntities(deltaMs) {

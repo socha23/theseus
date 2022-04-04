@@ -191,6 +191,15 @@ export class Body {
 
 
     updateState(deltaMs, model, onCollision) {
+        if (this.speed.length === 0
+            && this.rotationSpeed === 0
+            && this._actingForce.length === 0
+            && this._actingRotation === 0
+            && this._actingFixedOrientation === null) {
+                return
+            }
+
+
         const deltaS = deltaMs / 1000
         var projectedMove = this._projectMove(deltaS)
         var recounts = 0

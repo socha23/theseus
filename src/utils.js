@@ -2,6 +2,9 @@ export function randomElem(list) {
     return list[Math.floor(Math.random()*list.length)];
 }
 
+export function randomVal(from, to) {
+    return transpose(Math.random(), 0, 1, from, to)
+}
 
 export function randomEventOccured(deltaMs, everyS) {
     return Math.random() <  (deltaMs / (everyS * 1000))

@@ -132,6 +132,7 @@ export class Fish extends Entity {
         v.alive = this.alive
         v.targetPosition = this._ai.targetPosition
         v.planDescription = this._ai.planDescription
+        v.isFish = true
         return v
     }
 }

@@ -1,4 +1,5 @@
-import { Edge, Vector, SimpleRect, vectorForPolar } from "./physics"
+import { transpose } from "../utils"
+import { Edge, Vector, SimpleRect, vectorForPolar, Point, rectangle } from "./physics"
 
 const MAP_BUCKET_SIZE = 10
 
@@ -37,17 +38,23 @@ class CollisionMap {
                 result.add(f)
             })
         })
-
-        return [...result]
+        const res = [...result]
+        return res
     }
 
     _bucketsOverlapping(polygon) {
         const result = []
         const box = polygon.simpleBoundingBox
+
+
         for (var x = Math.floor(box.x / MAP_BUCKET_SIZE); x <= Math.floor((box.x + box.width) / MAP_BUCKET_SIZE); x++) {
             for (var y = Math.floor(box.y / MAP_BUCKET_SIZE); y <= Math.floor((box.y + box.height) / MAP_BUCKET_SIZE); y++) {
                 result.push(this._getBucket(x, y))
             }
+        }
+        if (result.length == 0) {
+            console.trace()
+            console.log("NO BUCKETS OVERLAPPING", polygon)
         }
         return result
     }
@@ -77,6 +84,9 @@ export class Map {
         this.caves = []
         this.paths = []
         this._logicalPolygons = null
+
+        this.plantMap = new CollisionMap(from, to)
+        this.plants = []
 
         this.entityMap = new CollisionMap(from, to)
         this.entities = []
@@ -125,6 +135,19 @@ export class Map {
             ]
         }
         return this._logicalPolygons
+    }
+
+    randomPosition(radius, maxTries = 1000) {
+        for (var i = 0; i < maxTries; i++) {
+            const x = transpose(Math.random(), 0, 1, this.from.x, this.to.x)
+            const y = transpose(Math.random(), 0, 1, this.from.y, this.to.y)
+            const p = new Point(x, y)
+            if (this.detectCollision(rectangle(p, new Point(2 * radius, 2 * radius)), 0) == null) {
+                return p
+            }
+        }
+        throw new Error("Couldn't find random position for radius " + radius)
+
     }
 
     // collisions
@@ -191,7 +214,7 @@ export class Map {
                 mapFeatureWall: wall,
                 wallVect,
                 angle,
-                impactSpeed,
+                impactSpeed: Math.abs(impactSpeed),
                 impactTheta,
                 impactForce,
                 wallNormal
@@ -258,7 +281,7 @@ export class Map {
         }
     }
 
-    getEntitiesIntersecting(pos, polygon) {
+    getEntitiesIntersecting(polygon) {
         return this.entityMap.getPolygonsIntersecting(polygon)
     }
 
@@ -266,6 +289,17 @@ export class Map {
         const poly = new SimpleRect(pos.x - radius, pos.y - radius, 2 * radius, 2 * radius)
         return this.entityMap.getPolygonsIntersecting(poly)
     }
+
+    // plants - also entities, but different and stored separately
+    addPlant(plant) {
+        this.plants.push(plant)
+        this.plantMap.add(plant.boundingBox, plant)
+    }
+
+    getPlantsIntersecting(polygon) {
+        return this.plantMap.getPolygonsIntersecting(polygon)
+    }
+
 
 
 }

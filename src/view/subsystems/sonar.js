@@ -62,11 +62,7 @@ function SonarBackground({position, scale}) {
     return <InnerSonarBackground xFrom={xFrom} xTo={xTo} yFrom={yFrom} yTo={yTo} spacing={LINES_SPACING_U} scale={scale}/>
 }
 
-
-///////////
-// SONAR BLIPS
-///////////
-function SonarBlip({blip, tracked, debug=false, scale}) {
+function SonarBlip({blip, tracked, trackedOverlayMargin=8, clickOverlayMargin=12, debug=false, scale}) {
     const actionController = useContext(ActionControllerCtx)
     const onClick = useCallback(e => {actionController.targetEntityId = blip.id})
     const scaledLength = blip.length * SCALE_MULTIPLIER
@@ -104,14 +100,14 @@ function SonarBlip({blip, tracked, debug=false, scale}) {
             {
                 // tracked overlay
                 tracked && <DCircle
-                    radius={(blip.radius + 8 / scale) * SCALE_MULTIPLIER}
+                    radius={(blip.radius + trackedOverlayMargin / scale) * SCALE_MULTIPLIER}
                     className="selectedMark"
                 />
             }
             {
                 // click overlay
                 <DCircle
-                    radius={(blip.radius + 12 / scale) * SCALE_MULTIPLIER}
+                    radius={(blip.radius + clickOverlayMargin / scale) * SCALE_MULTIPLIER}
                     onClick={onClick}
             />
             }
@@ -130,12 +126,23 @@ function SonarBlip({blip, tracked, debug=false, scale}) {
 
 
 function SonarBlips({blips, trackedBlipId, debug, scale}) {
-    return <div>
+    return <div className="blips">
         {
             blips.map(b => <SonarBlip key={b.id} blip={b} tracked={b.id===trackedBlipId} scale={scale} debug={debug}/>)
         }
     </div>
 }
+
+function _Plants({plants, trackedBlipId, debug, scale}) {
+    return <div className="plants">
+        {
+            plants.map(b => <SonarBlip key={b.id} blip={b} tracked={b.id===trackedBlipId} trackedOverlayMargin={0} clickOverlayMargin={0} scale={scale} debug={debug}/>)
+        }
+    </div>
+}
+
+const Plants = memo(_Plants)
+
 ///////////
 // RANGES
 ///////////
@@ -366,6 +373,7 @@ function _InnerSonar({
     ranges,
     hitMarks,
     target,
+    plants,
 }) {
     const scale = SIZE_PX / (range * 2)   // px per unit
 
@@ -383,6 +391,7 @@ function _InnerSonar({
                 on && <DArea>
                     <DSonarView position={position.scale(SCALE_MULTIPLIER)} size={SIZE_PX} scale={scale / SCALE_MULTIPLIER} theta={-orientation - Math.PI / 2}>
                         <SonarBackground position={position} scale={scale}/>
+                        <Plants plants={plants} trackedBlipId={trackedBlipId} scale={scale} debug={debug}/>
                         <Features features={features}/>
                         <SubMarker position={position} orientation={orientation} subVolume={subVolume}/>
                         <SonarBlips blips={blips} trackedBlipId={trackedBlipId} scale={scale} debug={debug}/>
@@ -421,6 +430,7 @@ function Sonar({subsystem}) {
     hitMarks={subsystem.hitMarks}
     target={subsystem.target}
     subVolume={subsystem.subVolume}
+    plants={subsystem.plants}
     />
 }
 

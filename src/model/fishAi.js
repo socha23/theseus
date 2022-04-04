@@ -85,7 +85,7 @@ class DontCrashIntoWalls extends Behavior {
         super(entity, {
             name: "Not crashing into walls",
             priority: 60,
-            timeS: 2,
+            timeS: 1,
             ...params})
     }
 
@@ -97,24 +97,25 @@ class DontCrashIntoWalls extends Behavior {
     }
 
     drivingIntoWall(map) {
-        const dstPoint = this.entity.position.plus(this.entity.speed * this.params.timeS)
+        const dstPoint = this.entity.position.plus(this.entity.speedVector.scale(this.params.timeS))
         const hitbox = new Path(this.entity.position, dstPoint, this.entity.radius * 2).polygon()
         return map.getPolygonsIntersecting(hitbox).length > 0
     }
 
     nextPlan(model) {
-        for (var theta = Math.PI / 4; theta < Math.PI; theta += Math.PI / 4) {
+        for (var theta = Math.PI / 4; theta <= Math.PI; theta += Math.PI / 4) {
             for (var sign in [-1, 1]) {
                 const dTheta = sign * theta
-                const speed = vectorForPolar(this.entity.speedVector.length, speed.theta + dTheta)
-                const point = this.entity.position.plus(vectorForPolar(10, speed.theta + dTheta))
-                const hitboxWidth = this.entity.radius * 6
-                const hitbox = new Path(this.entity.position, point, this.entity.radius * hitboxWidth).polygon()
-                if (model.map.getPolygonsIntersecting(hitbox).length === 0) {
+                const speed = vectorForPolar(this.entity.speedVector.length, this.entity.speedVector.theta + dTheta)
+                const point = this.entity.position.plus(speed.scale(2))
+                const hitboxWidth = this.entity.radius * 2
+                const hitbox = new Path(this.entity.position, point, hitboxWidth).polygon()
+                if (model.map.detectCollision(hitbox) == null) {
                     return planRotateToPoint(this.entity, point)
                 }
             }
         }
+        console.log("Can't find direction")
         return planStop(this.entity)
     }
 }
@@ -281,7 +282,7 @@ export class FishAI {
         this.behaviors = [
             new RandomMoveBehavior(entity),
             new BackOffFromWalls(entity),
-            new DontCrashIntoWalls(entity),
+            //new DontCrashIntoWalls(entity),
         ]
 
         if (entity.aggresive) {

@@ -44,6 +44,8 @@ export class AimLine {
     }
 }
 
+const PLANT_UPDATE_MS = 500
+
 export class Sonar extends Subsystem {
     constructor(gridPosition, id, name, template) {
         super(gridPosition, id, name, {
@@ -53,20 +55,23 @@ export class Sonar extends Subsystem {
         this.range = template.range
         this.debugAction = new SonarDebugAction(this)
         this.actions.push(this.debugAction)
+
+        this.plants = []
+        this._sincePlantUpdate = PLANT_UPDATE_MS
     }
 
     viewPort(model) {
         return rectangle(model.sub.position, new Point(2 * this.range, 2 * this.range), model.sub.orientation)
     }
 
-    _observeEntities(model) {
-        return model.map
-            .getEntitiesIntersecting(model.sub.position, this.viewPort(model))
-
+    _observeBlips(model) {
+        return model.map.getEntitiesIntersecting(this.viewPort(model))
+            .sort((a, b) => a.ordering - b.ordering)
+            .map(e => e.toViewState())
     }
 
-    _observeBlips(model) {
-        return this._observeEntities(model)
+    _observePlants(model) {
+        return model.map.getPlantsIntersecting(this.viewPort(model))
             .sort((a, b) => a.ordering - b.ordering)
             .map(e => e.toViewState())
     }
@@ -75,6 +80,14 @@ export class Sonar extends Subsystem {
         return model.map.getPolygonsIntersecting(this.viewPort(model))
     }
 
+    updateState(deltaMs, model, actionController) {
+        super.updateState(deltaMs, model, actionController)
+        this._sincePlantUpdate += deltaMs
+        if (this._sincePlantUpdate >= PLANT_UPDATE_MS) {
+            this.plants = this._observePlants(model)
+            this._sincePlantUpdate %= PLANT_UPDATE_MS
+        }
+    }
 
     createViewState(model) {
         const sub = model.sub
@@ -83,6 +96,7 @@ export class Sonar extends Subsystem {
                 range: this.range,
                 position: sub.position,
                 orientation: sub.orientation,
+                plants: this.plants,
                 blips: this._observeBlips(model),
                 trackedBlipId: sub.targetEntity?.id,
                 subVolume: sub.body.volume,

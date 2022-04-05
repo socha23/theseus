@@ -1,7 +1,7 @@
 import {action } from '../action'
 import { Subsystem } from './index'
 import { AimLine, AIM_LINE_TYPE, RangeCircle, RANGE_CIRCLE_TYPE } from './sonar'
-import { EFFECT_TYPES, shootHit, shootMiss } from '../effects'
+import { Effect, EFFECT_TYPES, shootHit, shootMiss } from '../effects'
 import { MATERIALS, MATERIAL_DEFINITIONS } from '../materials'
 
 
@@ -47,7 +47,7 @@ export class Weapon extends Subsystem {
             icon: "fa-solid fa-bullseye",
             isVisible: () => this._aim._aiming,
             addErrorConditions: c => this._addShootErrors(c),
-            onCompleted: m => {this.shoot()}
+            onCompleted: m => {this.shoot(m)}
 
         });
 
@@ -107,11 +107,11 @@ export class Weapon extends Subsystem {
         }
     }
 
-    shoot() {
+    shoot(model) {
         this.ammo = Math.max(0, this.ammo - 1)
         this._shotsLeft -= 1
 
-        const hit = this._aim.shoot()
+        const hit = this._aim.shoot(model)
         this.addEffect(hit.length > 0 ? shootHit() : shootMiss())
         hit.forEach(e => {
             e.onHit(this.damage)
@@ -239,7 +239,11 @@ class Aim {
 
     }
 
-    shoot() {
+    shoot(model) {
+        this._targets.forEach(t => {
+            t.entity.onHearGunshot()
+        })
+
         var hitTarget = null
 
         const targets = this._targets
@@ -252,6 +256,7 @@ class Aim {
         if (!hitTarget && targets.length > 0) {
             hitTarget = targets[0]
         }
+
         return hitTarget ? [hitTarget.entity] : []
     }
 

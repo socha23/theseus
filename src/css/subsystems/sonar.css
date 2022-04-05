@@ -58,6 +58,10 @@
     border: 6px solid #197dff;
 }
 
+.subsystem .sonar .entity .dead {
+    opacity: 0.7;
+}
+
 .subsystem .sonar .plants .blip {
     opacity: 0.8;
 }

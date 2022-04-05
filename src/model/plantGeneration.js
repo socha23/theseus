@@ -48,7 +48,7 @@ function makeGroup(map, params) {
     const positions = []
     const result = []
 
-    var pos = map.randomPosition(paramFromValue(params.radius))
+    var pos = map.randomPosition(0.1)
     var minDist = paramFromValue(params.group.distance)
 
 
@@ -60,7 +60,7 @@ function makeGroup(map, params) {
         // now let's find position where it fits
         while (
             positions.some(p => p.distanceTo(pos) < minDist)
-            || map.detectCollision(new rectangle(pos, new Point(radius * 2, radius * 2)))
+            || map.detectCollision(new rectangle(pos, new Point(0.1, 0.1)))
 
             ) {
                 recount++

@@ -1,8 +1,6 @@
-import { toHaveStyle } from "@testing-library/jest-dom/dist/matchers"
 import { paramValue, randomElem } from "../utils"
 import { planFollow, planMoveToPoint } from "./agent"
 import { Behavior, FishAI, randomPointInSight } from "./fishAi"
-import { Point } from "./physics"
 
 export function flockAI() {
     return (entity => new FlockAI(entity))

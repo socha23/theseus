@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import GameModel from './model'
 import GameView from './view/view.js';
 import {ActionController} from "./actionController"
@@ -29,8 +29,15 @@ var lastUpdate = window.performance.now()
 
 function RunningGameView({game, onNewGame}) {
     const [gameState, setGameState] = useState(game.gameModel.toViewState())
+    const mainDivRef = useRef(null)
 
     useEffect(() => {
+        if (mainDivRef.current) {
+            mainDivRef.current.focus()
+        }
+    }, [])
+    useEffect(() => {
+
         const interval = setInterval(_ => {
             const updateStart = window.performance.now()
             STATISTICS.RENDER_TIME_MS.add(updateStart - lastUpdate)
@@ -46,6 +53,7 @@ function RunningGameView({game, onNewGame}) {
     }, [game])
     return (
         <div
+            ref={mainDivRef}
             tabIndex={0}
                 onKeyDown={e => game.actionController.onKeyDown(e.key)}
                 onKeyUp={e => game.actionController.onKeyUp(e.key)}

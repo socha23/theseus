@@ -7,6 +7,105 @@ import { Path } from "./mapGeneration"
 export function fishAI(fish) { return new FishAI(fish)}
 
 
+const BEHAVIOR_CHECK_EVERY_MS = 100
+
+export class FishAI {
+    constructor(entity) {
+        this.entity = entity
+        this._plan = null
+
+        this.currentBehavior = null
+        this._sinceLastBehaviorChange = 0
+        this.behaviors = []
+        this._initialized = false
+
+        this.subFear = 0
+    }
+
+
+    init(model) {
+        this.behaviors.push(
+            new RandomMoveBehavior(this.entity),
+            new BackOffFromWalls(this.entity),
+            new DontCrashIntoWalls(this.entity),
+            new FearTheSub(this.entity, model.sub),
+        )
+        if (this.entity.aggresive) {
+            this.behaviors.push(new AggresiveBehavior(this.entity))
+        }
+        if (this.entity.params.territoryRange > 0) {
+            this.behaviors.push(new TerritorialBehavior(this.entity, {
+                position: this.entity.position,
+                range: this.entity.params.territoryRange,
+            }))
+        }
+    }
+
+    get targetPosition() {
+        if (!this.currentBehavior) {
+            return null
+        }
+        return this.currentBehavior.targetPosition
+    }
+
+    updateState(deltaMs, model) {
+        if (!this.entity.alive) {
+            return
+        }
+
+        this.behaviors.forEach(b => b.updateState(deltaMs, model))
+        this._sinceLastBehaviorChange += deltaMs
+        if (!this.currentBehavior || !this.currentBehavior.active || (this._sinceLastBehaviorChange > BEHAVIOR_CHECK_EVERY_MS)) {
+            this._updateBehavior(model)
+        }
+
+        this.subFear = Math.max(0, Math.min(100,
+            (this.entity.params.defaultSubFear ?? 0)
+            + this.entity.cumulativeEffect("fearOfSub")
+        ))
+    }
+
+    _updateBehavior(model) {
+        if (this._initialized) {
+            this._sinceLastBehaviorChange = 0
+        } else {
+            // so not all beh checks happen at same time
+            this._sinceLastBehaviorChange = Math.random() * BEHAVIOR_CHECK_EVERY_MS
+            this._initialized = true
+        }
+
+        var maxPriority = -Infinity
+        var nextBehavior = null
+        this.behaviors.forEach(b => {
+            if (b.priority(model) > maxPriority) {
+                maxPriority = b.priority(model)
+                nextBehavior = b
+            }
+        })
+        if (this.currentBehavior != nextBehavior) {
+            if (this.currentBehavior != null) {
+                this.currentBehavior.deactivate(model)
+            }
+            this.currentBehavior = nextBehavior
+            this.currentBehavior.activate(model)
+
+        }
+    }
+
+
+    get planDescription() {
+        return this.currentBehavior?.description ?? []
+    }
+
+    addBehavior(behavior) {
+        this.behaviors.push(behavior)
+    }
+}
+
+///////////
+// BEHAVIOR
+//////////
+
 const DEFAULT_BEHAVIOR_PARAMS = {
     priority: 0,
     name: "Default behavior"
@@ -46,13 +145,9 @@ export class Behavior {
 
     updateState(deltaMs, model) {
         if (this.active) {
-            if (!this.plan) {
-                this.plan = this.nextPlan(model)
-            }
             this.plan.updateState(deltaMs, model)
             if (!this.plan.valid) {
                 this.onPlanFinished()
-                this.plan = null
                 this.deactivate(model)
             }
         }
@@ -65,6 +160,7 @@ export class Behavior {
 
     activate(model) {
         this._active = true
+        this.plan = this.nextPlan(model)
         this.onActivate(model)
     }
 
@@ -85,77 +181,17 @@ export class Behavior {
     }
 }
 
-class RandomMoveBehavior extends Behavior {
-    constructor(entity, params={}) {
-        super(entity, {
-            name: "Random Wandering",
-            priority: 10,
-            ...params})
-    }
-
-    nextPlan(model) {
-        var point = randomPointInSight(this.entity.position, model.map, 5, 50)
-        if (point == null) {
-            point = randomPointInSight(this.entity.position, model.map, 0, 50)
-        }
-        return planMoveToPoint(this.entity, point, model.map, {mapSize: this.entity.radius * 2})
-    }
-}
 
 
-
-
-
-class DontCrashIntoWalls extends Behavior {
-    constructor(entity, params={}) {
-        super(entity, {
-            name: "Not crashing into walls",
-            priority: 60,
-            detectionTimeS: 3,
-            avoidTimeS: 4,
-            ...params})
-    }
-
-    priority(model) {
-        if (this.drivingIntoWall(model.map) || this.active) {
-            return this.params.priority
-        }
-        return 0
-    }
-
-    drivingIntoWall(map) {
-        const dstPoint = this.entity.position.plus(this.entity.speedVector.scale(this.params.detectionTimeS))
-        const hitbox = new Path(this.entity.position, dstPoint, this.entity.radius * 2).polygon()
-        return map.detectCollision(hitbox) != null
-    }
-
-
-    onPlanFinished(model) {
-        this.deactivate(model)
-    }
-
-    nextPlan(model) {
-        for (var theta = Math.PI / 4; theta <= Math.PI; theta += Math.PI / 4) {
-            for (var sign in [-1, 1]) {
-                const dTheta = sign * theta
-                const speed = vectorForPolar(this.entity.speedVector.length, this.entity.speedVector.theta + dTheta)
-                const point = this.entity.position.plus(speed.scale(this.params.avoidTimeS))
-                const hitboxWidth = this.entity.radius * 2
-                const hitbox = new Path(this.entity.position, point, hitboxWidth).polygon()
-                if (model.map.detectCollision(hitbox) == null) {
-                    return planRotateToPoint(this.entity, point)
-                }
-            }
-        }
-        return planStop(this.entity)
-    }
-}
+///////////
+// BEHAVIORS
+//////////
 
 class BackOffFromWalls extends Behavior {
     constructor(entity, params={}) {
         super(entity, {
             name: "Backing off from walls",
-            priority: 70,
+            priority: 110,
             ...params})
 
         this.target = null
@@ -201,11 +237,117 @@ class BackOffFromWalls extends Behavior {
         return planBackOff(this.entity, target)
     }
 
-    onPlanFinished(model) {
-        this.deactivate(model)
+}
+
+
+class DontCrashIntoWalls extends Behavior {
+    constructor(entity, params={}) {
+        super(entity, {
+            name: "Not crashing into walls",
+            priority: 100,
+            detectionTimeS: 3,
+            avoidTimeS: 4,
+            ...params})
     }
 
+    priority(model) {
+        if (this.drivingIntoWall(model.map) || this.active) {
+            return this.params.priority
+        }
+        return 0
+    }
+
+    drivingIntoWall(map) {
+        const dstPoint = this.entity.position.plus(this.entity.speedVector.scale(this.params.detectionTimeS))
+        const hitbox = new Path(this.entity.position, dstPoint, this.entity.radius * 2).polygon()
+        return map.detectCollision(hitbox) != null
+    }
+
+    nextPlan(model) {
+        for (var theta = Math.PI / 4; theta <= Math.PI; theta += Math.PI / 4) {
+            for (var sign in [-1, 1]) {
+                const dTheta = sign * theta
+                const speed = vectorForPolar(this.entity.speedVector.length, this.entity.speedVector.theta + dTheta)
+                const point = this.entity.position.plus(speed.scale(this.params.avoidTimeS))
+                const hitboxWidth = this.entity.radius * 2
+                const hitbox = new Path(this.entity.position, point, hitboxWidth).polygon()
+                if (model.map.detectCollision(hitbox) == null) {
+                    return planRotateToPoint(this.entity, point)
+                }
+            }
+        }
+        return planStop(this.entity)
+    }
 }
+
+
+class AvoidEntity extends Behavior {
+    constructor(entity, targetEntity, params={}) {
+        super(entity, {
+            name: "Avoiding " + targetEntity.id,
+            priority: 80,
+            engageDistance: 50,
+            lookupDistance: 50,
+            ...params})
+        this.targetEntity = targetEntity
+    }
+
+    priority(model) {
+        if (this.entity.position.distanceTo(this.targetEntity.position) <= this.engageDistance) {
+            return this.params.priority
+        }
+        return 0
+    }
+
+    get engageDistance() {
+        return this.params.engageDistance
+    }
+
+    nextPlan(model) {
+        // find theta that offers gaining the most distance without collision, move there
+        var bestPoint = null
+        var bestDistance = 0
+
+        for (var theta = 0; theta <= Math.PI; theta += Math.PI / 8) {
+            for (var sign in [-1, 1]) {
+                const dTheta = sign * theta
+                var destPoint = this.entity.position.plus(vectorForPolar(this.params.lookupDistance, dTheta + this.entity.orientation))
+                const col = model.map.raycast(this.entity.position, destPoint, this.entity.radius * 4)
+                if (col) {
+                    destPoint = col.point
+                }
+                if (this.targetEntity.position.distanceTo(destPoint) > bestDistance) {
+                    bestDistance = this.targetEntity.position.distanceTo(destPoint)
+                    bestPoint = destPoint
+                }
+            }
+        }
+        console.log("FEAR")
+        return planMoveToPoint(this.entity, bestPoint, model.map)
+    }
+}
+
+class FearTheSub extends AvoidEntity {
+    constructor(entity, sub, params={}) {
+        super(entity, sub, {
+            name: "Fearing the sub",
+            priority: 80,
+            ...params
+        })
+    }
+
+    get engageDistance() {
+        const fearFactor = Math.min(0.5, this.entity.subFear / 100)
+        return fearFactor * 60
+    }
+
+    priority(model) {
+        const result = (super.priority(model) > 0) ? this.entity.subFear : 0
+        return result
+    }
+}
+
+
 
 
 class TerritorialBehavior extends Behavior {
@@ -233,7 +375,6 @@ class TerritorialBehavior extends Behavior {
 
     onPlanFinished(model) {
         this.satisfactionMs = paramValue(this.params.territorialSatisfyTime)
-        this.deactivate(model)
     }
 
     updateState(deltaMs, model) {
@@ -292,83 +433,27 @@ class AggresiveBehavior extends Behavior {
 }
 
 
-const BEHAVIOR_CHECK_EVERY_MS = 100
-
-export class FishAI {
-    constructor(entity) {
-        this.entity = entity
-        this._plan = null
-
-        this.currentBehavior = null
-        this._sinceLastBehaviorChange = 0
-        this.behaviors = [
-            new RandomMoveBehavior(entity),
-            new BackOffFromWalls(entity),
-            new DontCrashIntoWalls(entity),
-        ]
-
-        if (entity.aggresive) {
-            this.behaviors.push(new AggresiveBehavior(entity))
-        }
-        if (entity.params.territoryRange > 0) {
-            this.behaviors.push(new TerritorialBehavior(entity, {
-                position: entity.position,
-                range: entity.params.territoryRange,
-            }))
-        }
-
-        this._initialized = false
+class RandomMoveBehavior extends Behavior {
+    constructor(entity, params={}) {
+        super(entity, {
+            name: "Random Wandering",
+            priority: 10,
+            ...params})
     }
 
-    get targetPosition() {
-        if (!this.currentBehavior) {
-            return null
+    nextPlan(model) {
+        var point = randomPointInSight(this.entity.position, model.map, 5, 50)
+        if (point == null) {
+            point = randomPointInSight(this.entity.position, model.map, 0, 50)
         }
-        return this.currentBehavior.targetPosition
-    }
-
-    _updateBehavior(model) {
-        if (this._initialized) {
-            this._sinceLastBehaviorChange = 0
-        } else {
-            // so not all beh checks happen at same time
-            this._sinceLastBehaviorChange = Math.random() * BEHAVIOR_CHECK_EVERY_MS
-            this._initialized = true
-        }
-
-        var maxPriority = -Infinity
-        var nextBehavior = null
-        this.behaviors.forEach(b => {
-            if (b.priority(model) > maxPriority) {
-                maxPriority = b.priority(model)
-                nextBehavior = b
-            }
-        })
-        if (this.currentBehavior != nextBehavior) {
-            if (this.currentBehavior != null) {
-                this.currentBehavior.deactivate(model)
-            }
-            this.currentBehavior = nextBehavior
-            this.currentBehavior.activate(model)
-
-        }
-    }
-
-    updateState(deltaMs, model) {
-        if (this.entity.alive) {
-            this.behaviors.forEach(b => b.updateState(deltaMs, model))
-            this._sinceLastBehaviorChange += deltaMs
-            if (!this.currentBehavior || !this.currentBehavior.active || (this._sinceLastBehaviorChange > BEHAVIOR_CHECK_EVERY_MS)) {
-                this._updateBehavior(model)
-            }
-        }
-
-    }
-
-    get planDescription() {
-        return this.currentBehavior?.description ?? []
+        return planMoveToPoint(this.entity, point, model.map, {mapSize: this.entity.radius * 2})
     }
 }
+
+
+///////////
+// UTILS
+//////////
 
 
 function randomPointInPerimeter(position, map, mapSize, perimeterCenter, perimeterRange) {

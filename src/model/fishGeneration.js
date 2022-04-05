@@ -21,7 +21,7 @@ const FISH_TEMPLATES = {
         tailForce: 5 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: 1,
-        color: "blue",
+        color: "#4287f5",
         territoryRange: 30,
     },
     FAT_FISH: {
@@ -32,6 +32,8 @@ const FISH_TEMPLATES = {
         rotationSpeed: 1,
         color: "#E08E45",
         aggresive: true,
+        defaultSubFear: -20,
+        sightRange: 50,
         attacks: [{
             range: 2,
             cooldown: 1000,
@@ -49,6 +51,7 @@ const FISH_TEMPLATES = {
         rotationSpeed: 1,
         color: "red",
         aggresive: true,
+        defaultSubFear: -40,
         attacks: [{
             range: 2,
             cooldown: 3000,

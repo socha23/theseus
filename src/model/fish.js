@@ -26,6 +26,7 @@ const DEFAULT_FISH_TEMPALTE = {
     attacks: [],
     color: "red",
     territoryRange: 0,
+    defaultSubFear: 0,
 }
 
 export class Fish extends Entity {
@@ -37,8 +38,6 @@ export class Fish extends Entity {
         this.rotationSpeed = template.rotationSpeed
         this._ai = aiCreator(this)
 
-        this.profile = physicsProfile(body.volume, this.tailForce, this.tailForce)
-
         this.alive = true
         this._blood = 1
         this._bleedRate = 0
@@ -47,6 +46,11 @@ export class Fish extends Entity {
             new FishAttack(this, a.range, a.cooldown, a.damage)
         )
     }
+
+    init(model) {
+        this._ai.init(model)
+    }
+
 
     get species() {
         return this.template.id
@@ -68,8 +72,17 @@ export class Fish extends Entity {
         return this.template.sightRange
     }
 
+    get subFear() {
+        return this._ai.subFear
+    }
+
+
     get params() {
         return this.template
+    }
+
+    addBehavior(behavior) {
+        this._ai.addBehavior(behavior)
     }
 
     param(name, defValue=null) {
@@ -98,6 +111,15 @@ export class Fish extends Entity {
             this.onDamage(HEAVY_DAMAGE)
             this.onDamage(HEAVY_DAMAGE)
         }
+    }
+
+    onHearGunshot() {
+        console.log("HEAR SHOT")
+        this.addEffect(new Effect({
+            type: "fearOfGunshot",
+            durationMs: 10 * 1000,
+            fearOfSub: 50,
+        }))
     }
 
     onCollision(collision) {
@@ -179,9 +201,6 @@ class FishAttack {
     get ready() {
         return this._cooldown <= 0
     }
-
-
-
 }
 
 const DAMAGE_PARAMS = {
@@ -196,7 +215,8 @@ const LIGHT_DAMAGE = {
     name: "Light damage",
     bleedRate: 0.01,
     shockChance: 0,
-    durationMs: 30 * 1000,
+    durationMs: 5 * 1000,
+    fearOfSub: 10,
 
 }
 
@@ -205,7 +225,8 @@ const MEDIUM_DAMAGE = {
     name: "Medium damage",
     bleedRate: 0.02,
     shockChance: 0.1,
-    durationMs: 120 * 1000,
+    durationMs: 60 * 1000,
+    fearOfSub: 20,
 }
 
 const HEAVY_DAMAGE = {
@@ -213,6 +234,7 @@ const HEAVY_DAMAGE = {
     name: "Heavy damage",
     bleedRate: 0.05,
     shockChance: 0.2,
+    fearOfSub: 10,
 }
 
 

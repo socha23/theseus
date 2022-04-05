@@ -3,6 +3,7 @@ import {getStartingSub} from "./startingSub"
 import { getStartingMap } from "./mapGeneration"
 import { generateFish } from "./fishGeneration"
 import { generatePlants } from "./plantGeneration"
+import { AvoidEntity } from "./fishAi"
 
 const MAX_TIME_FRAME_FOR_MODEL_UPDATE = 10
 const ENTITY_ACTIVATION_DISTANCE = 200
@@ -22,7 +23,10 @@ class GameModel {
         this.entitiesById = {}
         generateFish(this.map).forEach(f => {
             this.addEntity(f)
+            f.init(this)
         })
+
+
 
         this.plantsById = {}
         generatePlants(this.map).forEach(f => {

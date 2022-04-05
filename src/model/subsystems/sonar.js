@@ -44,7 +44,7 @@ export class AimLine {
     }
 }
 
-const PLANT_UPDATE_MS = 500
+const PLANT_UPDATE_MS = 1000
 
 export class Sonar extends Subsystem {
     constructor(gridPosition, id, name, template) {
@@ -65,13 +65,17 @@ export class Sonar extends Subsystem {
     }
 
     _observeBlips(model) {
-        return model.map.getEntitiesIntersecting(this.viewPort(model))
+        const viewPort = this.viewPort(model)
+        return model.map.getEntitiesIntersecting(viewPort)
+            .filter(e => e.boundingBox.simpleBoundingBox.overlaps(viewPort.simpleBoundingBox))
             .sort((a, b) => a.ordering - b.ordering)
             .map(e => e.toViewState())
     }
 
     _observePlants(model) {
-        return model.map.getPlantsIntersecting(this.viewPort(model))
+        const viewPort = this.viewPort(model)
+        return model.map.getPlantsIntersecting(viewPort)
+            .filter(e => e.boundingBox.simpleBoundingBox.overlaps(viewPort.simpleBoundingBox))
             .sort((a, b) => a.ordering - b.ordering)
             .map(e => e.toViewState())
     }

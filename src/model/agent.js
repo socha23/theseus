@@ -440,7 +440,7 @@ export function planMoveToPoint(entity, p, map, params) {
     return new Plan(
         `Move`,
         p,
-        ...rotateToPoint(entity, p, map, params),
+        ...rotateToPoint(entity, p, map, {...params, distanceTolerance: Math.PI / 8}),
         new MoveToPointAction(entity, p, params),
     )
 }

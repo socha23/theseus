@@ -1,18 +1,22 @@
 import { transpose } from "../utils"
 import { Edge, Vector, SimpleRect, vectorForPolar, Point, rectangle } from "./physics"
 
-const MAP_BUCKET_SIZE = 10
+const DEFAULT_MAP_BUCKET_SIZE = 10
+const ENTITIES_BUCKET_SIZE = 20
+const PLANTS_BUCKET_SIZE = 20
 
 const BUCKET_MARGIN = 20
 
 class CollisionMap {
-    constructor(from, to) {
-        this.minX = Math.floor(from.x / MAP_BUCKET_SIZE) - BUCKET_MARGIN
-        this.minY = Math.floor(from.y / MAP_BUCKET_SIZE) - BUCKET_MARGIN
+    constructor(from, to, bucketSize = DEFAULT_MAP_BUCKET_SIZE) {
+        this.bucketSize = bucketSize
+
+        this.minX = Math.floor(from.x / this.bucketSize) - BUCKET_MARGIN
+        this.minY = Math.floor(from.y / this.bucketSize) - BUCKET_MARGIN
 
 
-        const maxX = Math.floor(to.x / MAP_BUCKET_SIZE) + BUCKET_MARGIN
-        const maxY = Math.floor(to.y / MAP_BUCKET_SIZE) + BUCKET_MARGIN
+        const maxX = Math.floor(to.x / this.bucketSize) + BUCKET_MARGIN
+        const maxY = Math.floor(to.y / this.bucketSize) + BUCKET_MARGIN
 
         this.width = maxX - this.minX + 1
         this.height = maxY - this.minY + 1
@@ -47,8 +51,8 @@ class CollisionMap {
         const box = polygon.simpleBoundingBox
 
 
-        for (var x = Math.floor(box.x / MAP_BUCKET_SIZE); x <= Math.floor((box.x + box.width) / MAP_BUCKET_SIZE); x++) {
-            for (var y = Math.floor(box.y / MAP_BUCKET_SIZE); y <= Math.floor((box.y + box.height) / MAP_BUCKET_SIZE); y++) {
+        for (var x = Math.floor(box.x / this.bucketSize); x <= Math.floor((box.x + box.width) / this.bucketSize); x++) {
+            for (var y = Math.floor(box.y / this.bucketSize); y <= Math.floor((box.y + box.height) / this.bucketSize); y++) {
                 result.push(this._getBucket(x, y))
             }
         }
@@ -85,10 +89,10 @@ export class Map {
         this.paths = []
         this._logicalPolygons = null
 
-        this.plantMap = new CollisionMap(from, to)
+        this.plantMap = new CollisionMap(from, to, PLANTS_BUCKET_SIZE)
         this.plants = []
 
-        this.entityMap = new CollisionMap(from, to)
+        this.entityMap = new CollisionMap(from, to, ENTITIES_BUCKET_SIZE)
         this.entities = []
 
         this.from = from

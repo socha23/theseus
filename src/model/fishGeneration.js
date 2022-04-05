@@ -107,8 +107,7 @@ export function generateFish(map) {
         const aggresive = !c.startingArea
 
         if (c.startingArea) {
-            res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(4, 10)))
-            res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(4, 10)))
+            res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(20, 30)))
             res.push(...fishesInCave(c, FISH_TEMPLATES.GOAT_FISH, flockSize(2, 5)))
         }
 

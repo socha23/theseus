@@ -61,7 +61,7 @@ export class AgentAction {
 function _adjustRotation(fish, theta, deltaMs, rotateSpeed = true) {
     // rotate towards target
     const rotation =
-        Math.sign(relativeAngle(fish.orientation, theta))
+        Math.sign(relativeAngle(fish.orientation, theta) + Math.PI / 16)
         * fish.rotationSpeed
         * deltaMs / 1000
     var orientation = fish.orientation + rotation

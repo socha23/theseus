@@ -391,7 +391,7 @@ function _InnerSonar({
                 on && <DArea>
                     <DSonarView position={position.scale(SCALE_MULTIPLIER)} size={SIZE_PX} scale={scale / SCALE_MULTIPLIER} theta={-orientation - Math.PI / 2}>
                         <SonarBackground position={position} scale={scale}/>
-                        <Plants plants={plants} trackedBlipId={trackedBlipId} scale={scale} debug={debug}/>
+                        <Plants plants={plants} trackedBlipId={trackedBlipId} scale={scale} debug={false}/>
                         <Features features={features}/>
                         <SubMarker position={position} orientation={orientation} subVolume={subVolume}/>
                         <SonarBlips blips={blips} trackedBlipId={trackedBlipId} scale={scale} debug={debug}/>

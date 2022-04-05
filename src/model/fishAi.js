@@ -1,9 +1,7 @@
 import { Point, rectangle, Vector, vectorForPolar } from "./physics"
 import { planMoveToPoint, planAttack, planBackOff, planStop, planRotateToPoint } from "./agent"
-import { randomElem } from "../utils"
-import { STATISTICS } from "../stats"
+import { paramValue } from "../utils"
 import { Path } from "./mapGeneration"
-import { toHaveStyle } from "@testing-library/jest-dom/dist/matchers"
 
 
 export function fishAI(fish) { return new FishAI(fish)}
@@ -113,21 +111,27 @@ class DontCrashIntoWalls extends Behavior {
         super(entity, {
             name: "Not crashing into walls",
             priority: 60,
-            timeS: 1,
+            detectionTimeS: 3,
+            avoidTimeS: 4,
             ...params})
     }
 
     priority(model) {
-        if (this.drivingIntoWall(model.map) || this.plan?.valid) {
+        if (this.drivingIntoWall(model.map) || this.active) {
             return this.params.priority
         }
         return 0
     }
 
     drivingIntoWall(map) {
-        const dstPoint = this.entity.position.plus(this.entity.speedVector.scale(this.params.timeS))
+        const dstPoint = this.entity.position.plus(this.entity.speedVector.scale(this.params.detectionTimeS))
         const hitbox = new Path(this.entity.position, dstPoint, this.entity.radius * 2).polygon()
-        return map.getPolygonsIntersecting(hitbox).length > 0
+        return map.detectCollision(hitbox) != null
+    }
+
+
+    onPlanFinished(model) {
+        this.deactivate(model)
     }
 
     nextPlan(model) {
@@ -135,7 +139,7 @@ class DontCrashIntoWalls extends Behavior {
             for (var sign in [-1, 1]) {
                 const dTheta = sign * theta
                 const speed = vectorForPolar(this.entity.speedVector.length, this.entity.speedVector.theta + dTheta)
-                const point = this.entity.position.plus(speed.scale(2))
+                const point = this.entity.position.plus(speed.scale(this.params.avoidTimeS))
                 const hitboxWidth = this.entity.radius * 2
                 const hitbox = new Path(this.entity.position, point, hitboxWidth).polygon()
                 if (model.map.detectCollision(hitbox) == null) {
@@ -143,7 +147,6 @@ class DontCrashIntoWalls extends Behavior {
                 }
             }
         }
-        console.log("Can't find direction")
         return planStop(this.entity)
     }
 }
@@ -210,37 +213,58 @@ class TerritorialBehavior extends Behavior {
         super(entity, {
             name: "Wandering across territory",
             priority: 15,
+            territorialSatisfyTime: {from: 1000, to: 5000},
             ...params})
-        this.position = position
-        this.range = range
-        this.timeSincePlanChange = 0
+
+        this.territoryCenter = position
+        this.territoryRange = range
+
         this.currentTarget = null
+        this.satisfactionMs = paramValue(this.params.territorialSatisfyTime)
+    }
+
+    priority(model) {
+        if (this.satisfactionMs < 0) {
+            return this.params.priority
+        } else {
+            return 0
+        }
+    }
+
+    onPlanFinished(model) {
+        this.satisfactionMs = paramValue(this.params.territorialSatisfyTime)
+        this.deactivate(model)
     }
 
     updateState(deltaMs, model) {
         super.updateState(deltaMs, model)
-        this.timeSincePlanChange += deltaMs
-        if (this.timeSincePlanChange > 30 * 1000) {
-            this.timeSincePlanChange = 0
-            this.plan = null
-        }
-    }
-
-    get targetPosition() {
-        return this.currentTarget
+        this.satisfactionMs -= deltaMs
     }
 
     nextPlan(model) {
-        this.currentTarget = randomPointInPerimeter(this.entity.position, model.map, 5, this.position, this.range)
+        this.currentTarget = randomPointInPerimeter(
+            this.entity.position,
+            model.map,
+            this.entity.radius,
+            this.territoryCenter, this.territoryRange)
         if (this.currentTarget === null) {
-            this.currentTarget = randomPointInPerimeter(this.entity.position, model.map, 0, this.position, this.range)
+            this.currentTarget = randomPointInPerimeter(
+                this.entity.position,
+                model.map,
+                0,
+                this.territoryCenter,
+                this.territoryRange
+            )
         }
         if (this.currentTarget === null) {
-            this.currentTarget = randomPointInSight(this.entity.position, model.map, 0, this.position, this.entity.sightRange)
+            this.currentTarget = randomPointInSight(this.entity.position, model.map, 0, this.entity.sightRange)
+        }
+        if (this.currentTarget === null) {
+            console.log("NO TARGET")
         }
 
         return planMoveToPoint(this.entity, this.currentTarget, model.map,
-            {tailForce: 0.5 * this.entity.tailForce, mapSize: 5}
+            {tailForce: 0.5 * this.entity.tailForce, mapSize: this.entity.radius}
             )
     }
 }
@@ -280,7 +304,7 @@ export class FishAI {
         this.behaviors = [
             new RandomMoveBehavior(entity),
             new BackOffFromWalls(entity),
-            //new DontCrashIntoWalls(entity),
+            new DontCrashIntoWalls(entity),
         ]
 
         if (entity.aggresive) {
@@ -332,11 +356,11 @@ export class FishAI {
 
     updateState(deltaMs, model) {
         if (this.entity.alive) {
+            this.behaviors.forEach(b => b.updateState(deltaMs, model))
             this._sinceLastBehaviorChange += deltaMs
-            if (!this.currentBehavior || (this._sinceLastBehaviorChange > BEHAVIOR_CHECK_EVERY_MS)) {
+            if (!this.currentBehavior || !this.currentBehavior.active || (this._sinceLastBehaviorChange > BEHAVIOR_CHECK_EVERY_MS)) {
                 this._updateBehavior(model)
             }
-            this.behaviors.forEach(b => b.updateState(deltaMs, model))
         }
 
     }

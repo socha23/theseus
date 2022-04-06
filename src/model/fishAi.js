@@ -1,6 +1,6 @@
 import { Point, rectangle, Vector, vectorForPolar } from "./physics"
-import { planMoveToPoint, planAttack, planBackOff, planStop, planRotateToPoint } from "./agent"
-import { paramValue } from "../utils"
+import { planFollow, planMoveToPoint, planAttack, planBackOff, planStop, planRotateToPoint } from "./agent"
+import { paramValue, randomElem } from "../utils"
 import { Path } from "./mapGeneration"
 
 
@@ -38,6 +38,9 @@ export class FishAI {
                 position: this.entity.position,
                 range: this.entity.params.territoryRange,
             }))
+        }
+        if (this.entity.params.flocking) {
+            this.behaviors.push(new FlockBehavior(this.entity, this.entity.params.flocking))
         }
     }
 
@@ -155,6 +158,7 @@ export class Behavior {
 
     deactivate(model) {
         this._active = false
+        this.plan = null
         this.onDeactivate(model)
     }
 
@@ -431,6 +435,55 @@ class AggresiveBehavior extends Behavior {
         return planAttack(this.entity, model.sub, model.map, {mapSize: this.entity.radius * 2})
     }
 }
+
+class FlockBehavior extends Behavior {
+    constructor(entity, params = {}) {
+        super(entity, {
+            name: "Flocking",
+            priority: 20,
+            flockRange: 10,
+            flockSatisfyTime: {from: 1000, to: 5000},
+            ...params
+        })
+        this.satisfactionMs = paramValue(this.params.flockSatisfyTime)
+    }
+
+    priority(model) {
+        if (this.satisfactionMs < 0) {
+            return this.params.priority
+        } else {
+            return 0
+        }
+    }
+
+    _perceivedPals(model) {
+        return model.map
+            .getEntitiesAround(this.entity.position, this.entity.sightRange)
+            .filter(e => e != this.entity && e.species === this.entity.species && e.alive)
+
+    }
+
+    nextPlan(model) {
+        const pals = this._perceivedPals(model)
+        if (pals.length > 0) {
+            return planFollow(this.entity, randomElem(pals), {distanceTolerance: paramValue(this.params.flockRange)})
+        } else {
+            const dest = randomPointInSight(this.entity.position, model.map, this.entity.radius, this.entity.sightRange)
+            return planMoveToPoint(this.entity, dest, model.map, {mapSize: this.entity.radius})
+        }
+    }
+
+
+    onPlanFinished(model) {
+        this.satisfactionMs = paramValue(this.params.flockSatisfyTime)
+    }
+
+    updateState(deltaMs, model) {
+        super.updateState(deltaMs, model)
+        this.satisfactionMs -= deltaMs
+    }
+}
+
 
 
 class RandomMoveBehavior extends Behavior {

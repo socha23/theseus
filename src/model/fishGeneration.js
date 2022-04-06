@@ -1,8 +1,8 @@
 import { Body, Point, rectangle, vectorForPolar, Volume, Polygon } from "./physics"
-import { randomElem, transpose } from "../utils"
+
+import { transpose, randomElem, paramColorValue, paramValue, paramFromValue } from "../utils"
+
 import { Fish } from "./fish"
-import { flockAI} from "./flockAi"
-import { fishAI } from "./fishAi"
 
 
 
@@ -13,7 +13,11 @@ const FISH_TEMPLATES = {
         tailForce: 2 * 1000,
         rotationalForce: 1 * 1000,
         rotationSpeed: 1,
-        color: "#AEF3E7"
+        color: "#AEF3E7",
+        flocking: {
+            flockRange: 10,
+            flockSatisfyTime: {from: 1000, to: 5000}
+        }
     },
     GOAT_FISH: {
         id: "goat_fish",
@@ -71,14 +75,13 @@ function flockSize(from, to) {
 
 var autoinc = 0
 
-function fishInCave(c, template, ai=fishAI) {
+function fishInCave(c, template) {
     const wallRadius = template.volume.radius * 2
     const pos = c.polygon(-wallRadius).randomPoint()
     const fish = new Fish(
         template.id + autoinc++,
         new Body(pos, template.volume, Math.random() * 2 * Math.PI),
-        template,
-        ai)
+        template)
     return fish
 }
 
@@ -95,7 +98,7 @@ function fishesInCave(c, template, count) {
 function flockInCave(c, template, count) {
     const result = []
     for (var i = 0; i < count; i++) {
-        const f = fishInCave(c, template, flockAI())
+        const f = fishInCave(c, template)
         result.push(f)
     }
     return result

@@ -323,6 +323,8 @@ export class Plan {
         const result = [this.name]
         if (this._idx < this._actions.length) {
             result.push(this._actions[this._idx].description)
+        } else {
+            result.push(("Finished"))
         }
         return result
     }
@@ -440,7 +442,7 @@ export function planMoveToPoint(entity, p, map, params) {
     return new Plan(
         `Move`,
         p,
-        ...rotateToPoint(entity, p, map, {...params, distanceTolerance: Math.PI / 8}),
+        //...rotateToPoint(entity, p, map, {...params, distanceTolerance: Math.PI / 8}),
         new MoveToPointAction(entity, p, params),
     )
 }

@@ -21,7 +21,7 @@ class GameModel {
 
         this.entities = []
         this.entitiesById = {}
-        generateFish(this.map).forEach(f => {
+        generateFish(this.map, this.sub.position).forEach(f => {
             this.addEntity(f)
             f.init(this)
         })

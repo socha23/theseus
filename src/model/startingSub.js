@@ -20,7 +20,7 @@ const WEAPON_TEMPLATES = {
         ammoMax: 5,
         powerConsumption: 10,
         range: 32,
-        damage: 10,
+        damage: 7,
     },
     RAILGUN: {
         aimTime: 4000,

@@ -117,8 +117,8 @@ export class Fish extends Entity {
         console.log("HEAR SHOT")
         this.addEffect(new Effect({
             type: "fearOfGunshot",
-            durationMs: 10 * 1000,
-            fearOfSub: 50,
+            durationMs: 5 * 1000,
+            fearOfSub: 10,
         }))
     }
 

@@ -60,8 +60,8 @@ export class Sonar extends Subsystem {
         this._sincePlantUpdate = PLANT_UPDATE_MS
     }
 
-    viewPort(model) {
-        return rectangle(model.sub.position, new Point(2 * this.range, 2 * this.range), model.sub.orientation)
+    viewPort(model, margin=0) {
+        return rectangle(model.sub.position, new Point(2 * (this.range + margin), 2 * (this.range + margin)), model.sub.orientation)
     }
 
     _observeBlips(model) {
@@ -73,7 +73,7 @@ export class Sonar extends Subsystem {
     }
 
     _observePlants(model) {
-        const viewPort = this.viewPort(model)
+        const viewPort = this.viewPort(model, 20)
         return model.map.getPlantsIntersecting(viewPort)
             .filter(e => e.boundingBox.simpleBoundingBox.overlaps(viewPort.simpleBoundingBox))
             .sort((a, b) => a.ordering - b.ordering)

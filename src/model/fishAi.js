@@ -58,8 +58,12 @@ export class FishAI {
 
         this.behaviors.forEach(b => b.updateState(deltaMs, model))
         this._sinceLastBehaviorChange += deltaMs
-        if (!this.currentBehavior || !this.currentBehavior.active || (this._sinceLastBehaviorChange > BEHAVIOR_CHECK_EVERY_MS)) {
-            this._updateBehavior(model)
+        if (!this.currentBehavior || !this.currentBehavior.active) {
+            this._updateBehavior(model, false)
+        }
+
+        if (this._sinceLastBehaviorChange > BEHAVIOR_CHECK_EVERY_MS) {
+            this._updateBehavior(model, true)
         }
 
         this.subFear = Math.max(0, Math.min(100,
@@ -68,7 +72,7 @@ export class FishAI {
         ))
     }
 
-    _updateBehavior(model) {
+    _updateBehavior(model, preserveCurrentPlan=true) {
         if (this._initialized) {
             this._sinceLastBehaviorChange = 0
         } else {
@@ -85,7 +89,9 @@ export class FishAI {
                 nextBehavior = b
             }
         })
-        if (this.currentBehavior != nextBehavior) {
+        if (preserveCurrentPlan && nextBehavior == this.currentBehavior) {
+            // no plan switch
+        } else {
             if (this.currentBehavior != null) {
                 this.currentBehavior.deactivate(model)
             }
@@ -130,6 +136,8 @@ export class Behavior {
         const result = [this.params.name]
         if (this.plan) {
             result.push(...this.plan.description)
+        } else {
+            result.push("No plan")
         }
         return result
     }
@@ -354,6 +362,93 @@ class FearTheSub extends AvoidEntity {
 
 
 
+
+class AggresiveBehavior extends Behavior {
+    constructor(entity, params={}) {
+        super(entity, {
+            name: "Aggressive",
+            priority: 25,
+            ...params
+        })
+    }
+
+    priority(model) {
+        if (this.entity.distanceTo(model.sub) <= this.entity.sightRange) {
+            return this.params.priority
+        } else {
+            return 0
+        }
+    }
+
+    nextPlan(model) {
+        return planAttack(this.entity, model.sub, model.map, {mapSize: this.entity.radius * 2})
+    }
+}
+
+class FlockBehavior extends Behavior {
+    constructor(entity, params = {}) {
+        super(entity, {
+            name: "Flocking",
+            priority: 20,
+            flockRange: 10,
+            flockSatisfyTime: {from: 1000, to: 5000},
+            ...params
+        })
+        this.satisfactionMs = paramValue(this.params.flockSatisfyTime)
+    }
+
+    priority(model) {
+        if (this.satisfactionMs < 0) {
+            return this.params.priority
+        } else {
+            return 0
+        }
+    }
+
+    _perceivedPals(model) {
+        return model.map
+            .getEntitiesAround(this.entity.position, this.entity.sightRange)
+            .filter(e => e != this.entity && e.species === this.entity.species && e.alive)
+
+    }
+
+    nextPlan(model) {
+        const pals = this._perceivedPals(model)
+        if (pals.length > 0) {
+            var x = 0;
+            var y = 0;
+            pals.forEach(p => {
+                x += p.position.x
+                y += p.position.y
+            })
+            const center = new Point(x / pals.length, y / pals.length)
+
+            var minDistance = Infinity
+            var bestPal = null
+            pals.forEach(pal => {
+                if (pal.position.distanceTo(center) < minDistance) {
+                    minDistance = pal.position.distanceTo(center)
+                    bestPal = pal
+                }
+            })
+            return planFollow(this.entity, bestPal, {distanceTolerance: paramValue(this.params.flockRange)})
+        } else {
+            const dest = randomPointInSight(this.entity.position, model.map, this.entity.radius, this.entity.sightRange)
+            return planMoveToPoint(this.entity, dest, model.map, {mapSize: this.entity.radius})
+        }
+    }
+
+
+    onPlanFinished(model) {
+        this.satisfactionMs = paramValue(this.params.flockSatisfyTime)
+    }
+
+    updateState(deltaMs, model) {
+        super.updateState(deltaMs, model)
+        this.satisfactionMs -= deltaMs
+    }
+}
+
 class TerritorialBehavior extends Behavior {
     constructor(entity, {position, range, ...params}) {
         super(entity, {
@@ -413,77 +508,6 @@ class TerritorialBehavior extends Behavior {
             )
     }
 }
-
-class AggresiveBehavior extends Behavior {
-    constructor(entity, params={}) {
-        super(entity, {
-            name: "Aggressive",
-            priority: 20,
-            ...params
-        })
-    }
-
-    priority(model) {
-        if (this.entity.distanceTo(model.sub) <= this.entity.sightRange) {
-            return this.params.priority
-        } else {
-            return 0
-        }
-    }
-
-    nextPlan(model) {
-        return planAttack(this.entity, model.sub, model.map, {mapSize: this.entity.radius * 2})
-    }
-}
-
-class FlockBehavior extends Behavior {
-    constructor(entity, params = {}) {
-        super(entity, {
-            name: "Flocking",
-            priority: 20,
-            flockRange: 10,
-            flockSatisfyTime: {from: 1000, to: 5000},
-            ...params
-        })
-        this.satisfactionMs = paramValue(this.params.flockSatisfyTime)
-    }
-
-    priority(model) {
-        if (this.satisfactionMs < 0) {
-            return this.params.priority
-        } else {
-            return 0
-        }
-    }
-
-    _perceivedPals(model) {
-        return model.map
-            .getEntitiesAround(this.entity.position, this.entity.sightRange)
-            .filter(e => e != this.entity && e.species === this.entity.species && e.alive)
-
-    }
-
-    nextPlan(model) {
-        const pals = this._perceivedPals(model)
-        if (pals.length > 0) {
-            return planFollow(this.entity, randomElem(pals), {distanceTolerance: paramValue(this.params.flockRange)})
-        } else {
-            const dest = randomPointInSight(this.entity.position, model.map, this.entity.radius, this.entity.sightRange)
-            return planMoveToPoint(this.entity, dest, model.map, {mapSize: this.entity.radius})
-        }
-    }
-
-
-    onPlanFinished(model) {
-        this.satisfactionMs = paramValue(this.params.flockSatisfyTime)
-    }
-
-    updateState(deltaMs, model) {
-        super.updateState(deltaMs, model)
-        this.satisfactionMs -= deltaMs
-    }
-}
-
 
 
 class RandomMoveBehavior extends Behavior {

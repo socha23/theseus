@@ -6,7 +6,7 @@ import { Fish } from "./fish"
 
 
 
-const FISH_TEMPLATES = {
+const FISHES = {
     SMALL_FISH: {
         id: "small_fish",
         volume: new Volume(0.5, 0.5, 2, 0.2),
@@ -15,8 +15,8 @@ const FISH_TEMPLATES = {
         rotationSpeed: 1,
         color: "#AEF3E7",
         flocking: {
-            flockRange: 10,
-            flockSatisfyTime: {from: 1000, to: 5000}
+            flockRange: 15,
+            flockSatisfyTime: {from: 1000, to: 5000},
         }
     },
     GOAT_FISH: {
@@ -25,19 +25,28 @@ const FISH_TEMPLATES = {
         tailForce: 5 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: 1,
-        color: "#4287f5",
+        color: {
+            h: {from: 217, to: 220},
+            s: {from: 70, to: 90},
+            l: {from: 50, to: 70},
+        },
         territoryRange: 30,
+        flocking: {
+            flockRange: 20,
+            flockSatisfyTime: {from: 5 * 1000, to: 10 * 1000},
+        }
     },
-    FAT_FISH: {
-        id: "fat_fish",
+    ORANGE_FISH: {
+        id: "orange_fish",
         volume: new Volume(2, 2, 3, 0.2),
-        tailForce: 15 * 1000,
+        tailForce: 25 * 1000,
         rotationalForce: 2 * 1000,
         rotationSpeed: 1,
         color: "#E08E45",
         aggresive: true,
         defaultSubFear: -20,
         sightRange: 50,
+        territoryRange: 100,
         attacks: [{
             range: 2,
             cooldown: 1000,
@@ -47,7 +56,35 @@ const FISH_TEMPLATES = {
             }
         }],
     },
-    BIG_FISH: {
+    BITER: {
+        id: "biter",
+        volume: new Volume(1, 1, 2, 0.2),
+        tailForce: 10 * 1000,
+        rotationalForce: 2 * 1000,
+        rotationSpeed: 1,
+        color: {
+            h: 277,
+            s: {from: 70, to: 90},
+            l: {from: 60, to: 80},
+        },
+        aggresive: true,
+        defaultSubFear: -20,
+        sightRange: 30,
+        territoryRange: 30,
+        flocking: {
+            flockRange: 10,
+            flockSatisfyTime: {from: 1000, to: 5000},
+        },
+        attacks: [{
+            range: 2,
+            cooldown: 7000,
+            damage: {
+                type: "default",
+                strength: 3,
+            }
+        }],
+    },
+    RED_FISH: {
         id: "big_fish",
         volume: new Volume(2, 2, 5, 0.1),
         tailForce: 35 * 1000,
@@ -69,125 +106,85 @@ const FISH_TEMPLATES = {
 }
 
 
-function flockSize(from, to) {
-    return Math.floor(transpose(Math.random(), 0, 1, from, to))
+const DEFAULT_PARAMS = {
+    startDistanceSubFromAggresive: 60,
+    fishes: [
+        {
+            type: FISHES.SMALL_FISH,
+            count: 30,
+            flockSize: {from: 10, to: 20}
+        },
+        {
+            type: FISHES.GOAT_FISH,
+            count: 30,
+            flockSize: {from: 1, to: 3}
+        },
+        {
+            type: FISHES.ORANGE_FISH,
+            count: 30,
+        },
+        {
+            type: FISHES.BITER,
+            count: 20,
+            flockSize: {from: 3, to: 5}
+        },
+        {
+            type: FISHES.RED_FISH,
+            count: 20,
+        },
+        ]
 }
+
 
 var autoinc = 0
 
-function fishInCave(c, template) {
-    const wallRadius = template.volume.radius * 2
-    const pos = c.polygon(-wallRadius).randomPoint()
-    const fish = new Fish(
+function fish(pos, template) {
+    return new Fish(
         template.id + autoinc++,
         new Body(pos, template.volume, Math.random() * 2 * Math.PI),
-        template)
-    return fish
+        {
+            ...template,
+            color: paramColorValue(template.color),
+        })
 }
 
 
-function fishesInCave(c, template, count) {
+function makeFlock(map, subPos, minSubDistFromAggresive, fishType, flockSize) {
+    const checkedRadius = fishType.volume.radius * 4
+
+    const dist = 10
+
+    var flockPos = map.randomPosition(checkedRadius)
+    while (fishType.aggresive && subPos.distanceTo(flockPos) < minSubDistFromAggresive) {
+        flockPos = map.randomPosition(checkedRadius)
+    }
     const result = []
-    for (var i = 0; i < count; i++) {
-        result.push(fishInCave(c, template))
+
+    for (var i = 0; i < flockSize; i++) {
+        var pos = flockPos
+        for (var j = 0; j < 100; j++) {
+            pos = flockPos.plus(vectorForPolar(dist, Math.random() * 2 * Math.PI))
+            if (!map.detectCollision(rectangle(pos, new Point(checkedRadius, checkedRadius)))) {
+                break;
+            }
+            pos = flockPos
+        }
+        result.push(fish(pos, fishType))
+
     }
     return result
 }
 
-
-function flockInCave(c, template, count) {
+export function generateFish(map, subPos, params=DEFAULT_PARAMS) {
     const result = []
-    for (var i = 0; i < count; i++) {
-        const f = fishInCave(c, template)
-        result.push(f)
-    }
-    return result
-}
-
-export function generateFish(map) {
-    const res = []
-    map.caves.forEach(c => {
-
-        const r = Math.random()
-
-        const aggresive = !c.startingArea
-
-        if (c.startingArea) {
-            res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(20, 30)))
-            res.push(...fishesInCave(c, FISH_TEMPLATES.GOAT_FISH, flockSize(2, 5)))
+    params.fishes.forEach(conf => {
+        const count = paramValue(conf.count)
+        for (var i = 0; i < count; i++) {
+            const flockSize = conf.flockSize ? paramValue(conf.flockSize) : 1
+            const fishes = makeFlock(map, subPos, params.startDistanceSubFromAggresive, conf.type, flockSize)
+            result.push(...fishes)
         }
-
-
-        if (c.size < 20) {
-            if (r < 0.3) {
-                res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(4, 10)))
-            } else if (r < 0.5) {
-                res.push(...fishesInCave(c, FISH_TEMPLATES.GOAT_FISH, flockSize(1, 6)))
-            } else {
-                // no fish
-            }
-        } else if (c.size < 70) {
-            if (Math.random() < 0.1 && aggresive) {
-                res.push(fishInCave(c, FISH_TEMPLATES.BIG_FISH))
-            }
-            if (Math.random() < 0.5 && aggresive) {
-                res.push(...fishesInCave(c, FISH_TEMPLATES.FAT_FISH, flockSize(1, 4)))
-            }
-
-            if (Math.random() < 0.3) {
-                res.push(...fishesInCave(c, FISH_TEMPLATES.GOAT_FISH, flockSize(5, 10)))
-            }
-            if (Math.random() < 0.5) {
-                res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(4, 10)))
-            }
-            if (Math.random() < 0.5) {
-                res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(4, 10)))
-            }
-            if (Math.random() < 0.5) {
-                res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(4, 10)))
-            }
-        } else {
-            if (Math.random() < 0.7 && aggresive) {
-                res.push(...fishesInCave(c, FISH_TEMPLATES.BIG_FISH, flockSize(1, 4)))
-            }
-            if (Math.random() < 0.7 && aggresive) {
-                res.push(...fishesInCave(c, FISH_TEMPLATES.FAT_FISH, flockSize(3, 6)))
-            }
-
-            if (Math.random() < 0.5) {
-                res.push(...fishesInCave(c, FISH_TEMPLATES.GOAT_FISH, flockSize(5, 20)))
-            }
-            if (Math.random() < 0.5) {
-                res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(4, 10)))
-            }
-            if (Math.random() < 0.5) {
-                res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(4, 10)))
-            }
-            if (Math.random() < 0.5) {
-                res.push(...flockInCave(c, FISH_TEMPLATES.SMALL_FISH, flockSize(4, 10)))
-            }
-
-        }
-
     })
-    console.log("Generated " + res.length + " fishes")
-    return res
-
-
-//    return [
-
-            //...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(20, 20), 40).entities,
-            //...createFlock(map, FISH_TEMPLATES.SMALL_FISH, 10, new Point(-20, -20), 40).entities,
-            //...createFish(map, FISH_TEMPLATES.FAT_FISH, 50, Point.ZERO, 400, 70),
-            //...createFish(map, FISH_TEMPLATES.BIG_FISH, 15, Point.ZERO, 400, 70),
-            //...createFish(map, FISH_TEMPLATES.GOAT_FISH, 20, Point.ZERO, 400, 30),
-
-//                        ...createFish(map, FISH_TEMPLATES.GOAT_FISH, 10, Point.ZERO, 20),
-
-
-  //  ]
+    return result
 }
-
-
-
 

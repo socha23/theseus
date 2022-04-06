@@ -60,7 +60,7 @@ function makeGroup(map, params) {
         // now let's find position where it fits
         while (
             positions.some(p => p.distanceTo(pos) < minDist)
-            || map.detectCollision(new rectangle(pos, new Point(0.1, 0.1)))
+            || map.detectCollision(rectangle(pos, new Point(0.1, 0.1)))
 
             ) {
                 recount++

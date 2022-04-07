@@ -104,10 +104,10 @@ export class Fish extends Entity {
         }
     }
 
-    onHit(damage) {
-        super.onHit()
+    onHit(hit) {
+        super.onHit(hit)
 
-        const effectiveDamage = damage.strength / this.ac
+        const effectiveDamage = hit.strength / this.ac
 
         // consider:
         // low-caliber, damage 10
@@ -466,6 +466,7 @@ class FishDamage extends Effect {
             ...super.toViewState(),
             name: this.params.name,
             description: this.params.description,
+            visible: true,
         }
     }
 

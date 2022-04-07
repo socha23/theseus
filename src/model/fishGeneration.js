@@ -55,7 +55,7 @@ const FISHES = {
             cooldown: 1000,
             damage: {
                 type: "default",
-                strength: 1,//5,
+                strength: {from: 0, to: 20},
             }
         }],
     },
@@ -84,7 +84,7 @@ const FISHES = {
             cooldown: 7000,
             damage: {
                 type: "default",
-                strength: 3,
+                strength: {from: 0, to: 10},
             }
         }],
     },
@@ -103,7 +103,7 @@ const FISHES = {
             cooldown: 3000,
             damage: {
                 type: "default",
-                strength: 10,
+                strength: {from: 18, to: 28},
             }
         }],
     },
@@ -112,21 +112,21 @@ const FISHES = {
 
 
 const DEFAULT_PARAMS = {
-    startDistanceSubFromAggresive: 30,
+    startDistanceSubFromAggresive: 60,
     fishes: [
-/*        {
+        {
             type: FISHES.SMALL_FISH,
-            count: 30,
+            count: 40,
             flockSize: {from: 10, to: 20}
         },
         {
             type: FISHES.GOAT_FISH,
-            count: 30,
+            count: 40,
             flockSize: {from: 1, to: 3}
         },
         {
             type: FISHES.ORANGE_FISH,
-            count: 30,
+            count: 40,
         },
         {
             type: FISHES.BITER,
@@ -136,11 +136,7 @@ const DEFAULT_PARAMS = {
         {
             type: FISHES.RED_FISH,
             count: 20,
-        },*/
-        {
-            type: FISHES.ORANGE_FISH,
-            count: 70,
-        },
+        }
         ]
 }
 

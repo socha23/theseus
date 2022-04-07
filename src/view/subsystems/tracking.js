@@ -26,7 +26,7 @@ function TrackedEntity({id, alive, bloodPercent, effects, planDescription}) {
         {
             (effects.length > 0) && <div className="effects">
             {
-                effects.map(e => <Effect key={e.id} effect={e}/>)
+                effects.filter(e => e.visible).map(e => <Effect key={e.id} effect={e}/>)
             }
             </div>
         }

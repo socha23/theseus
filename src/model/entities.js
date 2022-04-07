@@ -1,4 +1,5 @@
-import { entityHit, HasEffects } from "./effects"
+import { entityHit, HasEffects, Effect } from "./effects"
+import { Vector } from "./physics"
 
 var autoinc = 0
 export class Entity extends HasEffects {
@@ -59,8 +60,9 @@ export class Entity extends HasEffects {
         return "gray"
     }
 
-    onHit(damage) {
-        this.addEffect(entityHit())
+    onHit(hit) {
+        const position = hit.position.plus(new Vector(-this.x, -this.y)).rotate(-this.orientation)
+        this.addEffect(hitMarkStatus(position, hit.strength))
     }
 
     onCollision(collision) {
@@ -87,6 +89,7 @@ export class Entity extends HasEffects {
     toViewState() {
         return {
             effects: this.effectsViewState(),
+            hitMarks: this.hitMarksViewState(),
             id: this.id,
             position: this.body.position,
             color: this.color,
@@ -99,4 +102,26 @@ export class Entity extends HasEffects {
             speed: this.body.speed.length,
         }
     }
+
+    hitMarksViewState() {
+        return this.effects
+            .filter(e => e.type === HIT_MARK_STATUS)
+            .map(h => ({
+                id: h.id,
+                position: h.params.position,
+                strength: h.params.strength,
+            }))
+    }
 }
+
+const HIT_MARK_STATUS = "hitMark"
+
+function hitMarkStatus(position, strength = 10) {
+    return new Effect({
+        type: HIT_MARK_STATUS,
+        durationMs:  500,
+        position,
+        strength,
+    })
+}
+

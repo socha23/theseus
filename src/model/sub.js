@@ -283,10 +283,10 @@ export class Sub extends Entity {
 
     _allocateAtackDamage(damage) {
         const s = randomElem(this.subsystems.filter(s => s.takesDamage))
-        const d = damage.strength * Math.random()
-        if (d > 5) {
+        const d = damage.strength
+        if (d > 20) {
             s.addHeavyDamage()
-        } else if (d > 2) {
+        } else if (d > 10) {
             s.addMediumDamage()
         } else if (d > 0) {
             s.addLightDamage()
@@ -316,10 +316,6 @@ export class Sub extends Entity {
 
     onHit(hit) {
         super.onHit(hit)
-
-        const positionOnSub = hit.position.plus(new Vector(-this.x, -this.y)).rotate(-this.orientation)
-        this.addEffect(hitMarkStatus(positionOnSub, hit.damage.strength))
-
         this._allocateAtackDamage(hit.damage)
     }
 
@@ -366,24 +362,6 @@ export class Sub extends Entity {
         }
     }
 
-    hitMarksViewState() {
-        return this.effects
-            .filter(e => e.type === HIT_MARK_STATUS)
-            .map(h => ({
-                id: h.id,
-                position: h.params.position.rotate(this.orientation).plus(new Vector(this.x, this.y)),
-                strength: h.params.strength,
-            }))
-    }
+
 }
 
-const HIT_MARK_STATUS = "hitMark"
-
-function hitMarkStatus(position, strength = 10) {
-    return new Effect({
-        type: HIT_MARK_STATUS,
-        durationMs:  1000,
-        position,
-        strength,
-    })
-}

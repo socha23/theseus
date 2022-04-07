@@ -80,6 +80,11 @@ function SonarBlip({blip, tracked, trackedOverlayMargin=8, clickOverlayMargin=12
                         + (blip.alive ? "alive " : "dead ")
                     }
                 />
+
+            }
+            {
+                // hitmarks
+                <HitMarks hitMarks={blip.hitMarks}/>
             }
             {
                 // debug overlay
@@ -214,7 +219,7 @@ function HitMarks({hitMarks}) {
             hitMarks.map(h => <DCircle
                 key={h.id}
                 position={h.position.scale(SCALE_MULTIPLIER)}
-                radius={h.strength * SCALE_MULTIPLIER / 3}
+                radius={h.strength * SCALE_MULTIPLIER / 10}
                 className="hitMark"
             />)
         }
@@ -395,7 +400,10 @@ function _InnerSonar({
                         <Features features={features}/>
                         <SubMarker position={position} orientation={orientation} subVolume={subVolume}/>
                         <SonarBlips blips={blips} trackedBlipId={trackedBlipId} scale={scale} debug={debug}/>
-                        <HitMarks hitMarks={hitMarks}/>
+                        <DReferenceFrame position={position.scale(SCALE_MULTIPLIER)} theta={orientation}>
+                            <HitMarks hitMarks={hitMarks}/>
+                        </DReferenceFrame>
+
                         <Ranges position={position} scale={scale} ranges={ranges}/>
                         <AimLines scale={scale} aimLines={aimLines}/>
                     </DSonarView>

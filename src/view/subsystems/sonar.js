@@ -186,14 +186,25 @@ function AimLines({scale, aimLines}) {
     </div>
 }
 
-function linePointsFromPolygon(polygon) {
-    const points = []
-    polygon.points.forEach(p => {
-        points.push(p.x, p.y)
-    })
-    return points
+///////////
+// PROJECTILES
+///////////
 
+function Projectiles({scale, projectiles}) {
+    return <div className="projectiles">
+        {
+            projectiles.map(a => <DSegment
+                key={a.id}
+                width={scale}
+                from={a.from.scale(SCALE_MULTIPLIER)}
+                to={a.to.scale(SCALE_MULTIPLIER)}
+                className="projectile"
+                />)
+        }
+    </div>
 }
+
+
 
 ///////////
 // FEATURES
@@ -381,6 +392,7 @@ function _InnerSonar({
     hitMarks,
     target,
     plants,
+    projectiles,
 }) {
     const scale = SIZE_PX / (range * 2)   // px per unit
 
@@ -407,7 +419,8 @@ function _InnerSonar({
                         </DReferenceFrame>
 
                         <Ranges position={position} scale={scale} ranges={ranges}/>
-                        <AimLines scale={scale} aimLines={aimLines}/>
+                    {/*    <AimLines scale={scale} aimLines={aimLines}/>*/}
+                        <Projectiles scale={scale} projectiles={projectiles}/>
                     </DSonarView>
                     <Target
                         subPosition={position}
@@ -433,6 +446,7 @@ function Sonar({subsystem}) {
     orientation={subsystem.orientation}
     features={subsystem.features}
     aimLines={subsystem.aimLines}
+    projectiles={subsystem.projectiles}
     blips={subsystem.blips}
     trackedBlipId={subsystem.trackedBlipId}
     debug={subsystem.debug}

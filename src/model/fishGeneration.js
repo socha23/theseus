@@ -47,7 +47,6 @@ const FISHES = {
         rotationSpeed: 1,
         color: "#E08E45",
         aggresive: true,
-        defaultSubFear: -20,
         sightRange: 50,
         territoryRange: 100,
         attacks: [{
@@ -72,7 +71,6 @@ const FISHES = {
             l: {from: 60, to: 80},
         },
         aggresive: true,
-        defaultSubFear: -20,
         sightRange: 30,
         territoryRange: 30,
         flocking: {

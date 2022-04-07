@@ -4,7 +4,7 @@ import { AimLine, AIM_LINE_TYPE, RangeCircle, RANGE_CIRCLE_TYPE } from './sonar'
 import { Effect, EFFECT_TYPES, shootHit, shootMiss } from '../effects'
 import { MATERIALS, MATERIAL_DEFINITIONS } from '../materials'
 import { paramValue } from '../../utils'
-import { Point } from '../physics'
+import { Point, Vector, vectorForPolar } from '../physics'
 
 
 
@@ -126,12 +126,19 @@ export class Weapon extends Subsystem {
         hit.forEach(e => {
             var hitVector = model.sub.position.vectorTo(e.position)
             hitVector = hitVector.withLength(hitVector.length - e.radius / 2)
+            const hitPosition = model.sub.position.plus(hitVector)
             e.onHit({
                 ...this.damage,
                 strength: paramValue(this.damage.strength),
-                position: model.sub.position.plus(hitVector)
+                position: hitPosition
             })
+            model.sub.addEffect(new ProjectileFired(model.sub.position, e.position))
         })
+
+        if (hit.length === 0) {
+            model.sub.addEffect(new ProjectileFired(model.sub.position, model.sub.position.plus(vectorForPolar(this.range, Math.random() * 2 * Math.PI))))
+
+        }
     }
 
     updateState(deltaMs, model, actionController) {
@@ -296,6 +303,47 @@ class Aim {
                 distancePercent: percentize(this._crosshairsPos, this._sonarRange),
                 sizePercent: percentize(CROSSHAIRS_SIZE, this._sonarRange)
             } : null,
+        }
+    }
+}
+
+export const EFFECT_PROJECTILE = "projectile"
+
+class ProjectileFired extends Effect {
+    constructor(from, to, params) {
+        super({...params,
+            type: EFFECT_PROJECTILE,
+            length:2,
+            speed:200,
+        })
+        this.from = from
+        this.to = to
+        this.distTravelled = 0
+
+        this.pFrom = from
+        this.pTo = from
+    }
+
+    updateState(deltaMs, model, actionController) {
+        super.updateState(deltaMs, model, actionController)
+        const vect = this.from.vectorTo(this.to)
+
+        const dist = vect.length
+        this.distTravelled += (deltaMs * this.params.speed * 0.001)
+
+        if (this.distTravelled > dist) {
+            this.onCompleted(model)
+        } else {
+            this.pFrom = this.from.plus(vectorForPolar(this.distTravelled, vect.theta))
+            this.pTo = this.from.plus(vectorForPolar(this.distTravelled + this.params.length, vect.theta))
+        }
+    }
+
+    toViewState() {
+        return {
+            ...super.toViewState(),
+            from: this.pFrom,
+            to: this.pTo,
         }
     }
 }

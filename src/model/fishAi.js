@@ -331,7 +331,6 @@ class AvoidEntity extends Behavior {
                 }
             }
         }
-        console.log("FEAR")
         return planMoveToPoint(this.entity, bestPoint, model.map)
     }
 }

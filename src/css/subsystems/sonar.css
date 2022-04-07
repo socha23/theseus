@@ -119,6 +119,20 @@
 }
 
 /*
+ * PROJECTILES
+ */
+ .subsystem .sonar .projectiles {
+    pointer-events: none;
+}
+
+.subsystem .sonar .projectile {
+    background-color: white;
+    opacity: 1;
+}
+
+
+
+/*
  * MARKER
  */
  .subsystem .sonar .subMarker {

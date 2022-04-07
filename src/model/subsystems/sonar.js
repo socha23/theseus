@@ -110,6 +110,7 @@ export class Sonar extends Subsystem {
                 features: this._observeFeatures(model) ?? [],
                 toggleActions: [this.debugAction.toViewState()],
                 hitMarks: sub.hitMarksViewState() ?? [],
+                projectiles: sub.projectiles.map(p => p.toViewState()),
                 target: model.target,
         }
     }

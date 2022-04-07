@@ -262,7 +262,7 @@ export class Subsystem extends HasEffects {
     addEffect(effect) {
         super.addEffect(effect)
         if (this.on && effect.shutdown) {
-            this.shutdown()
+            this.shutdown(false)
         }
     }
 

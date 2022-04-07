@@ -7,6 +7,8 @@ import { Engine } from './subsystems/engine'
 import { randomElem } from '../utils.js'
 import { shake, Effect } from './effects.js'
 import { MATERIALS } from './materials.js'
+import { toHaveFocus } from '@testing-library/jest-dom/dist/matchers'
+import { EFFECT_PROJECTILE } from './subsystems/weapons.js'
 
 class Steering {
     constructor() {
@@ -186,6 +188,10 @@ export class Sub extends Entity {
         const result = []
         this.subsystems.forEach(s => {result.push(...s.ranges)})
         return result
+    }
+
+    get projectiles() {
+        return this.effects.filter(e => e.type === EFFECT_PROJECTILE)
     }
 
     get aimLines() {

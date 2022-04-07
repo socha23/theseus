@@ -71,7 +71,7 @@ class PowerManagement {
             )
         while (this._balance < 0 && shutdownOrder.length > 0) {
             const s = shutdownOrder.shift()
-            s.shutdown()
+            s.shutdown(false)
             this._updateCaches()
         }
     }
@@ -288,8 +288,10 @@ export class Sub extends Entity {
             s.addHeavyDamage()
         } else if (d > 2) {
             s.addMediumDamage()
-        } else {
+        } else if (d > 0) {
             s.addLightDamage()
+        } else {
+            // no damage
         }
     }
 

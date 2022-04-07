@@ -4,6 +4,8 @@ import { Effect } from "./effects"
 import { fishAI } from "./fishAi"
 import { Entity } from "./entities"
 import { physicsProfile } from "./physicsLab"
+import { toHaveStyle } from "@testing-library/jest-dom/dist/matchers"
+import { paramValue, randomElem } from "../utils"
 
 const DEFAULT_DAMAGE = {
     strength: 10,
@@ -27,13 +29,15 @@ const DEFAULT_FISH_TEMPALTE = {
     color: "red",
     territoryRange: 0,
     defaultSubFear: 0,
+    ac: 10,
+    painLevel: 1,
 }
 
 export class Fish extends Entity {
     constructor(id, body, template, aiCreator=fishAI) {
         super(id, body)
         this.template = {...DEFAULT_FISH_TEMPALTE, ...template}
-        this.tailForce = template.tailForce
+        this._tailForce = template.tailForce
         this.rotationForce = template.rotationForce
         this.rotationSpeed = template.rotationSpeed
         this._ai = aiCreator(this)
@@ -76,6 +80,10 @@ export class Fish extends Entity {
         return this._ai.subFear
     }
 
+    get ac() {
+        return this.template.ac
+    }
+
 
     get params() {
         return this.template
@@ -98,27 +106,58 @@ export class Fish extends Entity {
 
     onHit(damage) {
         super.onHit()
-        const effectiveDamage = damage * 1000 / this.mass
-        const wounds = effectiveDamage / Math.random()
-        if (wounds < 1) {
-            this.onDamage(LIGHT_DAMAGE)
-        } else if (wounds < 2) {
-            this.onDamage(MEDIUM_DAMAGE)
-        } else if (wounds < 4) {
-            this.onDamage(HEAVY_DAMAGE)
+
+        const effectiveDamage = damage.strength / this.ac
+
+        // consider:
+        // low-caliber, damage 10
+        // high-caliber, damage 25
+
+        // little fish, ac 5 - l: high, h: overwhelming
+        // med fish, ac 10 - l: normal, h: high
+        // big fish, ac 25 - l: low, h: normal
+        // ginormous fish, ac 50 - l: not effective, h: normal
+
+        const damageClasses = [
+            TRIVIAL_DAMAGE,
+            LIGHT_DAMAGE,
+            MEDIUM_DAMAGE,
+            HEAVY_DAMAGE,
+            CATASTROPHIC_DAMAGE
+        ]
+
+        var classIdx = 0
+        if (effectiveDamage < 1/4) {
+            // below 1/4: not effective
+            classIdx = 0
+        } else if (effectiveDamage < 1/2) {
+            classIdx = 1
+        } else if (effectiveDamage < 2) {
+            classIdx = 2
+        } else if (effectiveDamage < 4) {
+            classIdx = 3
         } else {
-            this.onDamage(HEAVY_DAMAGE)
-            this.onDamage(HEAVY_DAMAGE)
-            this.onDamage(HEAVY_DAMAGE)
+            classIdx = 4
         }
+
+        // some chance of going class higher or lower
+        const r = Math.random()
+        if (r < 0.2) {
+            classIdx = Math.max(0, classIdx - 1)
+        }
+        if (r > 0.8) {
+            classIdx = Math.min(damageClasses.length - 1, classIdx + 1)
+        }
+
+        const dam = randomElem(damageClasses[classIdx])
+        this.onDamage(dam)
     }
 
     onHearGunshot() {
-        console.log("HEAR SHOT")
         this.addEffect(new Effect({
             type: "fearOfGunshot",
-            durationMs: 5 * 1000,
-            fearOfSub: 10,
+            durationMs: 2 * 1000,
+            fearOfSub: 5,
         }))
     }
 
@@ -139,12 +178,18 @@ export class Fish extends Entity {
         this._attacks.forEach(a => {a.updateState(deltaMs)})
 
         if (this.alive) {
+            this._pain = this.cumulativeEffect("pain")
+            this._tailForce = this.template.tailForce * this.multiplicativeEffect("tailForce")
             this._bleedRate = this.cumulativeEffect("bleedRate")
             this._blood = Math.max(0, this._blood - (this._bleedRate * deltaMs / 1000))
             if (this._blood <= 0) {
                 this.onDie()
             }
         }
+    }
+
+    get tailForce() {
+        return this._tailForce
     }
 
     get mouthPoint() {
@@ -160,6 +205,10 @@ export class Fish extends Entity {
         v.planDescription = this._ai.planDescription
         v.isFish = true
         return v
+    }
+
+    get pain() {
+        return this._pain * this.template.painLevel
     }
 }
 
@@ -189,7 +238,7 @@ class FishAttack {
     attack(target) {
         target.onHit({
             position: this._entity.mouthPoint,
-            damage: this._damage,
+            damage: {...this._damage, strength: paramValue(this._damage.strength)},
         })
         this._cooldown = this._cooldownMax
     }
@@ -210,37 +259,206 @@ const DAMAGE_PARAMS = {
     durationMs: 0,
 }
 
-const LIGHT_DAMAGE = {
+const DAMAGE_TYPES = {
+   TRIVIAL: "trivial",
+   LIGHT: "light",
+   MEDIUM: "medium",
+   HEAVY: "heavy",
+   OVERWHELMING: "overwhelming",
+}
+
+// trivial damage doesn't really do anything
+const TRIVIAL_DAMAGE = [{
     ...DAMAGE_PARAMS,
-    name: "Light damage",
-    bleedRate: 0.01,
+    name: "Trivial damage",
+    type: DAMAGE_TYPES.TRIVIAL,
+    bleedRate: 0.005,
     shockChance: 0,
     durationMs: 5 * 1000,
-    fearOfSub: 10,
+    pain: 0,
+}]
 
-}
 
-const MEDIUM_DAMAGE = {
-    ...DAMAGE_PARAMS,
-    name: "Medium damage",
-    bleedRate: 0.02,
-    shockChance: 0.1,
-    durationMs: 60 * 1000,
-    fearOfSub: 20,
-}
+// light damage is mostly harmless. When it accumulates it may be a problem for a fish.
+const LIGHT_DAMAGE = [
+    {
+        name: "Painful stab",
+        type: DAMAGE_TYPES.LIGHT,
+        bleedTotal: 0.02,
+        bleedDurationS: 5,
+        shockChance: 0,
+        durationS: 5,
+        pain: 20,
+        painDurationS: 1,
+        tailForce: 0.95,
+    },
+    {
+        name: "Grazed skin",
+        type: DAMAGE_TYPES.LIGHT,
+        bleedTotal: 0.02,
+        bleedDurationS: 5,
+        shockChance: 0,
+        durationS: 10,
+        painDurationS: 5,
+        pain: 10,
+        tailForce: 0.95,
+    },
+    {
+        name: "Lanced appendage",
+        type: DAMAGE_TYPES.LIGHT,
+        bleedTotal: 0.02,
+        bleedDurationS: 5,
+        shockChance: 0,
+        durationS: 10,
+        painDurationS: 3,
+        pain: 15,
+        tailForce: 0.95,
+    },
+    {
+        name: "Injured tail",
+        type: DAMAGE_TYPES.LIGHT,
+        bleedTotal: 0.02,
+        bleedDurationS: 5,
+        shockChance: 0,
+        durationS: 180,
+        pain: 10,
+        painDurationS: 10,
+        tailForce: 0.9,
+    },
+    {
+        name: "Pierced fin",
+        type: DAMAGE_TYPES.LIGHT,
+        bleedTotal: 0.02,
+        bleedDurationS: 5,
+        shockChance: 0,
+        durationS: 180,
+        pain: 10,
+        painDurationS: 10,
+        tailForce: 0.9,
+    },
 
-const HEAVY_DAMAGE = {
-    ...DAMAGE_PARAMS,
-    name: "Heavy damage",
-    bleedRate: 0.05,
-    shockChance: 0.2,
-    fearOfSub: 10,
-}
+]
+
+// medium damage is an issue. Fish is able to fight, but should be able to take like two before retreating, and three before dying.
+const MEDIUM_DAMAGE = [
+    {
+        name: "Right in the eye",
+        type: DAMAGE_TYPES.MEDIUM,
+        durationS: 5,
+        bleedTotal: 0.1,
+        bleedDurationS: 5,
+        shockChance: 0.2,
+        pain: 80,
+        painDurationS: 5,
+    },
+    {
+        name: "Where it hurts",
+        type: DAMAGE_TYPES.MEDIUM,
+        durationS: 5,
+        bleedTotal: 0.1,
+        bleedDurationS: 5,
+        shockChance: 0.2,
+        pain: 80,
+        painDurationS: 5,
+    },
+    {
+        name: "Pierced body",
+        type: DAMAGE_TYPES.MEDIUM,
+        durationS: 5,
+        bleedTotal: 0.3,
+        bleedDurationS: 5,
+        shockChance: 0.2,
+        pain: 20,
+        painDurationS: 5,
+        tailForce: 0.8,
+    },
+    {
+        name: "Perforated body",
+        type: DAMAGE_TYPES.MEDIUM,
+        durationS: 5,
+        bleedTotal: 0.3,
+        bleedDurationS: 5,
+        shockChance: 0.2,
+        pain: 20,
+        painDurationS: 5,
+        tailForce: 0.8,
+    },
+    {
+        name: "Damaged tail",
+        type: DAMAGE_TYPES.MEDIUM,
+        bleedTotal: 0.25,
+        bleedDurationS: 5,
+        shockChance: 0.2,
+        durationS: 300,
+        pain: 20,
+        painDurationS: 60,
+        tailForce: 0.5,
+    },
+    {
+        name: "Mangled fin",
+        type: DAMAGE_TYPES.MEDIUM,
+        bleedTotal: 0.25,
+        bleedDurationS: 5,
+        shockChance: 0.2,
+        durationS: 300,
+        pain: 20,
+        painDurationS: 60,
+        tailForce: 0.5,
+    },
+]
+
+// fish is in trouble now! one heavy damage should render it almost inoperable, two should be almost a cerain death
+const HEAVY_DAMAGE = [
+    {
+        name: "Perforated organs",
+        type: DAMAGE_TYPES.HEAVY,
+        bleedTotal: 0.4,
+        bleedDurationS: 2,
+        shockChance: 0.5,
+        durationS: 300,
+        pain: 50,
+        tailForce: 0.5,
+    },
+    {
+        name: "Devastated tail",
+        type: DAMAGE_TYPES.HEAVY,
+        bleedTotal: 0.4,
+        bleedDurationS: 2,
+        shockChance: 0.5,
+        durationS: 300,
+        pain: 50,
+        tailForce: 0.2,
+    },
+]
+
+const CATASTROPHIC_DAMAGE = [
+    {
+        name: "Devastated",
+        type: DAMAGE_TYPES.OVERWHELMING,
+        bleedTotal: 1,
+        bleedDurationS: 3,
+        shockChance: 0.7,
+        pain: 80,
+    },
+]
 
 
 class FishDamage extends Effect {
     constructor(params) {
         super({...DAMAGE_PARAMS, ...params})
+        this._timeSinceStart = 0
+
+        if (this.params.durationS) {
+            this.params.durationMs = paramValue(this.params.durationS) * 1000
+        }
+
+        if (this.params.bleedTotal) {
+            const bleedTotal = paramValue(this.params.bleedTotal)
+            const bleedTimeS = paramValue(this.params.bleedDurationS, paramValue(this.params.durationMs, 1000))
+            const bleedRate = bleedTotal / bleedTimeS
+            this.params.bleedRate = bleedRate
+        }
+
     }
 
     toViewState() {
@@ -248,6 +466,24 @@ class FishDamage extends Effect {
             ...super.toViewState(),
             name: this.params.name,
             description: this.params.description,
+        }
+    }
+
+    updateState(deltaMs, model, ac) {
+        super.updateState(deltaMs, model, ac)
+
+        // pain and blood can be only temporary
+        this._timeSinceStart += deltaMs
+
+        const painDuration = paramValue(this.params.painDurationS, 0) * 1000
+        if (painDuration > 0 && this._timeSinceStart >= painDuration) {
+            this.params.pain = 0
+        }
+
+
+        const bloodDuration = paramValue(this.params.bleedDurationS, 0) * 1000
+        if (bloodDuration > 0 && this._timeSinceStart >= bloodDuration) {
+            this.params.bleedRate = 0
         }
     }
 }

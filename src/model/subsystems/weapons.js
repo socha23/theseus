@@ -3,14 +3,21 @@ import { Subsystem } from './index'
 import { AimLine, AIM_LINE_TYPE, RangeCircle, RANGE_CIRCLE_TYPE } from './sonar'
 import { Effect, EFFECT_TYPES, shootHit, shootMiss } from '../effects'
 import { MATERIALS, MATERIAL_DEFINITIONS } from '../materials'
+import { paramValue } from '../../utils'
 
+export const DAMAGE_TYPES = {
+    PIERCING: "piercing"
+}
 
 const DEFAULT_WEAPON_PARAMS = {
     reloadTime: 5000,
     ammoMax: 5,
     powerConsumption: 10,
     range: 20,
-    damage: 10,
+    damage: {
+        type: DAMAGE_TYPES.PIERCING,
+        strength: 10,
+    },
 }
 
 export class Weapon extends Subsystem {
@@ -114,7 +121,7 @@ export class Weapon extends Subsystem {
         const hit = this._aim.shoot(model)
         this.addEffect(hit.length > 0 ? shootHit() : shootMiss())
         hit.forEach(e => {
-            e.onHit(this.damage)
+            e.onHit({...this.damage, strength: paramValue(this.damage.strength)})
         })
     }
 

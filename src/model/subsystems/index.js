@@ -169,8 +169,11 @@ export class Subsystem extends HasEffects {
         return false
     }
 
-    shutdown() {
+    shutdown(withLock = true) {
         this._on = false
+        if (withLock) {
+            this._actionOn.value = true
+        }
         this.addEffect(shutdown())
     }
 

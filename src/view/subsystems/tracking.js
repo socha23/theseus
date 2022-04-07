@@ -5,7 +5,7 @@ import "../../css/subsystems/tracking.css"
 
 
 function Effect({effect}) {
-    return <div className="effect ">
+    return <div className={"effect " + effect.type + " "}>
         <div className="name">
             {effect.name}
         </div>

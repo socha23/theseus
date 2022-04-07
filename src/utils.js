@@ -29,7 +29,8 @@ export function relativeAngle(from, to) {
     return delta
 }
 
-export function paramValue(param) {
+export function paramValue(param, defaultVal) {
+    param = param ?? defaultVal
     if (typeof(param) == "number") {
         return param
     } else if (param.from || param.to) {

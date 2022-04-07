@@ -9,6 +9,7 @@ import { Fish } from "./fish"
 const FISHES = {
     SMALL_FISH: {
         id: "small_fish",
+        ac: 5,
         volume: new Volume(0.5, 0.5, 2, 0.2),
         tailForce: 2 * 1000,
         rotationalForce: 1 * 1000,
@@ -21,6 +22,7 @@ const FISHES = {
     },
     GOAT_FISH: {
         id: "goat_fish",
+        ac: 8,
         volume: new Volume(1, 1, 3, 0.2),
         tailForce: 5 * 1000,
         rotationalForce: 2 * 1000,
@@ -38,6 +40,7 @@ const FISHES = {
     },
     ORANGE_FISH: {
         id: "orange_fish",
+        ac: 10,
         volume: new Volume(2, 2, 3, 0.2),
         tailForce: 25 * 1000,
         rotationalForce: 2 * 1000,
@@ -52,12 +55,13 @@ const FISHES = {
             cooldown: 1000,
             damage: {
                 type: "default",
-                strength: 5,
+                strength: 1,//5,
             }
         }],
     },
     BITER: {
         id: "biter",
+        ac: 5,
         volume: new Volume(1, 1, 2, 0.2),
         tailForce: 10 * 1000,
         rotationalForce: 2 * 1000,
@@ -86,6 +90,7 @@ const FISHES = {
     },
     RED_FISH: {
         id: "big_fish",
+        ac: 25,
         volume: new Volume(2, 2, 5, 0.1),
         tailForce: 35 * 1000,
         rotationalForce: 2 * 1000,
@@ -107,9 +112,9 @@ const FISHES = {
 
 
 const DEFAULT_PARAMS = {
-    startDistanceSubFromAggresive: 60,
+    startDistanceSubFromAggresive: 30,
     fishes: [
-        {
+/*        {
             type: FISHES.SMALL_FISH,
             count: 30,
             flockSize: {from: 10, to: 20}
@@ -131,6 +136,10 @@ const DEFAULT_PARAMS = {
         {
             type: FISHES.RED_FISH,
             count: 20,
+        },*/
+        {
+            type: FISHES.ORANGE_FISH,
+            count: 70,
         },
         ]
 }

@@ -66,10 +66,7 @@ export class FishAI {
             this._updateBehavior(model, true)
         }
 
-        this.subFear = Math.max(0, Math.min(100,
-            (this.entity.params.defaultSubFear ?? 0)
-            + this.entity.cumulativeEffect("fearOfSub")
-        ))
+        this.subFear = Math.max(0, Math.min(100, this.entity.pain))
     }
 
     _updateBehavior(model, preserveCurrentPlan=true) {
@@ -344,13 +341,9 @@ class FearTheSub extends AvoidEntity {
         super(entity, sub, {
             name: "Fearing the sub",
             priority: 80,
+            engageDistance: 60,
             ...params
         })
-    }
-
-    get engageDistance() {
-        const fearFactor = Math.min(0.5, this.entity.subFear / 100)
-        return fearFactor * 60
     }
 
     priority(model) {

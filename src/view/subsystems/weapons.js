@@ -1,10 +1,13 @@
 import { ActionButton } from "../widgets"
-import "../../css/subsystems/weapons.css"
 import { useContext, useCallback, memo } from "react"
 import { ActionControllerCtx } from "../../actionController"
 import { transpose } from "../../utils"
 import { DArea, DRect, DEllipse, DCircle } from "../divGraphics"
 import { Point } from "../../model/physics"
+
+import "../../css/subsystems/weapons.css"
+import "../../css/subsystems/hitmarks.css"
+
 
 function AmmoBullet({spent}) {
     return <span className='bullet'>
@@ -56,6 +59,15 @@ function AimTarget({target, aimBarWidth, aimBarHeight}) {
             height={targetWidth}
             color={target.color}
         />
+        {
+            // hitmarks
+            target.hitMarks.map(h => <DCircle
+                key={h.id}
+                position={center.plus(h.position)}
+                radius={h.strength / 3}
+                className="hitMark"
+            />)
+        }
         {
             /* click overlay */
             <DCircle

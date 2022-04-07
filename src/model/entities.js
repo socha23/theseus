@@ -9,6 +9,7 @@ export class Entity extends HasEffects {
         this.id = id
         this.body = body
         this.deleted = false
+        this._hitMarksViewState = []
     }
 
     get radius() {
@@ -71,7 +72,7 @@ export class Entity extends HasEffects {
     updateState(deltaMs, model) {
         super.updateState(deltaMs, model)
         this.body.updateState(deltaMs, model, c => {this.onCollision(c)})
-
+        this._hitMarksViewState = this._createHitMarksViewState()
     }
 
     distanceTo(p) {
@@ -104,6 +105,10 @@ export class Entity extends HasEffects {
     }
 
     hitMarksViewState() {
+        return this._hitMarksViewState
+    }
+
+    _createHitMarksViewState() {
         return this.effects
             .filter(e => e.type === HIT_MARK_STATUS)
             .map(h => ({

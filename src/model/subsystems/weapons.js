@@ -6,6 +6,8 @@ import { MATERIALS, MATERIAL_DEFINITIONS } from '../materials'
 import { paramValue } from '../../utils'
 import { Point } from '../physics'
 
+
+
 export const DAMAGE_TYPES = {
     PIERCING: "piercing"
 }
@@ -288,6 +290,7 @@ class Aim {
                 sizePercent: percentize(t.size, this._sonarRange),
                 color: t.entity.color,
                 selected: t.selected,
+                hitMarks: t.entity.hitMarksViewState(),
             })),
             crosshairs: this._aiming ? {
                 distancePercent: percentize(this._crosshairsPos, this._sonarRange),

@@ -2,9 +2,11 @@ import React, { memo, useContext, useCallback } from "react";
 import { Point, SimpleRect } from "../../model/physics";
 import { relativeAngle } from "../../utils";
 import { ActionButton } from "../widgets";
-import "../../css/subsystems/sonar.css"
 import { ActionControllerCtx } from "../../actionController";
 import { DArea, DCircle, DEllipse, DLine, DSegment, DRect, DReferenceFrame, DSonarView, DPolygon } from "../divGraphics";
+
+import "../../css/subsystems/sonar.css"
+import "../../css/subsystems/hitmarks.css"
 
 const SIZE_PX = 420
 

@@ -10,9 +10,9 @@ const FISHES = {
     SMALL_FISH: {
         id: "small_fish",
         ac: 5,
+        maxSpeed: 8,
         volume: new Volume(0.5, 0.5, 2, 0.2),
         tailForce: 2 * 1000,
-        rotationalForce: 1 * 1000,
         rotationSpeed: 1,
         color: "#AEF3E7",
         flocking: {
@@ -23,9 +23,9 @@ const FISHES = {
     GOAT_FISH: {
         id: "goat_fish",
         ac: 8,
+        maxSpeed: 5,
         volume: new Volume(1, 1, 3, 0.2),
         tailForce: 5 * 1000,
-        rotationalForce: 2 * 1000,
         rotationSpeed: 1,
         color: {
             h: {from: 217, to: 220},
@@ -33,17 +33,13 @@ const FISHES = {
             l: {from: 50, to: 70},
         },
         territoryRange: 30,
-        flocking: {
-            flockRange: 20,
-            flockSatisfyTime: {from: 5 * 1000, to: 10 * 1000},
-        }
     },
     ORANGE_FISH: {
         id: "orange_fish",
         ac: 10,
+        maxSpeed: 8,
         volume: new Volume(2, 2, 3, 0.2),
         tailForce: 25 * 1000,
-        rotationalForce: 2 * 1000,
         rotationSpeed: 1,
         color: "#E08E45",
         aggresive: true,
@@ -63,7 +59,6 @@ const FISHES = {
         ac: 5,
         volume: new Volume(1, 1, 2, 0.2),
         tailForce: 10 * 1000,
-        rotationalForce: 2 * 1000,
         rotationSpeed: 1,
         color: {
             h: 277,
@@ -89,9 +84,9 @@ const FISHES = {
     RED_FISH: {
         id: "big_fish",
         ac: 25,
+        maxSpeed: 12,
         volume: new Volume(2, 2, 5, 0.1),
         tailForce: 35 * 1000,
-        rotationalForce: 2 * 1000,
         rotationSpeed: 1,
         color: "red",
         aggresive: true,
@@ -114,26 +109,25 @@ const DEFAULT_PARAMS = {
     fishes: [
         {
             type: FISHES.SMALL_FISH,
-            count: 40,
-            flockSize: {from: 10, to: 20}
+            count: 30,
+            flockSize: {from: 5, to: 15}
         },
         {
             type: FISHES.GOAT_FISH,
-            count: 40,
-            flockSize: {from: 1, to: 3}
+            count: 100,
         },
         {
             type: FISHES.ORANGE_FISH,
-            count: 40,
+            count: 50,
         },
         {
             type: FISHES.BITER,
-            count: 20,
+            count: 0,//20,
             flockSize: {from: 3, to: 5}
         },
         {
             type: FISHES.RED_FISH,
-            count: 20,
+            count: 30,
         }
         ]
 }

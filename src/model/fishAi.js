@@ -267,7 +267,7 @@ class DontCrashIntoWalls extends Behavior {
     }
 
     drivingIntoWall(map) {
-        const dstPoint = this.entity.position.plus(this.entity.speedVector.scale(this.params.detectionTimeS))
+        const dstPoint = this.entity.position.plus(this.entity.speed.scale(this.params.detectionTimeS))
         const hitbox = new Path(this.entity.position, dstPoint, this.entity.radius * 2).polygon()
         return map.detectCollision(hitbox) != null
     }
@@ -276,7 +276,7 @@ class DontCrashIntoWalls extends Behavior {
         for (var theta = Math.PI / 4; theta <= Math.PI; theta += Math.PI / 4) {
             for (var sign in [-1, 1]) {
                 const dTheta = sign * theta
-                const speed = vectorForPolar(this.entity.speedVector.length, this.entity.speedVector.theta + dTheta)
+                const speed = vectorForPolar(this.entity.speed.length, this.entity.speed.theta + dTheta)
                 const point = this.entity.position.plus(speed.scale(this.params.avoidTimeS))
                 const hitboxWidth = this.entity.radius * 2
                 const hitbox = new Path(this.entity.position, point, hitboxWidth).polygon()

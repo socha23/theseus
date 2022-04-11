@@ -28,7 +28,7 @@ export class Entity extends HasEffects {
         return this.body.orientation
     }
 
-    get speedVector() {
+    get speed() {
         return this.body.speed
     }
 

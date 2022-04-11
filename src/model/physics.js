@@ -167,7 +167,6 @@ export class Body {
 
         this._actingForce = Vector.ZERO
         this._actingRotation = 0
-        this._actingFixedOrientation = null
     }
 
     // acting force should be a vector
@@ -181,21 +180,12 @@ export class Body {
         this._actingRotation += rotation
     }
 
-    setActingOrientation(orientation) {
-        this._actingFixedOrientation = orientation
-    }
-
-    get actingFixedOrientation() {
-        return this._actingFixedOrientation
-    }
-
-
     updateState(deltaMs, model, onCollision) {
         if (this.speed.length === 0
             && this.rotationSpeed === 0
             && this._actingForce.length === 0
             && this._actingRotation === 0
-            && this._actingFixedOrientation === null) {
+            ) {
                 return
             }
 
@@ -226,7 +216,6 @@ export class Body {
         this.lastActingForce = this._actingForce
         this._actingForce = Vector.ZERO
         this._actingRotation = 0
-        this._actingFixedOrientation = null
     }
 
     _resolveCollision(collision, onCollision) {
@@ -243,7 +232,6 @@ export class Body {
         if (Math.abs(this._actingRotation) < ROTATION_MOVEMENT_HUSH) {
             this._actingRotation = 0
         }
-        this._actingFixedOrientation = null
 
         collision.relativeAngle = (2 * Math.PI + collision.impactForce.theta - this.orientation) % (2 * Math.PI)
 
@@ -300,7 +288,7 @@ export class Body {
         if (Math.abs(projectedRotationSpeed) < ROTATION_MOVEMENT_HUSH && this._actingRotation === 0) {
             this.rotationSpeed = 0
         }
-        const projectedOrientation = this._actingFixedOrientation != null ? this._actingFixedOrientation : ((2 * Math.PI + this.orientation + projectedRotationSpeed * deltaS) % (2 * Math.PI))
+        const projectedOrientation = ((2 * Math.PI + this.orientation + projectedRotationSpeed * deltaS) % (2 * Math.PI))
 
         const projectedBoundingBox = rectangle(projectedPosition, new Point(this.volume.length, this.volume.width)).rotate(projectedOrientation, projectedPosition)
 

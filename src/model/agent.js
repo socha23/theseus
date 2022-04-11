@@ -60,24 +60,20 @@ export class AgentAction {
 
 function _adjustRotation(fish, theta, deltaMs, rotateSpeed = true) {
     // rotate towards target
-    const rotation =
-        Math.sign(relativeAngle(fish.orientation, theta) + Math.PI / 16)
-        * fish.rotationSpeed
-        * deltaMs / 1000
-    var orientation = fish.orientation + rotation
-
-    if (Math.abs(orientation - theta) < Math.PI / 50) {
-        orientation = theta
-    }
-
-    fish.body.setActingOrientation(orientation)
+    const relAngle = relativeAngle(fish.orientation, theta) + Math.PI / 16
+    const rotSpeed = fish.rotationSpeed * Math.sign(relAngle)
+    fish.body.rotationSpeed = rotSpeed
     if (rotateSpeed) {
-        fish.body.speed = fish.body.speed.withTheta(orientation)
+        fish.body.speed = fish.body.speed.withTheta(fish.orientation)
     }
+
 }
 
 function _applyTail(fish, tailForce=fish.tailForce) {
-    fish.body.addActingForce(vectorForPolar(tailForce, fish.body.actingFixedOrientation))
+    if (fish.maxSpeed && fish.speed.length >= fish.maxSpeed) {
+        return // don't wag tail if we at max speed
+    }
+    fish.body.addActingForce(vectorForPolar(tailForce, fish.body.orientation))
 }
 
 

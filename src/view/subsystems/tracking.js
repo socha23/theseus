@@ -12,27 +12,30 @@ function Effect({effect}) {
     </div>
 }
 
-function TrackedEntity({id, alive, bloodPercent, effects, planDescription}) {
+function TrackedEntity({entity}) {
     return <div className="trackedEntity">
         <div>
-            {id} {alive ? "" : " (dead)"}
+            {entity.id} {entity.alive ? "" : " (dead)"}
+        </div>
+        <div>
+            Speed: {entity.speed.toFixed(1)}
         </div>
         <div className="bloodBarContainer">
 
             <div className="bloodBar">
-                <div className="bloodBarInner" style={{width: bloodPercent + "%"}}/>
+                <div className="bloodBarInner" style={{width: entity.bloodPercent + "%"}}/>
             </div>
         </div>
         {
-            (effects.length > 0) && <div className="effects">
+            (entity.effects.length > 0) && <div className="effects">
             {
-                effects.filter(e => e.visible).map(e => <Effect key={e.id} effect={e}/>)
+                entity.effects.filter(e => e.visible).map(e => <Effect key={e.id} effect={e}/>)
             }
             </div>
         }
-        {planDescription && <div>
+        {entity.planDescription && <div>
             {
-                planDescription.map(d => <div key={d}>{d}</div>)
+                entity.planDescription.map(d => <div key={d}>{d}</div>)
             }
         </div>
         }
@@ -45,11 +48,7 @@ function _Tracking({subsystem}) {
 
         {subsystem.on && <div>
             { e ? <TrackedEntity
-                id={e.id}
-                alive={e.alive}
-                bloodPercent={e.bloodPercent}
-                effects={e.effects}
-                planDescription={e.planDescription}
+                entity={e}
                 /> : "Nothing tracked"}
         </div>}
     </div>

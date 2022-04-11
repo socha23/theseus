@@ -46,6 +46,8 @@ export class Fish extends Entity {
         this._blood = 1
         this._bleedRate = 0
 
+        this._maxSpeed = this.params.maxSpeed
+
         this._attacks = this.template.attacks.map(a =>
             new FishAttack(this, a.range, a.cooldown, a.damage)
         )
@@ -87,6 +89,10 @@ export class Fish extends Entity {
 
     get params() {
         return this.template
+    }
+
+    get maxSpeed() {
+        return this._maxSpeed
     }
 
     addBehavior(behavior) {
@@ -180,6 +186,8 @@ export class Fish extends Entity {
         if (this.alive) {
             this._pain = this.cumulativeEffect("pain")
             this._tailForce = this.template.tailForce * this.multiplicativeEffect("tailForce")
+            this._maxSpeed = this.template.maxSpeed * this.multiplicativeEffect("maxSpeed")
+
             this._bleedRate = this.cumulativeEffect("bleedRate")
             this._blood = Math.max(0, this._blood - (this._bleedRate * deltaMs / 1000))
             if (this._blood <= 0) {
@@ -313,6 +321,7 @@ const LIGHT_DAMAGE = [
         painDurationS: 3,
         pain: 15,
         tailForce: 0.95,
+        maxSpeed: 0.95,
     },
     {
         name: "Injured tail",
@@ -324,6 +333,7 @@ const LIGHT_DAMAGE = [
         pain: 10,
         painDurationS: 10,
         tailForce: 0.9,
+        maxSpeed: 0.9,
     },
     {
         name: "Pierced fin",
@@ -335,6 +345,7 @@ const LIGHT_DAMAGE = [
         pain: 10,
         painDurationS: 10,
         tailForce: 0.9,
+        maxSpeed: 0.9,
     },
 
 ]
@@ -371,6 +382,7 @@ const MEDIUM_DAMAGE = [
         pain: 20,
         painDurationS: 5,
         tailForce: 0.8,
+        maxSpeed: 0.8,
     },
     {
         name: "Perforated body",
@@ -382,6 +394,7 @@ const MEDIUM_DAMAGE = [
         pain: 20,
         painDurationS: 5,
         tailForce: 0.8,
+        maxSpeed: 0.8,
     },
     {
         name: "Damaged tail",
@@ -393,6 +406,7 @@ const MEDIUM_DAMAGE = [
         pain: 20,
         painDurationS: 60,
         tailForce: 0.5,
+        maxSpeed: 0.5,
     },
     {
         name: "Mangled fin",
@@ -404,6 +418,7 @@ const MEDIUM_DAMAGE = [
         pain: 20,
         painDurationS: 60,
         tailForce: 0.5,
+        maxSpeed: 0.5,
     },
 ]
 
@@ -418,6 +433,7 @@ const HEAVY_DAMAGE = [
         durationS: 300,
         pain: 50,
         tailForce: 0.5,
+        maxSpeed: 0.5,
     },
     {
         name: "Devastated tail",
@@ -428,6 +444,7 @@ const HEAVY_DAMAGE = [
         durationS: 300,
         pain: 50,
         tailForce: 0.2,
+        maxSpeed: 0.2,
     },
 ]
 

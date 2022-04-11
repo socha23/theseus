@@ -105,7 +105,7 @@ const FISHES = {
 
 
 const DEFAULT_PARAMS = {
-    startDistanceSubFromAggresive: 10,
+    startDistanceSubFromAggresive: 70,
     fishes: [
         {
             type: FISHES.SMALL_FISH,
@@ -118,7 +118,7 @@ const DEFAULT_PARAMS = {
         },
         {
             type: FISHES.ORANGE_FISH,
-            count: 0//50,
+            count: 50,
         },
         {
             type: FISHES.BITER,
@@ -127,7 +127,7 @@ const DEFAULT_PARAMS = {
         },
         {
             type: FISHES.RED_FISH,
-            count: 0//30,
+            count: 30,
         }
         ]
 }

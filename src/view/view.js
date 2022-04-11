@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { memo, useContext } from "react";
 import {SubsystemCell, DropTargets, GRID_CELL_HEIGHT, GRID_CELL_WIDTH} from "./grid"
 import {Subsystem} from "./subsystems"
 import { TooltipArea } from "./tooltip";
@@ -8,12 +8,14 @@ import '../css/water.css';
 import '../css/gameOver.css';
 
 
-function Water({waterLevel}) {
+function _Water({waterLevel}) {
     const MARGIN_BOTTOM = 50
     const height = waterLevel * GRID_CELL_HEIGHT + MARGIN_BOTTOM
 
     return <div className="water" style={{bottom: -MARGIN_BOTTOM, height: height}}></div>
 }
+
+const Water = memo(_Water)
 
 
 function Sub({sub, actionController}) {

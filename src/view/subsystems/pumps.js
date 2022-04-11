@@ -24,7 +24,7 @@ function _Pumps({subsystem}) {
                 <i className={"pumpIcon fa-solid fa-water "}/>
                 <div className="powerBox">
                     <WithTooltip tooltip={<PumpPowerBoxTooltip subsystem={subsystem}/>}>
-                        {(subsystem.pumpPower * 100)} q/s
+                        {(subsystem.pumpPower * 100).toFixed(2)} q/s
                     </WithTooltip>
                 </div>
             </div>

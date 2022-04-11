@@ -94,8 +94,8 @@ export function getStartingSub(position) {
             new Weapon(new Point(3, 1), "railgun", "Railgun", WEAPON_TEMPLATES.RAILGUN),
             new Pumps(new Point(3, 2), "pumps0", "Pumps", PUMP_TEMPLATES.BASIC_PUMP),
             new Storage(new Point(3, 3), "storage0", "Storage", {
-                [MATERIALS.SPARE_PARTS]: 20,
-                [MATERIALS.LEAK_SEALS]: 5,
+                [MATERIALS.SPARE_PARTS]: 10,
+                [MATERIALS.LEAK_SEALS]: 3,
                 [MATERIALS.KINETIC_AMMO]: 5,
                 [MATERIALS.FUEL_RODS]: 3,
             }),

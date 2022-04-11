@@ -1,5 +1,6 @@
 import { MATERIALS } from '../materials'
-import { Subsystem, SubsystemDamage, DAMAGE_CATEGORY } from './index'
+import { Subsystem } from './index'
+import { LEAK, RANDOM_SHUTDOWN, INCREASED_POWER_CONSUMPTION, GRADES } from './damage'
 
 
 const STANDBY_CONSUMPTION = 0.05
@@ -10,10 +11,12 @@ export class Pumps extends Subsystem {
         this.pumping = true
         this.waterLevel = 0
         this.waterFlow = 0
-        this._engagesAt = 0.4
-        this._disengagesAt = 0
+
+        this._baseEngagesAt = 0.4
+
         this._pumpPowerMultiplier = 1
-        this._tankBreaches = false
+        this._additonalEngagesAt = 0
+        this._additonalDisengagesAt = 0
     }
 
     get pumpPowerMultiplier() {
@@ -21,13 +24,11 @@ export class Pumps extends Subsystem {
     }
 
     get engagesAt() {
-        const effect = this.statusEffects.find(e => e instanceof HigherEngage)
-        return this._engagesAt + (effect ? effect.engage : 0)
+        return this._baseEngagesAt + this._additonalEngagesAt
     }
 
     get disengagesAt() {
-        const effect = this.statusEffects.find(e => e instanceof HigherEngage)
-        return this._disengagesAt + (effect ? effect.disengage : 0)
+        return this._additonalDisengagesAt
     }
 
     get pumpPower() {
@@ -35,7 +36,7 @@ export class Pumps extends Subsystem {
     }
 
     get waterResistant() {
-        return super.waterResistant && !this._tankBreaches
+        return true
     }
 
     get activePumpPower() {
@@ -58,12 +59,9 @@ export class Pumps extends Subsystem {
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
 
-        this._tankBreaches = this.statusEffects.some(e => e instanceof TankBreach)
-
-        this._pumpPowerMultiplier = 1
-        this.statusEffects.filter(s => s instanceof ReducedPumpPower).forEach(s => {
-            this._pumpPowerMultiplier *= s.multiplier
-        })
+        this._pumpPowerMultiplier = this.multiplicativeEffect("pumpPowerMultiplier")
+        this._additonalEngagesAt = this.cumulativeEffect("engagesAt")
+        this._additonalDisengagesAt = this.cumulativeEffect("engagesAt")
 
         if (this.pumping && !this.on) {
             this.pumping = false
@@ -91,98 +89,78 @@ export class Pumps extends Subsystem {
             waterFlow: this.waterFlow,
         }
     }
-}
 
-//////////
-// LIGHT DAMAGE
-//////////
-
-
-//////////
-// MEDIUM DAMAGE
-//////////
-
-export class ReducedPumpPower extends SubsystemDamage {
-    static TYPE = "damageReducedPumpPower"
-
-    constructor(multiplier, subsystem, params) {
-        super(subsystem, {
-            type: ReducedPumpPower.TYPE,
-            damageCategory: DAMAGE_CATEGORY.MEDIUM,
-            name: "Bent plunger",
-            description: "Reduced pumping power",
-            repairTime: 5000,
-            requiredMaterials: {
-                [MATERIALS.SPARE_PARTS]: 1,
-            },
-            ...params,
-        })
-        this.multiplier = multiplier
+    getDamageTypes() {
+        return [
+            RANDOM_SHUTDOWN,
+            INCREASED_POWER_CONSUMPTION,
+            INCREASED_POWER_CONSUMPTION,
+            REDUCED_POWER,
+            REDUCED_POWER,
+            PRESSURE_FAILURE,
+            PRESSURE_FAILURE,
+            LEAK,
+            LEAK,
+            LEAK,
+        ]
     }
+
 }
 
-export class HigherEngage extends SubsystemDamage {
-    static TYPE = "damageHigherEngage"
 
-    constructor(subsystem, params, engage = 2, disengage = 1) {
-        super(subsystem, {
-            type: HigherEngage.TYPE,
-            damageCategory: DAMAGE_CATEGORY.MEDIUM,
-            name: "Sensor broken",
-            description: "Engages only at high water level",
-            repairTime: 5000,
-            requiredMaterials: {
-                [MATERIALS.SPARE_PARTS]: 3,
-            },
-            ...params,
-        })
-        this.engage = engage
-        this.disengage = disengage
+export const REDUCED_POWER = {
+    type: "damageReducedPower",
+    icon: "fa-solid fa-gears",
+    repairTime: 5000,
+    requiredMaterials: {
+        [MATERIALS.SPARE_PARTS]: 1,
+    },
+    grades: {
+        [GRADES.LIGHT]: {
+            name: "Run-down motor",
+            description: "Slightly limited pump power",
+            pumpPowerMultiplier: 0.8,
+        },
+        [GRADES.MEDIUM]: {
+            name: "Damaged motor",
+            description: "Limited pump power",
+            pumpPowerMultiplier: 0.5,
+        },
+        [GRADES.HEAVY]: {
+            name: "Wrecked motor",
+            description: "Severly limited pump power",
+            pumpPowerMultiplier: 0.25,
+        },
     }
 }
 
 
-
-//////////
-// HEAVY DAMAGE
-//////////
-
-// tank breach, can't operate underwater
-export class TankBreach extends SubsystemDamage {
-    static TYPE = "damageTankBreach"
-
-    constructor(subsystem, params) {
-        super(subsystem, {
-            type: TankBreach.TYPE,
-            damageCategory: DAMAGE_CATEGORY.HEAVY,
-            name: "Pipes ruptured",
-            description: "Can't operate underwater",
-            requiredMaterials: {
-                [MATERIALS.SPARE_PARTS]: 3,
-            },
-            repairTime: 5000,
-            ...params,
-        })
+export const PRESSURE_FAILURE = {
+    type: "damagePressureFail",
+    icon: "fa-solid fa-water",
+    repairTime: 5000,
+    requiredMaterials: {
+        [MATERIALS.SPARE_PARTS]: 1,
+    },
+    grades: {
+        [GRADES.LIGHT]: {
+            name: "Tank pierced",
+            description: "Can't pump water from last row",
+            engagesAt: 1,
+            disengagesAt: 1,
+        },
+        [GRADES.MEDIUM]: {
+            name: "Tank damaged",
+            description: "Can't pump water from two last rows",
+            engagesAt: 2,
+            disengagesAt: 2,
+        },
+        [GRADES.HEAVY]: {
+            name: "Tank breached",
+            description: "Can't pump water from three last rows",
+            engagesAt: 3,
+            disengagesAt: 3,
+        },
     }
 }
 
-// ruptured bearing , leak
-export class RupturedBearing extends SubsystemDamage {
-    static TYPE = "damageRupturedBearing"
-
-    constructor(subsystem, params) {
-        super(subsystem, {
-            type: RupturedBearing.TYPE,
-            damageCategory: DAMAGE_CATEGORY.HEAVY,
-            name: "Broken bearing",
-            description: "Strong water leak",
-            repairTime: 5000,
-            leak: 0.1,
-            requiredMaterials: {
-                [MATERIALS.SPARE_PARTS]: 1,
-                [MATERIALS.LEAK_SEALS]: 1,
-            },
-            ...params,
-        })
-    }
-}

@@ -125,11 +125,7 @@ export class Subsystem extends HasEffects {
             this.on = false
         }
         this.__updatePowerOnErrors(model)
-        this._statusEffects = this.effects
-            .filter(e => e.statusEffect)
-            .sort((a, b) =>
-                (b.damageCategory * 100 + b.leak)
-            - (a.damageCategory * 100 + a.leak))
+        this._statusEffects = this.effects.filter(e => e.statusEffect)
         this._powerConsumptionMultiplier = this.multiplicativeEffect("powerConsumptionMultiplier")
         this._updateUnderWater(deltaMs, model)
 
@@ -149,7 +145,7 @@ export class Subsystem extends HasEffects {
         const myLevel = (model.sub.gridHeight - this.gridPosition.y) -  this.gridSize.y / 2
         this.underWater = myLevel < model.sub.waterLevel
         if (this.on && this.underWater && !this.waterResistant) {
-            this.shutdown()
+            this.shutdown(false)
         }
 
     }

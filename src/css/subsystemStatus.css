@@ -60,3 +60,7 @@
     gap: 5px;
     height: 100%;
 }
+
+.subsystem .statusEffects .effect .body .name {
+    font-size: 10pt;
+}

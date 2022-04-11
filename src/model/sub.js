@@ -123,6 +123,8 @@ class PowerManagement {
 }
 
 
+const WATER_LEVEL_UPDATE = 50
+
 export class Sub extends Entity {
     constructor(position, volume, subsystems = []) {
         super("sub", new Body(position, volume, 3 * Math.PI / 2))
@@ -143,6 +145,7 @@ export class Sub extends Entity {
 
 
         this._waterLevel = 0
+        this._sinceWaterLevelUpdate = Math.random() * WATER_LEVEL_UPDATE
 
     }
 
@@ -168,7 +171,11 @@ export class Sub extends Entity {
     }
 
     _updateWaterLevel(deltaMs) {
-        this._waterLevel = Math.max(0, Math.min(this._waterLevel + (this.leak * deltaMs / 1000), this.gridHeight))
+        this._sinceWaterLevelUpdate += deltaMs
+        while (this._sinceWaterLevelUpdate > WATER_LEVEL_UPDATE) {
+            this._waterLevel = Math.max(0, Math.min(this._waterLevel + (this.leak * WATER_LEVEL_UPDATE / 1000), this.gridHeight))
+            this._sinceWaterLevelUpdate -= WATER_LEVEL_UPDATE
+        }
     }
 
     _moveSubsystems(actionController) {

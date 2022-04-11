@@ -4,7 +4,7 @@ import { Subsystem } from './index'
 
 export class SubStatusScreen extends Subsystem {
     constructor(gridPosition, id, name) {
-        super(gridPosition, id, name, {powerConsumption: 0, takesDamage: false})
+        super(gridPosition, id, name, {powerConsumption: 0, waterResistant: true, takesDamage: false})
         this.on = true
     }
 

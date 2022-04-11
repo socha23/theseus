@@ -4,7 +4,7 @@ import { Subsystem } from './index'
 
 export class Storage extends Subsystem {
     constructor(gridPosition, id, name, startingInventory = {}) {
-        super(gridPosition, id, name, {powerConsumption: 0})
+        super(gridPosition, id, name, {powerConsumption: 0, takesDamage: false, waterResistant: true})
         this.inventory = startingInventory
 
     }

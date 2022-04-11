@@ -1,5 +1,6 @@
 import { MATERIALS } from '../materials'
-import { Subsystem, SubsystemDamage, DAMAGE_CATEGORY } from './index'
+import { Subsystem } from './index'
+import { LEAK, RANDOM_SHUTDOWN, INCREASED_POWER_CONSUMPTION, GRADES } from './damage'
 
 const THRUST_THROTTLE_CHANGE_SPEED = 1
 const ROT_THROTTLE_CHANGE_SPEED = 5
@@ -101,106 +102,49 @@ export class Engine extends Subsystem {
             speed: this._activeSpeed,
         }
     }
-}
 
 
-const DEFAULT_REDUCED_POWER = {
-    rotationMultiplier: 0.5,
-    thrustMultiplier: 0.5,
-}
-
-class ReducedPower extends SubsystemDamage {
-    constructor(subsystem, params) {
-        super(subsystem, {...DEFAULT_REDUCED_POWER, ...params})
-    }
-
-    get rotationMultiplier() {
-        return this.params.rotationMultiplier
-    }
-
-    get thrustMultiplier() {
-        return this.params.thrustMultiplier
+    getDamageTypes() {
+        return [
+            RANDOM_SHUTDOWN,
+            INCREASED_POWER_CONSUMPTION,
+            INCREASED_POWER_CONSUMPTION,
+            REDUCED_POWER,
+            REDUCED_POWER,
+            REDUCED_POWER,
+            LEAK,
+            LEAK,
+            LEAK,
+        ]
     }
 }
 
-//////////
-// LIGHT DAMAGE
-//////////
-
-// bent propeller
-const DAMAGE_BENT_PROPELLER = "damageBentPropelled"
-function bentPropeller(subsystem, params = {}) {
-    return new ReducedPower(subsystem, {
-        type: DAMAGE_BENT_PROPELLER,
-        damageCategory: DAMAGE_CATEGORY.LIGHT,
-        name: "Bent propeller",
-        description: "Slightly reduced power",
-        repairTime: 5000,
-        requiredMaterials: {
-            [MATERIALS.SPARE_PARTS]: 2,
+export const REDUCED_POWER = {
+    type: "damageReducedDrivingPower",
+    icon: "fa-solid fa-fan",
+    repairTime: 5000,
+    requiredMaterials: {
+        [MATERIALS.SPARE_PARTS]: 1,
+    },
+    grades: {
+        [GRADES.LIGHT]: {
+            name: "Run-down motor",
+            description: "Slightly limited engine power",
+            rotationMultiplier: 0.7,
+            thrustMultiplier: 0.7,
         },
-        rotationMultiplier: 0.7,
-        thrustMultiplier: 0.7,
-        ...params,
-    })
+        [GRADES.MEDIUM]: {
+            name: "Damaged motor",
+            description: "Limited engine powerr",
+            rotationMultiplier: 0.4,
+            thrustMultiplier: 0.4,
+        },
+        [GRADES.HEAVY]: {
+            name: "Wrecked motor",
+            description: "Severly limited engine power",
+            rotationMultiplier: 0.2,
+            thrustMultiplier: 0.2,
+        },
+    }
 }
 
-// leaky seal, small leak
-const DAMAGE_LEAKY_SEAL = "damageLeakySeal"
-function leakySeal(subsystem, params = {}) {
-    return new SubsystemDamage(subsystem, {
-        type: DAMAGE_LEAKY_SEAL,
-        damageCategory: DAMAGE_CATEGORY.LIGHT,
-        name: "Leaky seal",
-        description: "Small water leak",
-        repairTime: 5000,
-        leak: 0.02,
-        requiredMaterials: {
-            [MATERIALS.SPARE_PARTS]: 1,
-            [MATERIALS.LEAK_SEALS]: 1,
-        },
-        ...params,
-    })
-}
-
-
-//////////
-// MEDIUM DAMAGE
-//////////
-
-
-// jammed bearings
-const DAMAGE_JAMMED_BEARINGS = "damageJammedBearings"
-function jammedPowertrain(subsystem, params = {}) {
-    return new ReducedPower(subsystem, {
-        type: DAMAGE_JAMMED_BEARINGS,
-        damageCategory: DAMAGE_CATEGORY.MEDIUM,
-        name: "Jammed bearings",
-        description: "Reduced power",
-        repairTime: 5000,
-        requiredMaterials: {
-            [MATERIALS.SPARE_PARTS]: 2,
-        },
-        rotationMultiplier: 0.3,
-        thrustMultiplier: 0.3,
-        ...params,
-    })
-}
-
-// damaged housing, med leak
-const DAMAGE_DAMAGED_HOUSING = "damageDamagedHousing"
-function rupturedHousing(subsystem, params = {}) {
-    return new SubsystemDamage(subsystem, {
-        type: DAMAGE_DAMAGED_HOUSING,
-        damageCategory: DAMAGE_CATEGORY.MEDIUM,
-        name: "Damaged housing",
-        description: "Water leak",
-        repairTime: 5000,
-        leak: 0.04,
-        requiredMaterials: {
-            [MATERIALS.SPARE_PARTS]: 1,
-            [MATERIALS.LEAK_SEALS]: 1,
-        },
-        ...params,
-    })
-}

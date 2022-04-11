@@ -83,7 +83,7 @@ function StatusEffect({effect}) {
         <WithTooltip tooltip={<div>{effect.description}</div>}>
             <div className="body">
                     <i className={"icon " + effect.icon}/>
-                    <span>{effect.name}</span>
+                    <span className="name">{effect.name}</span>
             </div>
         </WithTooltip>
         <div className="actions">
@@ -94,13 +94,13 @@ function StatusEffect({effect}) {
     </div>
 }
 
-function StatusTab({subsystem, setActiveTab}) {
+function StatusTab({subsystem, goToMain}) {
     const effects = subsystem.statusEffects
 
     const [lastEffectCount, setLastEffectCount] = useState(effects.length)
     if (lastEffectCount > 0 && effects.length === 0) {
         setLastEffectCount(0)
-        setTimeout(() => {setActiveTab(TABS.MAIN)})
+        setTimeout(() => {goToMain()})
     } else if (effects.length !== lastEffectCount) {
         setLastEffectCount(effects.length)
     }
@@ -115,7 +115,7 @@ function StatusTab({subsystem, setActiveTab}) {
                     <div>No active effects</div>
                 </div>
             )}
-            <span className="backToMain" onClick={() => {setActiveTab(TABS.MAIN)}}>Back to main view</span>
+            <span className="backToMain" onClick={goToMain}>Back to main view</span>
         </div>
 }
 
@@ -169,14 +169,8 @@ function _Subsystem({subsystem}) {
     const actionController = useContext(ActionControllerCtx)
     const [activeTab, setActiveTab] = useState(TABS.MAIN)
 
-    function _toggleActiveTab() {
-        if (activeTab === TABS.MAIN) {
-            setActiveTab(TABS.STATUS)
-        } else {
-            setActiveTab(TABS.MAIN)
-        }
-    }
-    const toggleActiveTab = useCallback(() => {_toggleActiveTab()}, [activeTab])
+    const goToStatus = useCallback(() => {setActiveTab(TABS.STATUS)})
+    const goToMain = useCallback(() => {setActiveTab(TABS.MAIN)})
 
     let effectsClassName = ""
 
@@ -196,7 +190,7 @@ function _Subsystem({subsystem}) {
             ><span className="label">
                     {subsystem.name}
             </span></span>
-            <StatusTabMarks effects={subsystem.statusEffects} onClick={toggleActiveTab}/>
+            <StatusTabMarks effects={subsystem.statusEffects} onClick={goToStatus}/>
             {
                 /*
                     <StatusTabIcon subsystem={subsystem} active={activeTab === TABS.STATUS} onClick={toggleActiveTab}/>
@@ -208,7 +202,7 @@ function _Subsystem({subsystem}) {
             (activeTab === TABS.MAIN) && <SubsystemMainTab subsystem={subsystem} />
         }
         {
-            (activeTab === TABS.STATUS) && <StatusTab subsystem={subsystem} setActiveTab={setActiveTab}/>
+            (activeTab === TABS.STATUS) && <StatusTab subsystem={subsystem} goToMain={goToMain}/>
         }
 
 

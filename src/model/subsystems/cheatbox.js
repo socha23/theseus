@@ -7,7 +7,7 @@ import { Pumps } from "./pumps"
 
 export class CheatBox extends Subsystem {
     constructor(gridPosition) {
-        super(gridPosition, "cheatbox", "Cheatbox", {takesDamage: false})
+        super(gridPosition, "cheatbox", "Cheatbox", {takesDamage: false, waterResistant: true})
 
         this.cheats = [
             action({
@@ -27,30 +27,14 @@ export class CheatBox extends Subsystem {
                 id: "cheat_add_pump_damage",
                 name: "Pump damage",
                 onCompleted: (model) => {
-                    const s = model.sub.subsystems.find(s => s instanceof Pumps)
-                    const r = Math.random()
-                    if (r < 0.33) {
-                        s.addLightDamage()
-                    } else if (r < 0.66) {
-                        s.addMediumDamage()
-                    } else {
-                        s.addHeavyDamage()
-                    }
+                    model.sub.subsystems.find(s => s instanceof Pumps).addLightDamage()
                 },
             }),
             action({
                 id: "cheat_add_engine_damage",
                 name: "Engine damage",
                 onCompleted: (model) => {
-                    const s = model.sub.subsystems.find(s => s instanceof Engine)
-                    const r = Math.random()
-                    if (r < 0.33) {
-                        s.addLightDamage()
-                    } else if (r < 0.66) {
-                        s.addMediumDamage()
-                    } else {
-                        s.addHeavyDamage()
-                    }
+                    model.sub.subsystems.find(s => s instanceof Engine).addLightDamage()
                 },
             }),
             action({

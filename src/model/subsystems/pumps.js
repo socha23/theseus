@@ -1,5 +1,4 @@
 import { MATERIALS } from '../materials'
-import { BrokenDown, IncreasedPowerConsumption, RandomShutdown } from './damage'
 import { Subsystem, SubsystemDamage, DAMAGE_CATEGORY } from './index'
 
 
@@ -92,89 +91,12 @@ export class Pumps extends Subsystem {
             waterFlow: this.waterFlow,
         }
     }
-
-    getAvailableLightDamageTypes() {
-        return [
-            ...super.getAvailableLightDamageTypes(),
-            RandomShutdown.TYPE,
-            IncreasedPowerConsumption.TYPE,
-            LeakySeal.TYPE,
-        ]
-    }
-
-
-    getAvailableMediumDamageTypes() {
-        return [
-            ...super.getAvailableMediumDamageTypes(),
-            ReducedPumpPower.TYPE,
-            HigherEngage.TYPE,
-        ]
-    }
-
-    getAvailableHeavyDamageTypes() {
-        return [
-            ...super.getAvailableHeavyDamageTypes(),
-            TankBreach.TYPE,
-            BrokenDown.TYPE,
-            RupturedBearing.TYPE,
-        ]
-    }
-
-    createDamageOfType(type) {
-        if (type === RandomShutdown.TYPE) {
-            return new RandomShutdown(this)
-        }
-        if (type === IncreasedPowerConsumption.TYPE) {
-            return new IncreasedPowerConsumption(this)
-        }
-        if (type === LeakySeal.TYPE) {
-            return new LeakySeal(this)
-        }
-        if (type === ReducedPumpPower.TYPE) {
-            return new ReducedPumpPower(0.5, this)
-        }
-        if (type === HigherEngage.TYPE) {
-            return new HigherEngage(this, {})
-        }
-        if (type === TankBreach.TYPE) {
-            return new TankBreach(this, {})
-        }
-        if (type === BrokenDown.TYPE) {
-            return motorBroken(this)
-        }
-        if (type === RupturedBearing.TYPE) {
-            return new RupturedBearing(this)
-        }
-        return super.createDamageOfType(type)
-    }
-
 }
 
 //////////
 // LIGHT DAMAGE
 //////////
 
-// RandomShutdown
-// IncPowerConsumption
-
-export class LeakySeal extends SubsystemDamage {
-    static TYPE = "damageLeakySeal"
-
-    constructor(subsystem, params) {
-        super(subsystem, {
-            type: LeakySeal.TYPE,
-            damageCategory: DAMAGE_CATEGORY.LIGHT,
-            name: "Leaky seal",
-            description: "Slowly leaks water",
-            repairTime: 5000,
-            leak: 0.02,
-            requiredMaterials: {
-                [MATERIALS.LEAK_SEALS]: 1,
-            },
-            ...params,
-        })
-    }
-}
 
 //////////
 // MEDIUM DAMAGE
@@ -242,15 +164,6 @@ export class TankBreach extends SubsystemDamage {
             ...params,
         })
     }
-}
-
-// motor broken, no use
-function motorBroken(subsystem, params = {}) {
-    return new BrokenDown(subsystem, {
-        name: "Motor busted",
-        damageCategory: DAMAGE_CATEGORY.HEAVY,
-        ...params,
-    })
 }
 
 // ruptured bearing , leak

@@ -206,11 +206,15 @@ export class HasEffects {
         }
     }
 
-    hasEffectOfType(type) {
+    getEffectOfType(type) {
         if (type instanceof Effect) {
             type = type.type
         }
-        return this.effects.some(e => e.type === type)
+        return this.effects.find(e => e.type === type) ?? null
+    }
+
+    hasEffectOfType(type) {
+        return this.getEffectOfType(type) != null
     }
 
     cumulativeEffect(paramName) {

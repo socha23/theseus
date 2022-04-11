@@ -1,5 +1,4 @@
 import { MATERIALS } from '../materials'
-import { BrokenDown, IncreasedPowerConsumption, RandomShutdown } from './damage'
 import { Subsystem, SubsystemDamage, DAMAGE_CATEGORY } from './index'
 
 const THRUST_THROTTLE_CHANGE_SPEED = 1
@@ -102,66 +101,6 @@ export class Engine extends Subsystem {
             speed: this._activeSpeed,
         }
     }
-
-    getAvailableLightDamageTypes() {
-        return [
-            ...super.getAvailableLightDamageTypes(),
-            DAMAGE_TORN_CABLES,
-            DAMAGE_DIRTY_COMMUTATOR,
-            DAMAGE_BENT_PROPELLER,
-            DAMAGE_LEAKY_SEAL,
-        ]
-    }
-
-
-    getAvailableMediumDamageTypes() {
-        return [
-            ...super.getAvailableMediumDamageTypes(),
-            DAMAGE_DAMAGED_TRANSFORMER,
-            DAMAGE_JAMMED_BEARINGS,
-            DAMAGE_DAMAGED_HOUSING,
-        ]
-    }
-
-    getAvailableHeavyDamageTypes() {
-        return [
-            ...super.getAvailableHeavyDamageTypes(),
-            DAMAGE_MOTOR_BUSTED,
-            DAMAGE_RUPTURED_SHELL,
-        ]
-    }
-
-    createDamageOfType(type) {
-        if (type === DAMAGE_TORN_CABLES) {
-            return tornCables(this)
-        }
-        if (type === DAMAGE_DIRTY_COMMUTATOR) {
-            return dirtyCommutator(this)
-        }
-        if (type === DAMAGE_BENT_PROPELLER) {
-            return bentPropeller(this)
-        }
-        if (type === DAMAGE_LEAKY_SEAL) {
-            return leakySeal(this)
-        }
-        if (type === DAMAGE_DAMAGED_TRANSFORMER) {
-            return damagedTransformer(this)
-        }
-        if (type === DAMAGE_JAMMED_BEARINGS) {
-            return jammedPowertrain(this)
-        }
-        if (type === DAMAGE_DAMAGED_HOUSING) {
-            return rupturedHousing(this)
-        }
-        if (type === DAMAGE_MOTOR_BUSTED) {
-            return motorBroken(this)
-        }
-        if (type === DAMAGE_RUPTURED_SHELL) {
-            return rupturedShell(this)
-        }
-        return super.createDamageOfType(type)
-    }
-
 }
 
 
@@ -187,29 +126,6 @@ class ReducedPower extends SubsystemDamage {
 //////////
 // LIGHT DAMAGE
 //////////
-
-// torn cables
-const DAMAGE_TORN_CABLES = "damageTornCables"
-function tornCables(subsystem, params = {}) {
-    return new RandomShutdown(subsystem, {
-        type: DAMAGE_TORN_CABLES,
-        damageCategory: DAMAGE_CATEGORY.LIGHT,
-        ...params
-    })
-}
-
-// dirty commutator
-const DAMAGE_DIRTY_COMMUTATOR = "damageDirtyCommutator"
-function dirtyCommutator(subsystem, params = {}) {
-    return new IncreasedPowerConsumption(subsystem, {
-        ...params,
-        name: "Dirty commutator",
-        description: "Slightly increased power consumption",
-        type: DAMAGE_DIRTY_COMMUTATOR,
-        damageCategory: DAMAGE_CATEGORY.LIGHT,
-        powerConsumptionMultiplier: 1.3
-    })
-}
 
 // bent propeller
 const DAMAGE_BENT_PROPELLER = "damageBentPropelled"
@@ -252,19 +168,6 @@ function leakySeal(subsystem, params = {}) {
 // MEDIUM DAMAGE
 //////////
 
-// damaged transformer
-const DAMAGE_DAMAGED_TRANSFORMER = "damageDamagedTransformer"
-function damagedTransformer(subsystem, params = {}) {
-    return new IncreasedPowerConsumption(subsystem, {
-        name: "Damaged transformer",
-        description: "Increased power consumption",
-        type: DAMAGE_DAMAGED_TRANSFORMER,
-        damageCategory: DAMAGE_CATEGORY.MEDIUM,
-        powerConsumptionMultiplier: 2,
-        ...params,
-    })
-}
-
 
 // jammed bearings
 const DAMAGE_JAMMED_BEARINGS = "damageJammedBearings"
@@ -301,40 +204,3 @@ function rupturedHousing(subsystem, params = {}) {
         ...params,
     })
 }
-
-
-
-//////////
-// HEAVY DAMAGE
-//////////
-
-const DAMAGE_MOTOR_BUSTED = "damageMototrBusted"
-// motor broken, no use
-function motorBroken(subsystem, params = {}) {
-    return new BrokenDown(subsystem, {
-        name: "Motor busted",
-        damageCategory: DAMAGE_CATEGORY.HEAVY,
-        type: DAMAGE_MOTOR_BUSTED,
-        ...params,
-    })
-}
-
-// ruptured housing, strong leak
-const DAMAGE_RUPTURED_SHELL = "damageRupturedShell"
-function rupturedShell(subsystem, params = {}) {
-    return new SubsystemDamage(subsystem, {
-        type: DAMAGE_RUPTURED_SHELL,
-        damageCategory: DAMAGE_CATEGORY.HEAVY,
-        name: "Ruptured shell",
-        description: "Strong water leak",
-        repairTime: 5000,
-        leak: 0.1,
-        requiredMaterials: {
-            [MATERIALS.SPARE_PARTS]: 1,
-            [MATERIALS.LEAK_SEALS]: 1,
-        },
-        ...params,
-    })
-}
-
-

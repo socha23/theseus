@@ -3,6 +3,7 @@ import { ToggleAction, action } from '../action'
 import { Effect, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects, lightDamage, mediumDamage, heavyDamage } from '../effects'
 import { Point } from '../physics.js'
 import { MATERIALS } from '../materials'
+import { damage, GRADES, INCREASED_POWER_CONSUMPTION, LEAK, RANDOM_SHUTDOWN } from './damage'
 
 const DEFAULT_TEMPLATE = {
     powerConsumption: 0,
@@ -237,51 +238,54 @@ export class Subsystem extends HasEffects {
     }
 
     addLightDamage() {
-        this._addDamage(this.getAvailableLightDamageTypes(), new SubsystemDamage(this, GENERIC_LIGHT_DAMAGE))
+        this._addDamage(GRADES.LIGHT)
         this.addEffect(lightDamage())
     }
 
     addMediumDamage() {
-        this._addDamage(this.getAvailableMediumDamageTypes(), new SubsystemDamage(this, GENERIC_MEDIUM_DAMAGE))
+        this._addDamage(GRADES.MEDIUM)
         this.addEffect(mediumDamage())
     }
 
     addHeavyDamage() {
-        this._addDamage(this.getAvailableHeavyDamageTypes(), new SubsystemDamage(this, GENERIC_HEAVY_DAMAGE))
+        this._addDamage(GRADES.HEAVY)
         this.addEffect(heavyDamage())
     }
 
-    _addDamage(types, defaultDamage) {
-        const availableDamageTypes = types.filter(d => !this.hasEffectOfType(d))
-        const damage =  (availableDamageTypes.length > 0)
-            ? this.createDamageOfType(randomElem(availableDamageTypes))
-            : defaultDamage
-        this.addEffect(damage)
+    _addDamage(grade) {
+        const availableTypes = this.getDamageTypes()
+            .filter(params => {
+                const owned = this.getEffectOfType(params.type)
+                return !owned || (owned && !owned.isMaxGrade())
+            })
+
+        const params = randomElem(availableTypes)
+        if (availableTypes.length == 0) {
+            console.log("No more damage available!")
+            return
+        }
+        const owned = this.getEffectOfType(params.type)
+        if (owned) {
+            owned.upgrade(grade)
+        } else {
+            this.addEffect(damage(this, grade, params))
+        }
     }
 
     addEffect(effect) {
         super.addEffect(effect)
         if (this.on && effect.shutdown) {
-            this.shutdown(false)
+            this.shutdown()
         }
     }
 
-    getAvailableLightDamageTypes() {
-        return []
+    getDamageTypes() {
+        return [
+            RANDOM_SHUTDOWN,
+            INCREASED_POWER_CONSUMPTION,
+            LEAK,
+        ]
     }
-
-    getAvailableMediumDamageTypes() {
-        return []
-    }
-
-    getAvailableHeavyDamageTypes() {
-        return []
-    }
-
-    createDamageOfType(type) {
-        throw new Error("Can't create damage")
-    }
-
 }
 
 
@@ -320,6 +324,9 @@ export class StatusEffect extends Effect {
         return this.params.name
     }
 }
+
+///////////////////
+// TO CUT AFTER FINISHING DAMAGE REFAC
 
 export const DAMAGE_CATEGORY = {
     LIGHT: 1,

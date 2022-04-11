@@ -2,71 +2,227 @@ import { SubsystemDamage } from '.'
 import { randomEventOccured } from '../../utils'
 import { powerFlicker } from '../effects'
 import { MATERIALS } from '../materials'
+import { Effect, EFFECT_CATEGORIES } from '../effects'
+import { action } from '../action'
 
+export const GRADES = {
+    LIGHT: 1,
+    MEDIUM: 2,
+    HEAVY: 3
+}
 
+export const DEFAULT_DAMAGE_PARAMS = {
+    category: EFFECT_CATEGORIES.DAMAGE,
+    name: "Damage",
+    type: "damage",
+    description: "Damage",
+    repairTime: 1000,
+    leak: 0,
+    powerConsumptionMultiplier: 1,
+    requiredMaterials: {},
+    shutdown: false,
+    onUpdateState: null,//(effect, deltaMs, model) => {}
+    grades: {
+        [GRADES.LIGHT]: {
+        },
+        [GRADES.MEDIUM]: {
+        },
+        [GRADES.HEAVY]: {
+        },
+    },
+}
 
+export function damage(subsystem, grade, params) {
+    console.log("CREATING DAMAGE", grade, params)
+    return new GradedSubsystemDamage(subsystem, grade, params)
+}
 
-export class RandomShutdown extends SubsystemDamage {
-    static TYPE = "damageRandomShutdown"
+export class GradedSubsystemDamage extends Effect {
+    constructor(subsystem, grade, params) {
+        super({...DEFAULT_DAMAGE_PARAMS, ...params})
+        this.subsystem = subsystem
+        this.grade = grade
+        this.repairAction = this._createRepairAction()
+    }
 
-    constructor(subsystem, params={}) {
-        super(subsystem, {
-            type: RandomShutdown.TYPE,
-            name: "Torn cables",
-            repairTime: 5000,
-            description: "Shuts down sometimes",
-            requiredMaterials: {
-                [MATERIALS.SPARE_PARTS]: 1,
-            },
-            ...params,
+    upgrade(grades) {
+        if (this.grade != GRADES.HEAVY) {
+            this.grade = Math.min(GRADES.HEAVY, this.grade + grades)
+            this.repairAction = this._createRepairAction()
+        }
+    }
+
+    param(name, defVal = null) {
+        return this._curGradeParams()[name] ?? this.params[name] ?? defVal
+    }
+
+    _curGradeParams() {
+        return this.params.grades[this.grade]
+    }
+
+    get statusEffect() {
+        return true
+    }
+
+    get shutdown() {
+        return this.param("shutdown", false)
+    }
+
+    get name() {
+        return this.param("name", "Damage")
+    }
+
+    isMaxGrade() {
+        return this.grade === GRADES.HEAVY
+    }
+
+    _createRepairAction() {
+        return action({
+            id: this.id + "_repair",
+            name: "Repair",
+            longName: "Repair",
+            icon: "fa-solid fa-wrench",
+            progressTime: this.param("repairTime"),
+            requiresOperator: true,
+            onEnterActive: m => {this.subsystem.on = false},
+            onCompleted: m => {this.onCompleted()},
+            requiredMaterials: this.param("requiredMaterials"),
         })
-        this.everyS = this.params.everyS ?? 60
-        this._flickerEveryS = 1
+    }
+
+    addPowerErrorConditions(c, model) {
+        if (this.shutdown) {
+            c.push(this.name)
+        }
+        if (this.repairAction.active) {
+            c.push("Under repair")
+        }
     }
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
-        if (this.subsystem.on && randomEventOccured(deltaMs, this._flickerEveryS)) {
-            this.subsystem.addEffect(powerFlicker())
+        this.repairAction.updateState(deltaMs, model, actionController)
+        if (this.param("onUpdateState")) {
+            this.param("onUpdateState")(this, deltaMs, model)
         }
-        if (this.subsystem.on && randomEventOccured(deltaMs, this.everyS)) {
-            this.subsystem.shutdown()
+    }
+
+    get powerConsumptionMultiplier() {
+        return this.param("powerConsumptionMultiplier")
+    }
+
+    get damageCategory() {
+        return this.grade
+    }
+
+    get type() {
+        return this.param("type")
+    }
+
+    get leak() {
+        return this.param("leak", 0)
+    }
+
+    get description() {
+        return this.param("description")
+    }
+
+    toViewState() {
+        return {
+            ...super.toViewState(),
+            type: this.type,
+            name: this.name,
+            leak: this.leak,
+            description: this.description,
+            actions: [this.repairAction.toViewState()],
+            damageCategory: this.damageCategory,
         }
     }
 }
 
-export class IncreasedPowerConsumption extends SubsystemDamage {
-    static TYPE = "damageIncreasedPowerCnsumption"
-
-    constructor(subsystem, params) {
-        super(subsystem, {
-            type: IncreasedPowerConsumption.TYPE,
-            name: "Damaged transformer",
-            repairTime: 5000,
-            powerConsumptionMultiplier: 2,
-            description: "Increased power consumption",
-            requiredMaterials: {
-                [MATERIALS.SPARE_PARTS]: 2,
-            },
-            ...params,
-        })
+export const LEAK = {
+    type: "damageLeak",
+    repairTime: 5000,
+    requiredMaterials: {
+        [MATERIALS.LEAK_SEALS]: 1,
+    },
+    grades: {
+        [GRADES.LIGHT]: {
+            name: "Small leak",
+            description: "Slowly leaks water",
+            leak: 0.01,
+        },
+        [GRADES.MEDIUM]: {
+            name: "Leak",
+            description: "Leaks water",
+            leak: 0.025,
+        },
+        [GRADES.HEAVY]: {
+            name: "Heavy leak",
+            description: "Quickly leaks water",
+            leak: 0.05,
+        },
     }
 }
 
-export class BrokenDown extends SubsystemDamage {
-    static TYPE = "damageBrokenDown"
-
-    constructor(subsystem, params) {
-        super(subsystem, {
-            type: BrokenDown.TYPE,
-            name: "Broken down",
-            description: "Can't be turned on",
-            repairTime: 5000,
-            requiredMaterials: {
-                [MATERIALS.SPARE_PARTS]: 5,
-            },
+export const RANDOM_SHUTDOWN = {
+    type: "damageRandomShutdown",
+    onUpdateState: (effect, deltaMs, model) => {
+        if (effect.subsystem.on) {
+            if (randomEventOccured(deltaMs, effect.param("flickerS"))) {
+                effect.subsystem.addEffect(powerFlicker())
+            }
+            if (randomEventOccured(deltaMs, effect.param("everyS"))) {
+                effect.subsystem.shutdown()
+            }
+        }
+    },
+    repairTime: 5000,
+    requiredMaterials: {
+        [MATERIALS.SPARE_PARTS]: 1,
+    },
+    grades: {
+        [GRADES.LIGHT]: {
+            name: "Loose cables",
+            description: "Shuts down sometimes",
+            flickerS: 1,
+            everyS: 60,
+        },
+        [GRADES.MEDIUM]: {
+            name: "Damaged cables",
+            description: "Shuts down often",
+            flickerS: 0.5,
+            everyS: 30,
+        },
+        [GRADES.HEAVY]: {
+            name: "Torn cables",
+            description: "Cannot be turned on",
             shutdown: true,
-            ...params,
-        })
+        },
+    }
+}
+
+export const INCREASED_POWER_CONSUMPTION = {
+    type: "damageIncreasedPowerConsumption",
+    repairTime: 5000,
+    requiredMaterials: {
+        [MATERIALS.SPARE_PARTS]: 1,
+    },
+    grades: {
+        [GRADES.LIGHT]: {
+            name: "Faulty transformer",
+            description: "Power consumption x 2",
+            powerConsumptionMultiplier: 2,
+        },
+        [GRADES.MEDIUM]: {
+            name: "Damaged transformer",
+            description: "Power consumption x 3",
+            powerConsumptionMultiplier: 3,
+        },
+        [GRADES.HEAVY]: {
+            name: "Fried transformer",
+            description: "Power consumption x 4",
+            powerConsumptionMultiplier: 4,
+        },
     }
 }

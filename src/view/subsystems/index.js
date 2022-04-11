@@ -1,4 +1,4 @@
-import React, { useContext, useState, memo } from "react";
+import React, { useContext, useState, memo, useMemo, useCallback } from "react";
 import Sonar from "./sonar.js";
 import { ActionButton} from "../widgets"
 import { Weapon } from "./weapons"
@@ -80,16 +80,12 @@ function StatusEffect({effect}) {
             + effect.category + " "
             + "damage" + effect.damageCategory + " "
     }>
-        <div className="body">
-            <div className="name">
-                <WithTooltip tooltip={<div>{effect.description}</div>}>
-                {
-                    (effect.leak > 0) && <i className="icon fa-solid fa-droplet"/>
-                }
-                {effect.name}
-                </WithTooltip>
+        <WithTooltip tooltip={<div>{effect.description}</div>}>
+            <div className="body">
+                    <i className={"icon " + effect.icon}/>
+                    <span>{effect.name}</span>
             </div>
-        </div>
+        </WithTooltip>
         <div className="actions">
             { effect.actions.map(a =>
                 <ActionButton className="slim" action={a} key={a.id}/>
@@ -123,28 +119,28 @@ function StatusTab({subsystem, setActiveTab}) {
         </div>
 }
 
-function StatusTabMark({effect}) {
+function _StatusTabMark({effect, onClick}) {
     const tooltip = <div className="tabMarkTooltip">
-        <div className={"effect damage" + effect.damageCategory}>
+        <div className={"effect damage" + effect.grade}>
             {effect.name}
         </div>
         <div>{effect.description}</div>
     </div>
-    return <div className={"tabMark damage" + effect.damageCategory}>
-        <WithTooltip tooltip={tooltip}>
-        {
-            (effect.leak > 0) && <i className="leak fa-solid fa-droplet"/>
-        }
+    return <WithTooltip tooltip={tooltip}>
+            <div onClick={onClick} className={"tabMark damage" + effect.grade}>
+                <i className={"icon " + effect.icon}/>
+            </div>
         </WithTooltip>
-    </div>
 }
 
-function StatusTabMarks({effects}) {
+const StatusTabMark = memo(_StatusTabMark)
 
+function StatusTabMarks({effects, onClick}) {
     return <div className="statusTabMarks">
         {
             effects.map(e => <StatusTabMark
                 effect={e}
+                onClick={onClick}
                 key={e.id}
                 />
             )
@@ -163,7 +159,6 @@ function StatusTabIcon({subsystem, active, onClick}) {
                 <span className="icon" >
                     <i className="fa-solid fa-screwdriver-wrench" />
                 </span>
-                <StatusTabMarks effects={subsystem.statusEffects} />
             </span>
     </div>
 
@@ -174,13 +169,14 @@ function _Subsystem({subsystem}) {
     const actionController = useContext(ActionControllerCtx)
     const [activeTab, setActiveTab] = useState(TABS.MAIN)
 
-    function toggleActiveTab() {
+    function _toggleActiveTab() {
         if (activeTab === TABS.MAIN) {
             setActiveTab(TABS.STATUS)
         } else {
             setActiveTab(TABS.MAIN)
         }
     }
+    const toggleActiveTab = useCallback(() => {_toggleActiveTab()}, [activeTab])
 
     let effectsClassName = ""
 
@@ -200,7 +196,12 @@ function _Subsystem({subsystem}) {
             ><span className="label">
                     {subsystem.name}
             </span></span>
-            <StatusTabIcon subsystem={subsystem} active={activeTab === TABS.STATUS} onClick={e=> {toggleActiveTab()}}/>
+            <StatusTabMarks effects={subsystem.statusEffects} onClick={toggleActiveTab}/>
+            {
+                /*
+                    <StatusTabIcon subsystem={subsystem} active={activeTab === TABS.STATUS} onClick={toggleActiveTab}/>
+                */
+            }
             <SubsystemPowerButton subsystem={subsystem}/>
         </div>
         {

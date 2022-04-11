@@ -4,6 +4,7 @@ import { powerFlicker } from '../effects'
 import { MATERIALS } from '../materials'
 import { Effect, EFFECT_CATEGORIES } from '../effects'
 import { action } from '../action'
+import { toHaveDisplayValue } from '@testing-library/jest-dom/dist/matchers'
 
 export const GRADES = {
     LIGHT: 1,
@@ -33,9 +34,10 @@ export const DEFAULT_DAMAGE_PARAMS = {
 }
 
 export function damage(subsystem, grade, params) {
-    console.log("CREATING DAMAGE", grade, params)
     return new GradedSubsystemDamage(subsystem, grade, params)
 }
+
+const VIEW_STATE_UPDATE_MS = 1000
 
 export class GradedSubsystemDamage extends Effect {
     constructor(subsystem, grade, params) {
@@ -43,6 +45,9 @@ export class GradedSubsystemDamage extends Effect {
         this.subsystem = subsystem
         this.grade = grade
         this.repairAction = this._createRepairAction()
+
+        this._viewState = this._createViewState()
+        this._sinceLastStateUpdate = Math.random() * VIEW_STATE_UPDATE_MS
     }
 
     upgrade(grades) {
@@ -51,6 +56,7 @@ export class GradedSubsystemDamage extends Effect {
             this.repairAction = this._createRepairAction()
         }
     }
+
 
     param(name, defVal = null) {
         return this._curGradeParams()[name] ?? this.params[name] ?? defVal
@@ -105,6 +111,25 @@ export class GradedSubsystemDamage extends Effect {
         if (this.param("onUpdateState")) {
             this.param("onUpdateState")(this, deltaMs, model)
         }
+        this._sinceLastStateUpdate += deltaMs
+        if (this._sinceLastStateUpdate > VIEW_STATE_UPDATE_MS || (this.repairAction.active)) {
+            this._viewState = this._createViewState()
+            this._sinceLastStateUpdate = 0
+        }
+    }
+
+    _createViewState() {
+        return {
+            ...super.toViewState(),
+            icon: this.param("icon"),
+            grade: this.grade,
+            type: this.type,
+            name: this.name,
+            leak: this.leak,
+            description: this.description,
+            actions: [this.repairAction.toViewState()],
+            damageCategory: this.damageCategory,
+        }
     }
 
     get powerConsumptionMultiplier() {
@@ -128,20 +153,13 @@ export class GradedSubsystemDamage extends Effect {
     }
 
     toViewState() {
-        return {
-            ...super.toViewState(),
-            type: this.type,
-            name: this.name,
-            leak: this.leak,
-            description: this.description,
-            actions: [this.repairAction.toViewState()],
-            damageCategory: this.damageCategory,
-        }
+        return this._viewState
     }
 }
 
 export const LEAK = {
     type: "damageLeak",
+    icon: "fa-solid fa-droplet",
     repairTime: 5000,
     requiredMaterials: {
         [MATERIALS.LEAK_SEALS]: 1,
@@ -167,6 +185,7 @@ export const LEAK = {
 
 export const RANDOM_SHUTDOWN = {
     type: "damageRandomShutdown",
+    icon: "fa-solid fa-power-off",
     onUpdateState: (effect, deltaMs, model) => {
         if (effect.subsystem.on) {
             if (randomEventOccured(deltaMs, effect.param("flickerS"))) {
@@ -204,6 +223,7 @@ export const RANDOM_SHUTDOWN = {
 
 export const INCREASED_POWER_CONSUMPTION = {
     type: "damageIncreasedPowerConsumption",
+    icon: "fa-solid fa-bolt",
     repairTime: 5000,
     requiredMaterials: {
         [MATERIALS.SPARE_PARTS]: 1,

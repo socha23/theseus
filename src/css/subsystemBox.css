@@ -27,7 +27,7 @@
     font-size: 14pt;
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 5px;
 }
 
 .subsystem.unpowered .titleBar {
@@ -70,33 +70,38 @@
 }
 
 .subsystem .statusTabMarks {
-    position: absolute;
-    bottom: -2px;
-    right: 0px;
     display: flex;
+    flex-direction: row;
+    gap: 3px;
 }
 
-.subsystem .statusTabMarks .tabMark {
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
-    box-shadow: 1px 1px 4px rgba(0,0,0,0.5);
-    position: relative;
+.tabMark {
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10pt;
+    border: 1px solid black;
+    cursor: pointer;
+}
+
+.tabMark .icon {
+    color: black;
+    opacity: 0.7;
 }
 
 .tabMark.damage1 {
-    background-color: #a5d000;
-    border: 1px solid #469528;
+    background-color: #00d02d;
 }
 
 .tabMark.damage2 {
     background-color: #dba800;
-    border: 1px solid #7e6000;
 }
 
 .tabMark.damage3 {
     background-color: rgb(194, 0, 0);
-    border: 1px solid #580000;
 }
 
 .tabMark .leak {
@@ -107,6 +112,7 @@
     left: 2px;
 }
 
+/*
 
 .subsystem.unpowered .titleBar .statusTabIcon {
     _color: #ebf100;
@@ -132,7 +138,7 @@
     font-family: sans-serif;
 }
 
-
+*/
 
 
 .subsystem.powered .titleBar .name {

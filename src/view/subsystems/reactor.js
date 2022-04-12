@@ -121,8 +121,8 @@ function ReactorHistory({subsystem, height}) {
     </div>
 }
 
-function ReactorHeat({heatPercent}) {
-    return <SegmentProgress className="heat" reverse={true} segments={10} value={heatPercent} vertical={true}/>
+function ReactorHeat({heatPercent, overheating}) {
+    return <SegmentProgress className={"heat " + (overheating ? "overheating ":"")} reverse={true} segments={10} value={heatPercent} vertical={true}/>
 }
 
 function ReactorFuel({subsystem}) {
@@ -154,7 +154,7 @@ function _Reactor({subsystem}) {
                 <ReactorPowerSlider id={subsystem.id} enabled={subsystem.on}/>
             </div>
             <ReactorHistory subsystem={subsystem} height={HIST_HEIGHT}/>
-            <ReactorHeat heatPercent={subsystem.heatPercent}/>
+            <ReactorHeat overheating={subsystem.overheating} heatPercent={subsystem.heatPercent}/>
         </div>
         <ReactorFuel subsystem={subsystem}/>
         <div className="actions">

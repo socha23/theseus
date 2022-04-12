@@ -59,11 +59,10 @@ export class GradedSubsystemDamage extends Effect {
 
 
     param(name, defVal = null) {
-        return this._curGradeParams()[name] ?? this.params[name] ?? defVal
-    }
-
-    _curGradeParams() {
-        return this.params.grades[this.grade]
+        if (this.params.grades?.[this.grade]?.[name] ?? null != null) {
+            return this.params.grades[this.grade][name]
+        }
+        return this.params[name] ?? defVal
     }
 
     get statusEffect() {
@@ -185,7 +184,7 @@ export const LEAK = {
 
 export const RANDOM_SHUTDOWN = {
     type: "damageRandomShutdown",
-    icon: "fa-solid fa-power-off",
+    icon: "fa-solid fa-plug",
     onUpdateState: (effect, deltaMs, model) => {
         if (effect.subsystem.on) {
             if (randomEventOccured(deltaMs, effect.param("flickerS"))) {
@@ -215,8 +214,9 @@ export const RANDOM_SHUTDOWN = {
         },
         [GRADES.HEAVY]: {
             name: "Torn cables",
-            description: "Cannot be turned on",
-            shutdown: true,
+            description: "Shuts down very often",
+            flickerS: 0.2,
+            everyS: 10,
         },
     }
 }

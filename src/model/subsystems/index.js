@@ -1,8 +1,7 @@
 import { randomElem } from '../../utils'
-import { ToggleAction, action } from '../action'
-import { Effect, poweringUp, poweringDown, shutdown, EFFECT_CATEGORIES, HasEffects, lightDamage, mediumDamage, heavyDamage } from '../effects'
+import { ToggleAction } from '../action'
+import { Effect, poweringUp, poweringDown, shutdown, HasEffects, lightDamage, mediumDamage, heavyDamage } from '../effects'
 import { Point } from '../physics.js'
-import { MATERIALS } from '../materials'
 import { damage, GRADES, INCREASED_POWER_CONSUMPTION, LEAK, RANDOM_SHUTDOWN } from './damage'
 
 const DEFAULT_TEMPLATE = {
@@ -233,22 +232,7 @@ export class Subsystem extends HasEffects {
         return res
     }
 
-    addLightDamage() {
-        this._addDamage(GRADES.LIGHT)
-        this.addEffect(lightDamage())
-    }
-
-    addMediumDamage() {
-        this._addDamage(GRADES.MEDIUM)
-        this.addEffect(mediumDamage())
-    }
-
-    addHeavyDamage() {
-        this._addDamage(GRADES.HEAVY)
-        this.addEffect(heavyDamage())
-    }
-
-    _addDamage(grade) {
+    addRandomDamage(grade=GRADES.LIGHT) {
         const availableTypes = this.getDamageTypes()
             .filter(params => {
                 const owned = this.getEffectOfType(params.type)
@@ -263,9 +247,25 @@ export class Subsystem extends HasEffects {
         const owned = this.getEffectOfType(params.type)
         if (owned) {
             owned.upgrade(grade)
+            this._shakeFor(owned.grade)
         } else {
-            this.addEffect(damage(this, grade, params))
+            this.addDamage(grade, params)
         }
+    }
+
+    _shakeFor(grade) {
+        if (grade == GRADES.LIGHT) {
+            this.addEffect(lightDamage())
+        } else         if (grade == GRADES.MEDIUM) {
+            this.addEffect(mediumDamage())
+        } else {
+            this.addEffect(heavyDamage())
+        }
+    }
+
+    addDamage(grade, params) {
+        this.addEffect(damage(this, grade, params))
+        this._shakeFor(grade)
     }
 
     addEffect(effect) {
@@ -318,119 +318,5 @@ export class StatusEffect extends Effect {
 
     get name() {
         return this.params.name
-    }
-}
-
-///////////////////
-// TO CUT AFTER FINISHING DAMAGE REFAC
-
-export const DAMAGE_CATEGORY = {
-    LIGHT: 1,
-    MEDIUM: 2,
-    HEAVY: 3
-}
-
-export const GENERIC_LIGHT_DAMAGE = {
-    damageCategory: DAMAGE_CATEGORY.LIGHT,
-    name: "Light damage",
-    description: "Generic light damage",
-    type: "damageLight",
-    repairTime: 1000,
-    requiredMaterials: {
-        [MATERIALS.SPARE_PARTS]: 1,
-    }
-}
-
-export const GENERIC_MEDIUM_DAMAGE = {
-    damageCategory: DAMAGE_CATEGORY.MEDIUM,
-    name: "Medium damage",
-    description: "Generic medium damage",
-    type: "damageMedium",
-    repairTime: 3000,
-    leak: 0.02,
-    requiredMaterials: {
-        [MATERIALS.SPARE_PARTS]: 2,
-    }
-}
-
-export const GENERIC_HEAVY_DAMAGE = {
-    damageCategory: DAMAGE_CATEGORY.HEAVY,
-    name: "Heavy damage",
-    description: "Generic heavy damage",
-    type: "damageHeavy",
-    repairTime: 5000,
-    leak: 0.1,
-    requiredMaterials: {
-        [MATERIALS.LEAK_SEALS]: 1,
-    }
-}
-
-
-export const DEFAULT_DAMAGE_PARAMS = {
-    category: EFFECT_CATEGORIES.DAMAGE,
-    description: "Damage",
-    damageCategory: DAMAGE_CATEGORY.MEDIUM,
-    type: "damage",
-    repairTime: 1000,
-    leak: 0,
-    powerConsumptionMultiplier: 1,
-    requiredMaterials: {},
-    shutdown: false,
-}
-
-export class SubsystemDamage extends StatusEffect {
-    constructor(subsystem, params) {
-        super({...DEFAULT_DAMAGE_PARAMS, ...params})
-        this.subsystem = subsystem
-        this.repairAction = action({
-            id: this.id + "_repair",
-            name: "Repair",
-            longName: "Repair",
-            icon: "fa-solid fa-wrench",
-            progressTime: this.params.repairTime,
-            requiresOperator: true,
-            onEnterActive: m => {this.subsystem.on = false},
-            onCompleted: m => {this.onCompleted()},
-            requiredMaterials: this.params.requiredMaterials,
-        });
-        this._actions.push(this.repairAction)
-        this.materialsMissing = false
-    }
-
-    addPowerErrorConditions(c, model) {
-        super.addPowerErrorConditions(c, model)
-        if (this.repairAction.active) {
-            c.push("Under repair")
-        }
-    }
-
-    get damageCategory() {
-        return this.params.damageCategory
-    }
-
-    get powerConsumptionMultiplier() {
-        return this.params.powerConsumptionMultiplier
-    }
-
-    get type() {
-        return this.params.type
-    }
-
-    get leak() {
-        return this.params.leak || 0
-    }
-
-    get description() {
-        return this.params.description
-    }
-
-    toViewState() {
-        return {
-            ...super.toViewState(),
-            type: this.type,
-            leak: this.leak,
-            description: this.description,
-            damageCategory: this.damageCategory,
-        }
     }
 }

@@ -63,4 +63,6 @@
 
 .subsystem .statusEffects .effect .body .name {
     font-size: 10pt;
+    font-weight: bold;
+    text-shadow: 0 0 4px black;
 }

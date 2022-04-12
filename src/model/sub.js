@@ -9,6 +9,7 @@ import { shake, Effect } from './effects.js'
 import { MATERIALS } from './materials.js'
 import { toHaveFocus } from '@testing-library/jest-dom/dist/matchers'
 import { EFFECT_PROJECTILE } from './subsystems/weapons.js'
+import { GRADES } from './subsystems/damage.js'
 
 class Steering {
     constructor() {
@@ -284,28 +285,41 @@ export class Sub extends Entity {
         }
 
         for (var i = 0; i < Math.random() * speed * 2; i++) {
-            this._randomSubsystemFromSide(direction).addLightDamage()
+            this._randomSubsystemFromSide(direction).addRandomDamage(GRADES.LIGHT)
         }
         for (i = 0; i < Math.random() * (speed - 1); i++) {
-            this._randomSubsystemFromSide(direction).addMediumDamage()
+            this._randomSubsystemFromSide(direction).addRandomDamage(GRADES.MEDIUM)
         }
         for (i = 0; i < Math.random() * (speed - 3) * 0.2; i++) {
-            this._randomSubsystemFromSide(direction).addHeavyDamage()
+            this._randomSubsystemFromSide(direction).addRandomDamage(GRADES.HEAVY)
         }
     }
 
     _allocateAtackDamage(damage) {
-        const s = randomElem(this.subsystems.filter(s => s.takesDamage))
         const d = damage.strength
         if (d > 20) {
-            s.addHeavyDamage()
-        } else if (d > 10) {
-            s.addMediumDamage()
-        } else if (d > 0) {
-            s.addLightDamage()
+            this._allocateRandomSubsystemDamage(GRADES.HEAVY)
+        } else if (d > 12) {
+            this._allocateRandomSubsystemDamage(GRADES.MEDIUM)
+        } else if (d > 5) {
+            this._allocateRandomSubsystemDamage(GRADES.LIGHT)
         } else {
             // no damage
         }
+    }
+
+    _allocateRandomSubsystemDamage(grade) {
+        const s = randomElem(this.subsystems.filter(s => s.takesDamage))
+        s.addRandomDamage(grade)
+    }
+
+    onMeltdown() {
+        this._allocateRandomSubsystemDamage(GRADES.LIGHT)
+        this._allocateRandomSubsystemDamage(GRADES.LIGHT)
+        this._allocateRandomSubsystemDamage(GRADES.LIGHT)
+        this._allocateRandomSubsystemDamage(GRADES.MEDIUM)
+        this._allocateRandomSubsystemDamage(GRADES.MEDIUM)
+        this._allocateRandomSubsystemDamage(GRADES.HEAVY)
     }
 
     _getDirection(collision) {

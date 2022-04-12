@@ -1,9 +1,7 @@
 import { Subsystem } from "."
 import { randomElem } from "../../utils"
-import { Engine } from "./engine"
 import { action } from "../action"
 import { Reactor } from "./reactor"
-import { Pumps } from "./pumps"
 
 export class CheatBox extends Subsystem {
     constructor(gridPosition) {
@@ -24,41 +22,18 @@ export class CheatBox extends Subsystem {
                 },
             }),
             action({
-                id: "cheat_add_pump_damage",
-                name: "Pump damage",
+                id: "reactor_dam",
+                name: "Reactor damage",
                 onCompleted: (model) => {
-                    model.sub.subsystems.find(s => s instanceof Pumps).addLightDamage()
-                },
-            }),
-            action({
-                id: "cheat_add_engine_damage",
-                name: "Engine damage",
-                onCompleted: (model) => {
-                    model.sub.subsystems.find(s => s instanceof Engine).addLightDamage()
-                },
-            }),
-            action({
-                id: "cheat_add_light_damage",
-                name: "Add light damage",
-                onCompleted: (model) => {
-                    const s = randomElem(model.sub.subsystems.filter(s => s.takesDamage))
-                    s.addLightDamage()
+                    model.sub.subsystems.find(s => s instanceof Reactor).addRandomDamage()
                 },
             }),
             action({
                 id: "cheat_add_medium_damage",
-                name: "Add medium damage",
+                name: "Add random damage",
                 onCompleted: (model) => {
                     const s = randomElem(model.sub.subsystems.filter(s => s.takesDamage))
-                    s.addMediumDamage()
-                },
-            }),
-            action({
-                id: "cheat_add_heavy_damage",
-                name: "Add heavy damage",
-                onCompleted: (model) => {
-                    const s = randomElem(model.sub.subsystems.filter(s => s.takesDamage))
-                    s.addHeavyDamage()
+                    s.addRandomDamage()
                 },
             }),
         ]

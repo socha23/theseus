@@ -87,6 +87,31 @@
 }
 
 
+
+.reactor .segmentProgress.heat.overheating {
+    border-color: #DA1F05;
+}
+
+
+@keyframes segmentOverheating {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.reactor .segmentProgress.heat.overheating .segment {
+    animation-name: segmentOverheating;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+}
+
+
 .reactor .segmentProgress.heat .seg0.filled {
     background-color: #FFF75D;
 }

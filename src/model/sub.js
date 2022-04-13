@@ -7,7 +7,6 @@ import { Engine } from './subsystems/engine'
 import { randomElem } from '../utils.js'
 import { shake, Effect } from './effects.js'
 import { MATERIALS } from './materials.js'
-import { toHaveFocus } from '@testing-library/jest-dom/dist/matchers'
 import { EFFECT_PROJECTILE } from './subsystems/weapons.js'
 import { GRADES } from './subsystems/damage.js'
 
@@ -92,6 +91,14 @@ class PowerManagement {
 
     get generation() {
         return this._generation
+    }
+
+    get batteryCharge() {
+        return this._batteryCharging
+    }
+
+    get batteryDraw() {
+        return this._batteryDraw
     }
 
     get balance() {

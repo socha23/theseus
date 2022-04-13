@@ -87,7 +87,6 @@ function ReactorHistory({subsystem, height}) {
     }, [myRef, setMySize])
 
     const msToX = (mySize.width + 2) / (timeLength + MS_MARGIN )
-
     return <div className='history' ref={myRef}
         style={{height: height}}>
         {subsystem.on &&
@@ -113,6 +112,24 @@ function ReactorHistory({subsystem, height}) {
                         timeFrom={timeFrom + MS_MARGIN}
                         stroke="red"
                         fill="rgba(255,0,0,0.5)"
+                    />
+                    <StatLine
+                        values={subsystem.historyBatteryCharge}
+                        height={height}
+                        scaleX={msToX}
+                        scaleY={valToY}
+                        timeFrom={timeFrom + MS_MARGIN}
+                        stroke="rgba(255,255,255,0.4)"
+                        fill="transparent"
+                    />
+                    <StatLine
+                        values={subsystem.historyBatteryDraw}
+                        height={height}
+                        scaleX={msToX}
+                        scaleY={valToY}
+                        timeFrom={timeFrom + MS_MARGIN}
+                        stroke="rgba(255,255,255,0.4)"
+                        fill="transparent"
                     />
                     <Rect x={0} y={0} width={mySize.width} height={height} stroke="#a5d000"/>
                 </Layer>

@@ -51,12 +51,24 @@ export class Reactor extends Subsystem {
                 retentionTime: HIST_TIME_MS,
                 minFrameDistance: 200,
             }),
+            batteryDraw: new Statistic({
+                name: "Battery draw",
+                unit: "W",
+                retentionTime: HIST_TIME_MS,
+                minFrameDistance: 200,
+            }),
             powerConsumption: new Statistic({
                 name: "Power consumption",
                 unit: "W",
                 retentionTime: HIST_TIME_MS,
                 minFrameDistance: 200,
-            })
+            }),
+            batteryCharge: new Statistic({
+                name: "Battery charge",
+                unit: "W",
+                retentionTime: HIST_TIME_MS,
+                minFrameDistance: 200,
+            }),
         }
         this.scramAction = action({
             id: id + "_scram",
@@ -226,8 +238,10 @@ export class Reactor extends Subsystem {
 
     updateState(deltaMs, model, actionController) {
         super.updateState(deltaMs, model, actionController)
-        this._statistics.powerProduction.add(this.output, true)
+        this._statistics.powerProduction.add(model.sub.power.generation, true)
+        this._statistics.batteryDraw.add(model.sub.power.generation + model.sub.power.batteryDraw, true)
         this._statistics.powerConsumption.add(model.sub.power.consumption, true)
+        this._statistics.batteryCharge.add(model.sub.power.consumption + model.sub.power.batteryCharge, true)
 
         this._timeSinceReactionUpdated += deltaMs
         while (this._timeSinceReactionUpdated > UPDATE_REACTION_EVERY_MS) {
@@ -251,6 +265,8 @@ export class Reactor extends Subsystem {
             isReactor: true,
             historyPowerProduction: this._statistics.powerProduction.values,
             historyPowerConsumption: this._statistics.powerConsumption.values,
+            historyBatteryCharge: this._statistics.batteryCharge.values,
+            historyBatteryDraw: this._statistics.batteryDraw.values,
             historyTo: Date.now() - 500,
             historyFrom: Date.now() - HIST_TIME_MS,
             maxOutput: this.maxOutput,

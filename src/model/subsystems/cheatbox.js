@@ -1,6 +1,7 @@
 import { Subsystem } from "."
 import { randomElem } from "../../utils"
 import { action } from "../action"
+import { Battery } from "./battery"
 import { Reactor } from "./reactor"
 
 export class CheatBox extends Subsystem {
@@ -22,10 +23,10 @@ export class CheatBox extends Subsystem {
                 },
             }),
             action({
-                id: "reactor_dam",
-                name: "Reactor damage",
+                id: "dam",
+                name: "Battery damage",
                 onCompleted: (model) => {
-                    model.sub.subsystems.find(s => s instanceof Reactor).addRandomDamage()
+                    model.sub.subsystems.find(s => s instanceof Battery).addRandomDamage()
                 },
             }),
             action({

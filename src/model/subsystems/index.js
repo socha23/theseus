@@ -1,6 +1,6 @@
-import { randomElem } from '../../utils'
+import { paramValue, randomElem } from '../../utils'
 import { ToggleAction } from '../action'
-import { Effect, poweringUp, poweringDown, shutdown, HasEffects, lightDamage, mediumDamage, heavyDamage } from '../effects'
+import { Effect, poweringUp, poweringDown, shutdown, HasEffects, lightDamage, mediumDamage, heavyDamage, EFFECT_CATEGORIES } from '../effects'
 import { Point } from '../physics.js'
 import { damage, GRADES, INCREASED_POWER_CONSUMPTION, LEAK, RANDOM_SHUTDOWN } from './damage'
 
@@ -28,6 +28,8 @@ class TogglePowerAction extends ToggleAction {
         return this.subsystem.name + (this.value ? " (disabled)" : "")
     }
 }
+
+const MAX_DAMAGE_PER_SUBSYSTEM = 3
 
 export class Subsystem extends HasEffects {
     constructor(gridPosition, id, name, template={}) {
@@ -80,6 +82,14 @@ export class Subsystem extends HasEffects {
     get disabled() {
         return this._actionOn.value
     }
+
+    param(name, defaultVal) {
+        return paramValue(this.template[name], defaultVal)
+    }
+
+    ////////
+    // VIEW STATE
+    ///////
 
 
     createViewState(model) {
@@ -135,10 +145,10 @@ export class Subsystem extends HasEffects {
         }
     }
 
-    get powerConsumptionMultiplier() {
-        return this._powerConsumptionMultiplier
-    }
 
+    ////////
+    // WATER
+    ///////
 
     _updateUnderWater(deltaMs, model) {
         const myLevel = (model.sub.gridHeight - this.gridPosition.y) -  this.gridSize.y / 2
@@ -148,6 +158,11 @@ export class Subsystem extends HasEffects {
         }
 
     }
+
+    get powerConsumptionMultiplier() {
+        return this._powerConsumptionMultiplier
+    }
+
 
     addInterestingMaterialsIds(map) {
 
@@ -164,6 +179,10 @@ export class Subsystem extends HasEffects {
     isTracking() {
         return false
     }
+
+    ////////
+    // POWER
+    ///////
 
     shutdown(withLock = true) {
         this._on = false
@@ -185,6 +204,28 @@ export class Subsystem extends HasEffects {
         return 0
     }
 
+    get needsCharging() {
+        return false
+    }
+
+    get chargeUpRate() {
+        return 0
+    }
+
+    chargeUp(charge) {
+    }
+
+    get providesCharge() {
+        return false
+    }
+
+    get drawChargeRate() {
+        return 0
+    }
+
+    drawCharge(charge) {
+    }
+
     get canBeTurnedOn() {
         return this._powerOnErrors.length === 0
     }
@@ -203,6 +244,11 @@ export class Subsystem extends HasEffects {
             this.addEffect(poweringDown())
         }
     }
+
+    ////////
+    // UI ELEMS
+    ///////
+
 
     get ranges() {
         return []
@@ -232,13 +278,22 @@ export class Subsystem extends HasEffects {
         return res
     }
 
+    ////////
+    // DAMAGE
+    ///////
+
     addRandomDamage(grade=GRADES.LIGHT) {
-        const availableTypes = this.getDamageTypes()
+        var availableTypes = []
+
+        if (this.getEffectsOfCategory(EFFECT_CATEGORIES.DAMAGE).length == MAX_DAMAGE_PER_SUBSYSTEM) {
+            availableTypes = this.getDamageTypes().filter(p => this.hasEffectOfType(p.type))
+        } else {
+            availableTypes = this.getDamageTypes()
             .filter(params => {
                 const owned = this.getEffectOfType(params.type)
                 return !owned || (owned && !owned.isMaxGrade())
             })
-
+        }
         const params = randomElem(availableTypes)
         if (availableTypes.length == 0) {
             console.log("No more damage available!")
@@ -256,7 +311,7 @@ export class Subsystem extends HasEffects {
     _shakeFor(grade) {
         if (grade == GRADES.LIGHT) {
             this.addEffect(lightDamage())
-        } else         if (grade == GRADES.MEDIUM) {
+        } else if (grade == GRADES.MEDIUM) {
             this.addEffect(mediumDamage())
         } else {
             this.addEffect(heavyDamage())
@@ -268,13 +323,6 @@ export class Subsystem extends HasEffects {
         this._shakeFor(grade)
     }
 
-    addEffect(effect) {
-        super.addEffect(effect)
-        if (this.on && effect.shutdown) {
-            this.shutdown()
-        }
-    }
-
     getDamageTypes() {
         return [
             RANDOM_SHUTDOWN,
@@ -282,6 +330,19 @@ export class Subsystem extends HasEffects {
             LEAK,
         ]
     }
+
+
+    ////////
+    // EFFECTS
+    ///////
+
+    addEffect(effect) {
+        super.addEffect(effect)
+        if (this.on && effect.shutdown) {
+            this.shutdown()
+        }
+    }
+
 }
 
 

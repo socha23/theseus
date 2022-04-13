@@ -13,6 +13,8 @@ import { Storage } from "./subsystems/storage"
 import { MATERIALS } from "./materials"
 import { Minimap } from "./subsystems/minimap"
 import { DAMAGE_TYPES } from "./subsystems/weapons"
+import { Battery } from "./subsystems/battery"
+import { BATTERY_DEFAULTS } from "./subsystems/battery"
 
 const WEAPON_TEMPLATES = {
     COILGUN: {
@@ -86,6 +88,7 @@ export function getStartingSub(position) {
         [
             new Minimap(new Point(0, 0)),
             new CheatBox(new Point(0, 2)),
+            new SubStatusScreen(new Point(0, 3), "status_1", "Status"),
 
             new Sonar(new Point(1, 0), "sonar", "Sonar", SONAR_TEMPLATES.BASIC_SONAR),
             new Tracking(new Point(2, 3), "tracking_1", "Tracking", TRACKING_TEMPLATES.BASIC_TRACKING),
@@ -101,8 +104,8 @@ export function getStartingSub(position) {
             }),
 
             new Reactor(new Point(4, 0), "reactor", "Reactor", REACTOR_TEMPLATES.BASIC_REACTOR),
-            new Engine(new Point(4, 2), "engine_2", "Engine", ENGINE_TEMPLATES.BASIC_ENGINE),
-            new SubStatusScreen(new Point(4, 3), "status_1", "Status"),
+            new Battery(new Point(4, 2), "battery_1", "Battery", BATTERY_DEFAULTS),
+            new Engine(new Point(4, 3), "engine_2", "Engine", ENGINE_TEMPLATES.BASIC_ENGINE),
 
 
     ])

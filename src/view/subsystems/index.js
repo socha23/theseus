@@ -15,6 +15,7 @@ import { SubsystemPowerButton } from "./power.js";
 import '../../css/subsystemBox.css';
 import '../../css/subsystemStatus.css';
 import { ActionControllerCtx } from "../../actionController.js";
+import { Battery } from "./battery.js";
 
 
 ///////////////////////////////////
@@ -51,6 +52,9 @@ function SubsystemMainTab({subsystem}) {
             }
             {
                 subsystem.isPumps && <Pumps subsystem={subsystem}/>
+            }
+            {
+                subsystem.isBattery && <Battery subsystem={subsystem}/>
             }
             {
                 subsystem.isStorage && <Storage inventoryCounts={subsystem.inventoryCounts}/>

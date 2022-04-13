@@ -96,7 +96,7 @@ const FISHES = {
             cooldown: 3000,
             damage: {
                 type: "default",
-                strength: {from: 18, to: 28},
+                strength: {from: 5, to: 30},
             }
         }],
     },

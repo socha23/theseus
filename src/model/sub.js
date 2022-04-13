@@ -66,6 +66,9 @@ class PowerManagement {
         this._consumption = 0
         this._generation = 0
         this._balance = 0
+
+        this._batteryCharging = 0
+        this._batteryDraw = 0
     }
 
     _emergencyShutdown() {
@@ -96,13 +99,37 @@ class PowerManagement {
     }
 
     _updateCaches() {
+        this._batteryCharging = 0
+        this._batteryDraw = 0
         this._consumption = 0
         this._generation = 0
         this.subsystems.forEach(s => {
             this._consumption += s.powerConsumption
             this._generation += s.powerGeneration
         })
-        this._balance = this._generation - this._consumption
+        if (this._generation > this._consumption) {
+            var chargeLeft = this._generation - this._consumption
+            const subsystems = this.subsystems.filter(s => s.on && s.needsCharging)
+            for (var i = 0; i < subsystems.length && chargeLeft > 0; i++) {
+                const s = subsystems[i]
+                const chargeProvided = Math.min(chargeLeft, s.chargeUpRate)
+                this._batteryCharging += chargeProvided
+                chargeLeft -= chargeProvided
+                s.chargeUp(chargeProvided)
+            }
+        } else if (this._generation < this.consumption) {
+            var missingCharge = this._consumption - this._generation
+            const subsystems = this.subsystems.filter(s => s.on && s.providesCharge)
+            for (var i = 0; i < subsystems.length && missingCharge > 0; i++) {
+                const s = subsystems[i]
+                const chargeDrawn = Math.min(missingCharge, s.drawChargeRate)
+                this._batteryDraw += chargeDrawn
+                missingCharge -= chargeDrawn
+                s.drawCharge(chargeDrawn)
+            }
+
+        }
+        this._balance = this._batteryDraw + this._generation - this._consumption - this._batteryCharging
     }
 
     updateState() {

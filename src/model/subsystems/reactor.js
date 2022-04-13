@@ -25,7 +25,7 @@ const DEFAULT_REACTOR = {
     reactionDownSpeed: 0.05,
     heatUpSpeed: 40,
     heatDownSpeed: 40,
-    fuelConsumption: 0.001,
+    fuelConsumption: 0.01,
     overheatsAt: 0.9,
     overpowerMargin: 0.2,
 }

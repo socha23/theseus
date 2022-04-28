@@ -18,13 +18,31 @@ class Game {
             return
         }
         this.gameModel.updateState(delta, this.actionController)
+        STATISTICS.STATE_UPDATE_MS.add(window.performance.now() - time)
         this.lastStateUpate = time
         return this.gameModel.toViewState()
     }
 }
 
+// from https://codesandbox.io/s/requestanimationframe-with-hooks-0kzh3?from-embed
+const useAnimationFrame = callback => {
+    const requestRef = React.useRef()
+    const previousTimeRef = React.useRef()
 
-const TICK_DELAY_MS = 0
+    React.useEffect(() => {
+        const animate = time => {
+            if (previousTimeRef.current !== undefined) {
+                const deltaMs = time - previousTimeRef.current
+                callback(deltaMs)
+            }
+            previousTimeRef.current = time
+            requestRef.current = requestAnimationFrame(animate)
+        }
+        requestRef.current = requestAnimationFrame(animate)
+        return () => cancelAnimationFrame(requestRef.current)
+    }, [])
+}
+
 var lastUpdate = window.performance.now()
 
 function RunningGameView({game, onNewGame}) {
@@ -36,21 +54,15 @@ function RunningGameView({game, onNewGame}) {
             mainDivRef.current.focus()
         }
     }, [])
-    useEffect(() => {
 
-        const interval = setInterval(_ => {
-            const updateStart = window.performance.now()
-            STATISTICS.RENDER_TIME_MS.add(updateStart - lastUpdate)
-            const newState = game.updateState(gameState)
-            STATISTICS.STATE_UPDATE_MS.add(window.performance.now() - updateStart)
-            setGameState(newState)
-            lastUpdate = window.performance.now()
-            commitFrameStats()
-        }, TICK_DELAY_MS)
-        return () => {
-            clearInterval(interval)
-        }
-    }, [game])
+    useAnimationFrame(deltaMs => {
+        STATISTICS.RENDER_TIME_MS.add(window.performance.now() - lastUpdate)
+        const newState = game.updateState(gameState)
+        setGameState(newState)
+        lastUpdate = window.performance.now()
+        commitFrameStats()
+    })
+
     return (
         <div
             ref={mainDivRef}

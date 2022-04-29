@@ -11,24 +11,27 @@ class Game {
         this.lastStateUpate = window.performance.now()
     }
 
-    updateState(state) {
+    updateState() {
         var time = window.performance.now()
         var delta = time - this.lastStateUpate
         if (delta === 0) {
-            return
+            return this.gameModel.toViewState()
         }
         this.gameModel.updateState(delta, this.actionController)
         STATISTICS.STATE_UPDATE_MS.add(window.performance.now() - time)
         this.lastStateUpate = time
         return this.gameModel.toViewState()
     }
+
+    reset() {
+        this.gameModel = new GameModel()
+    }
 }
 
 // from https://codesandbox.io/s/requestanimationframe-with-hooks-0kzh3?from-embed
-const useAnimationFrame = callback => {
+const useAnimationFrame = (callback) => {
     const requestRef = React.useRef()
     const previousTimeRef = React.useRef()
-
     React.useEffect(() => {
         const animate = time => {
             if (previousTimeRef.current !== undefined) {
@@ -57,7 +60,7 @@ function RunningGameView({game, onNewGame}) {
 
     useAnimationFrame(deltaMs => {
         STATISTICS.RENDER_TIME_MS.add(window.performance.now() - lastUpdate)
-        const newState = game.updateState(gameState)
+        const newState = game.updateState()
         setGameState(newState)
         lastUpdate = window.performance.now()
         commitFrameStats()
@@ -80,7 +83,7 @@ function App() {
 
     return (
         <div className="app">
-            <RunningGameView game={game} onNewGame={e => {setGame(new Game())}}/>
+            <RunningGameView game={game} onNewGame={e => {game.reset()}}/>
         </div>
     )
 }

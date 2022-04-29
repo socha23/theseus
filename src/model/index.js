@@ -51,23 +51,22 @@ class GameModel {
     }
 
     _updateEntities(deltaMs) {
-        const newEntities = []
-        for (var eIdx = 0; eIdx < this.entities.length; eIdx++) {
+        var eIdx = 0
+        while (eIdx < this.entities.length) {
             const e = this.entities[eIdx]
-            if (e.position.distanceTo(this.sub.position) < ENTITY_ACTIVATION_DISTANCE) {
-                this.map.removeEntity(e.bounding)
+            if (e.position.inRange(this.sub.position, ENTITY_ACTIVATION_DISTANCE)) {
                 const prevBox = e.boundingBox
                 e.updateState(deltaMs, this)
                 this.map.updateEntity(e, prevBox)
             }
-            if (e.deleted) {
+            if (!e.deleted) {
+                eIdx++
+            } else {
+                this.entities.splice(eIdx, 1)
                 delete this.entitiesById[e.id]
                 this.map.removeEntity(e)
-            } else {
-                newEntities.push(e)
             }
         }
-        this.entities = newEntities
     }
 
     updateState(deltaMs, actionController) {

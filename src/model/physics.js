@@ -26,6 +26,12 @@ export class Point {
         return Math.sqrt(dX * dX + dY * dY)
     }
 
+    inRange(p, range) {
+        const dX = p.x - this.x
+        const dY = p.y - this.y
+        return dX * dX + dY * dY < range * range
+    }
+
     negative() {
         return new Point(-this.x, -this.y)
     }
@@ -157,10 +163,11 @@ export class Body {
     constructor(position,
         volume,
         orientation = 0
-        ) {
-        this.position = new Point(position.x, position.y)
+    ) {
+
+        this.boundingBox = new BoundingBox(position, volume.length, volume.width, orientation)
         this.volume = volume
-        this.orientation = orientation
+
         this.speed = new Vector(0, 0)
         this.rotationSpeed = 0
         this.lastActingForce = Vector.ZERO
@@ -168,6 +175,23 @@ export class Body {
         this._actingForce = Vector.ZERO
         this._actingRotation = 0
     }
+
+    get position() {
+        return this.boundingBox.position
+    }
+
+    set position(val) {
+        this.boundingBox.position = val
+    }
+
+    get orientation() {
+        return this.boundingBox.orientation
+    }
+
+    set orientation(val) {
+        this.boundingBox.orientation = val
+    }
+
 
     // acting force should be a vector
     // rotational force should be a scalar
@@ -210,6 +234,7 @@ export class Body {
         }
         this.position = projectedMove.position
         this.orientation = projectedMove.orientation
+
         this.speed = projectedMove.speed
         this.rotationSpeed = projectedMove.rotationSpeed
 
@@ -290,14 +315,12 @@ export class Body {
         }
         const projectedOrientation = ((2 * Math.PI + this.orientation + projectedRotationSpeed * deltaS) % (2 * Math.PI))
 
-        const projectedBoundingBox = rectangle(projectedPosition, new Point(this.volume.length, this.volume.width)).rotate(projectedOrientation, projectedPosition)
-
         return {
             position: projectedPosition,
             orientation: projectedOrientation,
             speed: projectedSpeed,
             rotationSpeed: projectedRotationSpeed,
-            boundingBox: projectedBoundingBox,
+            boundingBox: new BoundingBox(projectedPosition, this.volume.length, this.volume.width, projectedOrientation),
         }
     }
 
@@ -314,11 +337,6 @@ export class Body {
         return vectorForPolar(frictionForce, frictionDir)
 
     }
-
-    get boundingBox() {
-        return rectangle(this.position, new Point(this.volume.length, this.volume.width)).rotate(this.orientation, this.position)
-    }
-
 
     dorsalThrustVector(r) {
         return vectorForPolar(r, this.orientation)
@@ -401,6 +419,8 @@ export class Polygon {
         })
         this._simpleBoundingBox = new SimpleRect(minX, minY, maxX - minX, maxY - minY)
         this.edges = this._createEdges()
+
+        this.center = new Point((minX + maxX) / 2, (minY + maxY) / 2)
     }
 
     randomPoint() {
@@ -500,26 +520,12 @@ export class Polygon {
         return result
     }
 
-    rotate(theta, origin=this._center()) {
+    rotate(theta, origin=this.center) {
         if (theta !== 0) {
             const points = this.points.map(p => p.rotate(theta, origin))
             return new Polygon(points)
         }
         return this
-    }
-
-    _center() {
-        var minX = Infinity
-        var maxX = -Infinity
-        var minY = Infinity
-        var maxY = -Infinity
-        this.points.forEach(p => {
-            minX = Math.min(minX, p.x)
-            maxX = Math.max(maxX, p.x)
-            minY = Math.min(minY, p.y)
-            maxY = Math.max(maxY, p.y)
-        })
-        return new Point((minX + maxX) / 2, (minY + maxY) / 2)
     }
 
     scale(scale = 1) {
@@ -540,16 +546,189 @@ export function rectangle(position, size, theta=0) {
     ]).rotate(theta)
 }
 
+class BoundingBox {
+    constructor(position, width, height, orientation) {
+
+        this.id = "bb" + autoinc++
+
+        this._position = position
+        this._orientantion = orientation
+
+        this._width = width
+        this._height = height
+
+        this._points = null
+        this._simpleBoundingBox = null
+        this._edges = null
+    }
+
+    get position() {
+        return this._position
+    }
+
+    set position(val) {
+        this._position = val
+        this._points = null
+        this._simpleBoundingBox = null
+        this._edges = null
+    }
+
+    get orientation() {
+        return this._orientantion
+    }
+
+    set orientation(val) {
+        this._orientantion = val
+        this._points = null
+        this._simpleBoundingBox = null
+        this._edges = null
+    }
+
+    _materializePoints() {
+        const theta = this._orientantion
+        const dX = this._width / 2
+        const dY = this._height / 2
+        this._points = [
+            new Point(
+                this.position.x + Math.cos(theta) * dX - Math.sin(theta) * -dY,
+                this.position.y + Math.sin(theta) * dX + Math.cos(theta) * -dY,
+            ),
+            new Point(
+                this.position.x + Math.cos(theta) * dX - Math.sin(theta) * dY,
+                this.position.y + Math.sin(theta) * dX + Math.cos(theta) * dY,
+            ),
+            new Point(
+                this.position.x + Math.cos(theta) * -dX - Math.sin(theta) * dY,
+                this.position.y + Math.sin(theta) * -dX + Math.cos(theta) * dY,
+            ),
+            new Point(
+                this.position.x + Math.cos(theta) * -dX - Math.sin(theta) * -dY,
+                this.position.y + Math.sin(theta) * -dX + Math.cos(theta) * -dY,
+            ),
+        ]
+    }
+
+    get points() {
+        if (this._points === null) {
+            this._materializePoints()
+        }
+        return this._points
+    }
+
+
+    _materializeSimpleBoundingBox() {
+        var minX = Infinity
+        var maxX = -Infinity
+        var minY = Infinity
+        var maxY = -Infinity
+        this.points.forEach(p => {
+            minX = Math.min(minX, p.x)
+            maxX = Math.max(maxX, p.x)
+            minY = Math.min(minY, p.y)
+            maxY = Math.max(maxY, p.y)
+        })
+        this._simpleBoundingBox = new SimpleRect(minX, minY, maxX - minX, maxY - minY)
+    }
+
+    get simpleBoundingBox() {
+        if (this._simpleBoundingBox === null) {
+            this._materializeSimpleBoundingBox()
+        }
+        return this._simpleBoundingBox
+    }
+
+    _materializeEdges() {
+        this._edges = []
+        for (var i1 = 0; i1 < this.points.length; i1++) {
+            var i2 = (i1 + 1) % this.points.length
+            this._edges.push(new Edge(this.points[i1], this.points[i2]))
+        }
+    }
+
+    get edges() {
+        if (this._edges === null) {
+            this._materializeEdges()
+        }
+        return this._edges
+    }
+
+
+    overlaps(other) {
+        if (!this.simpleBoundingBox.overlaps(other.simpleBoundingBox)) {
+            return false
+        }
+
+        for (var x = 0; x < 2; x++) {
+            const polygon = (x === 0) ? this : other;
+
+            for (var i1 = 0; i1 < polygon.points.length; i1++) {
+                var i2 = (i1 + 1) % polygon.points.length
+
+                const p1 = polygon.points[i1]
+                const p2 = polygon.points[i2]
+
+                const normal = new Point(p2.y - p1.y, p1.x - p2.x)
+
+                var minA = Infinity
+                var maxA = -Infinity
+
+                for (var i = 0; i < this.points.length; i++) {
+                    const p = this.points[i]
+                    const projected = normal.x * p.x + normal.y * p.y
+                    if (projected < minA) {
+                        minA = projected
+                    }
+                    if (projected > maxA) {
+                        maxA = projected
+                    }
+                }
+
+                var minB = Infinity
+                var maxB = -Infinity
+
+                for (i = 0; i < other.points.length; i++) {
+                    const p = other.points[i]
+                    const projected = normal.x * p.x + normal.y * p.y
+
+                    if (projected < minB) {
+                        minB = projected
+                    }
+                    if (projected > maxB) {
+                        maxB = projected
+                    }
+                }
+
+                if (maxA < minB || maxB < minA) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
+    myOverlappingEdge(polygon) {
+        var result = null
+        main:
+        for (var eIdx = 0; eIdx < this.edges.length; eIdx++) {
+            const e = this.edges[eIdx]
+            for (var fIdx = 0; fIdx < polygon.edges.length; fIdx++) {
+                const f = polygon.edges[fIdx]
+                if (e.intersects(f)) {
+                    result = e
+                    break main
+                }
+            }
+        }
+        return result
+    }
+}
+
 export class SimpleRect {
     constructor(x, y, width, height) {
         this.x = x
         this.y = y
         this.width = width
         this.height = height
-    }
-
-    get simpleBoundingBox() {
-        return this
     }
 
     contains(p) {
@@ -566,5 +745,9 @@ export class SimpleRect {
             || (this.y + this.height < other.y)
             || (other.y + other.height < this.y)
         )
+    }
+
+    get simpleBoundingBox() {
+        return this
     }
 }

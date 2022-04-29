@@ -1,7 +1,5 @@
-import { Body, Point, rectangle, vectorForPolar, Volume, Polygon } from "./physics"
-
-import { transpose, randomElem, paramColorValue, paramValue, paramFromValue } from "../utils"
-
+import { Body, Point, rectangle, vectorForPolar, Volume } from "./physics"
+import { paramColorValue, paramValue } from "../utils"
 import { Fish } from "./fish"
 
 
@@ -37,7 +35,7 @@ const FISHES = {
     ORANGE_FISH: {
         id: "orange_fish",
         ac: 10,
-        maxSpeed: 8,
+        maxSpeed: 6,
         volume: new Volume(2, 2, 3, 0.2),
         tailForce: 25 * 1000,
         rotationSpeed: 1,
@@ -84,7 +82,7 @@ const FISHES = {
     RED_FISH: {
         id: "big_fish",
         ac: 25,
-        maxSpeed: 12,
+        maxSpeed: 8,
         volume: new Volume(2, 2, 5, 0.1),
         tailForce: 35 * 1000,
         rotationSpeed: 1,
@@ -109,7 +107,7 @@ const DEFAULT_PARAMS = {
     fishes: [
         {
             type: FISHES.SMALL_FISH,
-            count: 30,
+            count: 30, // 30
             flockSize: {from: 5, to: 15}
         },
         {

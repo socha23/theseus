@@ -25,7 +25,7 @@ class CollisionMap {
         this.buckets = []
 
         for (var i = 0; i < this.width * this.height; i++) {
-            this.buckets.push(new Set)
+            this.buckets.push(new Set())
         }
 
     }
@@ -49,14 +49,12 @@ class CollisionMap {
     _bucketsOverlapping(polygon) {
         const result = []
         const box = polygon.simpleBoundingBox
-
-
         for (var x = Math.floor(box.x / this.bucketSize); x <= Math.floor((box.x + box.width) / this.bucketSize); x++) {
             for (var y = Math.floor(box.y / this.bucketSize); y <= Math.floor((box.y + box.height) / this.bucketSize); y++) {
                 result.push(this._getBucket(x, y))
             }
         }
-        if (result.length == 0) {
+        if (result.length === 0) {
             console.trace()
             console.log("NO BUCKETS OVERLAPPING", polygon)
         }
@@ -90,10 +88,7 @@ export class Map {
         this._logicalPolygons = null
 
         this.plantMap = new CollisionMap(from, to, PLANTS_BUCKET_SIZE)
-        this.plants = []
-
         this.entityMap = new CollisionMap(from, to, ENTITIES_BUCKET_SIZE)
-        this.entities = []
 
         this.from = from
         this.to = to
@@ -266,14 +261,11 @@ export class Map {
 
     // entities
     addEntity(entity) {
-        this.entities.push(entity)
         this.entityMap.add(entity.boundingBox, entity)
     }
 
     removeEntity(entity) {
-        const idx = this.entities.indexOf(entity)
-        if (idx >= 0) {
-            this.entities.splice(idx, 1)
+        if (entity) {
             this.entityMap.remove(entity.boundingBox, entity)
         }
     }
@@ -296,7 +288,6 @@ export class Map {
 
     // plants - also entities, but different and stored separately
     addPlant(plant) {
-        this.plants.push(plant)
         this.plantMap.add(plant.boundingBox, plant)
     }
 

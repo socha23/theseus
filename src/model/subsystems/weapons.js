@@ -236,8 +236,8 @@ class Aim {
 
     _updateTargets(model) {
         const myPos = this._weapon._position
-        this._sonarRange = model.sub.sonarRange
 
+        this._sonarRange = model.sub.sonarRange
 
         this._targets = model.map
             .getEntitiesAround(myPos, this._sonarRange)
